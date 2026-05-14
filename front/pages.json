@@ -1,0 +1,154 @@
+{
+  "pages": [
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationBarTitleText": "首页",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/circle/index",
+      "style": {
+        "navigationBarTitleText": "圈子",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/message/index",
+      "style": {
+        "navigationBarTitleText": "消息",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/home/place-list",
+      "style": {
+        "navigationBarTitleText": "附近场所",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/home/store-detail",
+      "style": {
+        "navigationBarTitleText": "场所详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/circle/publish",
+      "style": {
+        "navigationBarTitleText": "发布动态",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/circle/post-detail",
+      "style": {
+        "navigationBarTitleText": "动态详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/message/chat",
+      "style": {
+        "navigationBarTitleText": "聊天",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/message/notification-detail",
+      "style": {
+        "navigationBarTitleText": "通知详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/edit",
+      "style": {
+        "navigationBarTitleText": "编辑资料",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/follows",
+      "style": {
+        "navigationBarTitleText": "关注",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/fans",
+      "style": {
+        "navigationBarTitleText": "粉丝",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/posts",
+      "style": {
+        "navigationBarTitleText": "我的动态",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/collections",
+      "style": {
+        "navigationBarTitleText": "我的收藏",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/pet-info",
+      "style": {
+        "navigationBarTitleText": "宠物信息",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/settings",
+      "style": {
+        "navigationBarTitleText": "设置",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "tabBar": {
+    "custom": true,
+    "color": "#4f4446",
+    "selectedColor": "#71585c",
+    "backgroundColor": "#fff8f7",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/circle/index",
+        "text": "圈子"
+      },
+      {
+        "pagePath": "pages/message/index",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "萌宠治愈家",
+    "navigationBarBackgroundColor": "#fff8f7",
+    "backgroundColor": "#fff8f7"
+  }
+}

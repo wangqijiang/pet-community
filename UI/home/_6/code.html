@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&amp;family=Nunito+Sans:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#d7e7d5",
+                    "on-secondary-fixed-variant": "#4d472e",
+                    "surface-container-highest": "#e8e1e1",
+                    "surface-container": "#f3ecec",
+                    "tertiary-fixed-dim": "#bbcbba",
+                    "tertiary-container": "#daead8",
+                    "secondary-fixed": "#ede2c0",
+                    "primary-fixed-dim": "#dfbfc3",
+                    "surface-tint": "#71585c",
+                    "on-secondary": "#ffffff",
+                    "secondary": "#655e43",
+                    "on-background": "#1e1b1b",
+                    "on-secondary-fixed": "#201b06",
+                    "on-primary-fixed-variant": "#584145",
+                    "on-tertiary-container": "#5b6a5c",
+                    "tertiary": "#546254",
+                    "surface-bright": "#fff8f7",
+                    "error": "#ba1a1a",
+                    "on-surface-variant": "#4f4446",
+                    "error-container": "#ffdad6",
+                    "outline-variant": "#d2c3c4",
+                    "on-primary": "#ffffff",
+                    "background": "#fff8f7",
+                    "on-secondary-container": "#6a6347",
+                    "primary-fixed": "#fcdadf",
+                    "surface": "#fff8f7",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#d0c6a5",
+                    "primary": "#71585c",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed-variant": "#3c4a3d",
+                    "on-tertiary-fixed": "#121e14",
+                    "on-surface": "#1e1b1b",
+                    "on-error-container": "#93000a",
+                    "surface-container-high": "#eee6e6",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed": "#29161a",
+                    "on-primary-container": "#795f64",
+                    "surface-variant": "#e8e1e1",
+                    "inverse-primary": "#dfbfc3",
+                    "inverse-surface": "#333030",
+                    "secondary-container": "#eadfbd",
+                    "outline": "#807476",
+                    "primary-container": "#ffdde2",
+                    "surface-container-low": "#f9f2f2",
+                    "surface-dim": "#dfd8d8",
+                    "inverse-on-surface": "#f6efef"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter-card": "12px",
+                    "padding-container": "16px",
+                    "margin-page": "20px",
+                    "unit": "4px",
+                    "stack-gap": "8px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Plus Jakarta Sans"],
+                    "headline-md": ["Quicksand"],
+                    "display-title": ["Quicksand"],
+                    "body-lg": ["Nunito Sans"],
+                    "body-md": ["Nunito Sans"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "display-title": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #fff8f7;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .bouncy-active:active {
+            transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .pull-to-refresh {
+            animation: rotate 2s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-[0_8px_32px_rgba(168,155,157,0.12)] px-5 py-4 max-w-md mx-auto flex justify-between items-center">
+<div class="flex items-center gap-2 bouncy-active cursor-pointer">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="paws">pets</span>
+<h1 class="font-display-title text-display-title text-primary">同片区热门狗友</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:scale-105 transition-transform" data-icon="notifications">notifications</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-24 px-5 max-w-md mx-auto min-h-screen">
+<!-- Refresh Indicator -->
+<div class="flex flex-col items-center justify-center mb-6 opacity-60">
+<span class="material-symbols-outlined text-primary text-3xl pull-to-refresh" data-icon="paws">pets</span>
+<p class="font-label-caps text-label-caps text-primary mt-2">下拉寻找新邻居...</p>
+</div>
+<!-- Dog Owner List -->
+<div class="space-y-4">
+<!-- List Item 1 -->
+<div class="bg-surface-container-lowest border border-primary-container rounded-xl p-4 flex items-center justify-between shadow-[0_4px_16px_rgba(168,155,157,0.08)] bouncy-active cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="User Avatar" class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A profile portrait of a young woman with a warm, friendly smile, set against a soft-focus sunny park background. The lighting is high-key and gentle, emphasizing a healing and approachable community vibe. The overall aesthetic is clean and modern, matching a soft-ui pet-themed application's pastel color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAB1NwwYQKtn5rrEvv2A5yzAtlBVXBrBcba8XsZbrUQ0YdDxb8QlXpN33NXbpKcju11zL7d9-B-KIyLnfJED1_zeXpUkbN5ruynqb4v1kJuqQ-hc4ggThMskVs3BifOwcGHju412MR90yePM4j_ykLUoCsAfhn1vxf2tOlBd_DBcpp-8fVBZ59aLlYJ1_bL3VLZPtM_HVX0qsh54Iq3NAjf6tsY1sBz3TWKmyMnfqhE_fJeUpkCHCL9OBDL6Vs77yTlhySvPZM6o1Y2"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-0.5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]" data-icon="female" style="font-variation-settings: 'wght' 700;">female</span>
+</div>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h3 class="font-headline-md text-headline-md text-on-surface">糯米团子妈</h3>
+<span class="bg-secondary-container text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-label-caps text-[10px]">Lv.8</span>
+</div>
+<div class="flex gap-2">
+<span class="bg-tertiary-container text-on-tertiary-fixed-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">萨摩耶</span>
+<span class="bg-tertiary-container text-on-tertiary-fixed-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">大型犬</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-label-caps text-primary">500m</p>
+<p class="text-[10px] text-outline-variant mt-1">刚刚在线</p>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="bg-surface-container-lowest border border-primary-container rounded-xl p-4 flex items-center justify-between shadow-[0_4px_16px_rgba(168,155,157,0.08)] bouncy-active cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="User Avatar" class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A headshot of a cheerful man outdoors, illuminated by golden hour sunlight. The style is soft and natural, emphasizing warmth and companionship. The colors are muted and airy to fit a high-end healing aesthetic, with a clean composition typical of a professional lifestyle community app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_D0wFUgc_9QLPaT5DMGS6PELyES_zBSoh6mfmGN35Ni5Agx7QNd3e4Er-SgcaUtGfe_9CDvs6tk3OCq7zR_jHMvfllnGKBDUCbEBYqmP3p56PFuJs276RgEAKAeqhYbLQVsO0BxxMTWGg2fqvpcRd1yUrjnlcVNPQw6yRMKADRv7jVmrTEoC9m0n_aW879O_YY7wvNAkuqROSdsMV_uXYrs7P5h85UkWqT6sfm_6TOkLGLnPqTYnNXXZpQAshzLZyUUP3IoLmEFZM"/>
+<div class="absolute -bottom-1 -right-1 bg-blue-400 text-white rounded-full p-0.5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]" data-icon="male" style="font-variation-settings: 'wght' 700;">male</span>
+</div>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h3 class="font-headline-md text-headline-md text-on-surface">阿强爱修狗</h3>
+<span class="bg-secondary-container text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-label-caps text-[10px]">Lv.5</span>
+</div>
+<div class="flex gap-2">
+<span class="bg-tertiary-container text-on-tertiary-fixed-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">柴犬</span>
+<span class="bg-tertiary-container text-on-tertiary-fixed-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">中型犬</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-label-caps text-primary">820m</p>
+<p class="text-[10px] text-outline-variant mt-1">15分钟前</p>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="bg-surface-container-lowest border border-primary-container rounded-xl p-4 flex items-center justify-between shadow-[0_4px_16px_rgba(168,155,157,0.08)] bouncy-active cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="User Avatar" class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A portrait of a laughing woman with her hair in a messy bun, captured in a bright, minimalist setting with warm indoor lighting. The photography style is light and airy, avoiding harsh shadows to maintain a healing, soft-ui vibe. The image looks professional and inviting for a social pet community platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnTzh_NwDTPmh9z6mIEV8hqUxzBnfmOYjqRV5B74Hjm8GZ9ID9C9xPJWEyliGJ6_KWfv5RuCpp5TESECqFFMUfE8Q-Q6raNp7oBtDpF3nyiaMj3_4ioKUAhnKjgx9Oolpnq8_8Hs6oaoX5YRs2ukhZwKKnlTcjtPSd-scCeDcHyNsFDWT7wlsD3L-Y107jXJNtNB7d6nguE4lwGx3EqBTN7YXv5XTK9scnfpQAYn0qStx3SgYZFtIDucEiukoGbeJq3311s5jDXYMz"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-0.5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]" data-icon="female" style="font-variation-settings: 'wght' 700;">female</span>
+</div>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h3 class="font-headline-md text-headline-md text-on-surface">桃气汽水</h3>
+<span class="bg-secondary-container text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-label-caps text-[10px]">Lv.12</span>
+</div>
+<div class="flex gap-2">
+<span class="bg-tertiary-container text-on-tertiary-fixed-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">泰迪</span>
+<span class="bg-tertiary-container text-on-tertiary-fixed-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">小型犬</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-label-caps text-primary">1.2km</p>
+<p class="text-[10px] text-outline-variant mt-1">30分钟前</p>
+</div>
+</div>
+<!-- List Item 4 -->
+<div class="bg-surface-container-lowest border border-primary-container rounded-xl p-4 flex items-center justify-between shadow-[0_4px_16px_rgba(168,155,157,0.08)] bouncy-active cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="User Avatar" class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A close-up shot of a friendly man in his late 20s, wearing a simple linen shirt. The background is a soft blur of lush green leaves, suggesting an outdoor park setting. The lighting is diffused and flattering, creating a serene and trustworthy personality suited for a pet-loving community app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1e561k6MMTwNEHUwiuhU47wQcfFwEVEsJdZfLcT9hpy3wy7Ljyht463lz0Kn2ljBkWt1kHhz6A1EhnySyex_ZfssksrzpuWCMtpIL5CQpbrY4PZFeoEoEhM68_Gqv61RUpntyGh6wVkfzlxGjiYmhTS3uwygj_uo71n7MBCmso_SjKYy1vbNCREGSAbboclRy60TNUExAz0fXCcLHufk_8cHghdwvh8MP9Pm-XrIToXa7aS8f03CsfQRvNrJRrO4kiZFRejxptbT5"/>
+<div class="absolute -bottom-1 -right-1 bg-blue-400 text-white rounded-full p-0.5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]" data-icon="male" style="font-variation-settings: 'wght' 700;">male</span>
+</div>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h3 class="font-headline-md text-headline-md text-on-surface">咖啡因猎人</h3>
+<span class="bg-secondary-container text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-label-caps text-[10px]">Lv.3</span>
+</div>
+<div class="flex gap-2">
+<span class="bg-tertiary-container text-on-tertiary-fixed-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">金毛</span>
+<span class="bg-tertiary-container text-on-tertiary-fixed-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">大型犬</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-label-caps text-primary">1.5km</p>
+<p class="text-[10px] text-outline-variant mt-1">1小时前</p>
+</div>
+</div>
+<!-- List Item 5 -->
+<div class="bg-surface-container-lowest border border-primary-container rounded-xl p-4 flex items-center justify-between shadow-[0_4px_16px_rgba(168,155,157,0.08)] bouncy-active cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="User Avatar" class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A portrait of a serene woman with a soft expression, set in a bright room with natural window light. The photograph features gentle pastel tones and a clean, uncluttered background, embodying the healing and airy aesthetic of the brand identity. The focus is sharp on her eyes, providing a sense of connection." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDemL9LRuqTC1KDv5mDfQNGRMEv5ZTqd8Wg2lxRRqeqBZfXYkpYvzgLgZlphbrrNO-u2iIwSSxH9CEia4Cy6jjV2iS6Y1uEQR8ovJvLApxdM_Px47OINiNM9sq_PYgXfpk_HgD3PCBxkOfGotRsipJ-BK_Qt7dJpKIqwFoggmedHKL5FX23l3eIa4MAhWQcIBs21uO4OE_o-ENiT5cEhL6hSA-nVENQEABWhQY0XM9FeJZimBD_SzR4XKYXu76_r0LZHfBzuFoOAM4U"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-0.5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]" data-icon="female" style="font-variation-settings: 'wght' 700;">female</span>
+</div>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h3 class="font-headline-md text-headline-md text-on-surface">小王同学</h3>
+<span class="bg-secondary-container text-on-secondary-fixed-variant px-2 py-0.5 rounded-full font-label-caps text-[10px]">Lv.7</span>
+</div>
+<div class="flex gap-2">
+<span class="bg-tertiary-container text-on-tertiary-fixed-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">柯基</span>
+<span class="bg-tertiary-container text-on-tertiary-fixed-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">小型犬</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-label-caps text-primary">2.1km</p>
+<p class="text-[10px] text-outline-variant mt-1">昨天</p>
+</div>
+</div>
+</div>
+<!-- Loading Indicator -->
+<div class="py-8 flex items-center justify-center gap-2 opacity-40">
+<span class="material-symbols-outlined text-sm" data-icon="sync">sync</span>
+<span class="font-label-caps text-label-caps">正在努力加载更多狗友...</span>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest flex justify-around items-center px-4 h-[72px] pb-safe shadow-[0_-4px_16px_rgba(168,155,157,0.08)] rounded-t-xl border-t border-outline-variant/30">
+<div class="flex flex-col items-center justify-center text-on-secondary-fixed-variant bouncy-active">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary relative after:content-['❤'] after:text-[8px] after:absolute after:-top-1 after:animate-bounce bouncy-active">
+<span class="material-symbols-outlined" data-icon="pets">pets</span>
+<span class="font-label-caps text-label-caps mt-1">Circle</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-secondary-fixed-variant bouncy-active">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-label-caps text-label-caps mt-1">Messages</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-secondary-fixed-variant bouncy-active">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps mt-1">Me</span>
+</div>
+</nav>
+<!-- FAB for adding new post (Optional visual enhancement) -->
+<button class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center bouncy-active hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-2xl" data-icon="add" style="font-variation-settings: 'wght' 700;">add</span>
+</button>
+</body></html>

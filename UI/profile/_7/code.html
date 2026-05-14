@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&amp;family=Nunito+Sans:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#71585c",
+                    "on-tertiary-fixed": "#121e14",
+                    "surface-bright": "#fff8f7",
+                    "tertiary": "#546254",
+                    "surface-dim": "#dfd8d8",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#e8e1e1",
+                    "inverse-primary": "#dfbfc3",
+                    "primary-fixed": "#fcdadf",
+                    "on-tertiary-container": "#5b6a5c",
+                    "tertiary-container": "#daead8",
+                    "surface": "#fff8f7",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e8e1e1",
+                    "secondary-fixed-dim": "#d0c6a5",
+                    "primary-container": "#ffdde2",
+                    "outline-variant": "#d2c3c4",
+                    "outline": "#807476",
+                    "secondary-fixed": "#ede2c0",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "secondary": "#655e43",
+                    "surface-container": "#f3ecec",
+                    "primary": "#71585c",
+                    "background": "#fff8f7",
+                    "surface-container-high": "#eee6e6",
+                    "on-surface": "#1e1b1b",
+                    "on-secondary-fixed-variant": "#4d472e",
+                    "secondary-container": "#eadfbd",
+                    "on-background": "#1e1b1b",
+                    "tertiary-fixed-dim": "#bbcbba",
+                    "inverse-on-surface": "#f6efef",
+                    "tertiary-fixed": "#d7e7d5",
+                    "surface-container-low": "#f9f2f2",
+                    "on-secondary-container": "#6a6347",
+                    "on-primary-fixed-variant": "#584145",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#3c4a3d",
+                    "on-surface-variant": "#4f4446",
+                    "on-primary-fixed": "#29161a",
+                    "on-primary-container": "#795f64",
+                    "on-secondary-fixed": "#201b06",
+                    "on-error-container": "#93000a",
+                    "primary-fixed-dim": "#dfbfc3",
+                    "inverse-surface": "#333030",
+                    "on-secondary": "#ffffff",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter-card": "12px",
+                    "margin-page": "20px",
+                    "unit": "4px",
+                    "stack-gap": "8px",
+                    "padding-container": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Nunito Sans"],
+                    "body-md": ["Nunito Sans"],
+                    "label-caps": ["Plus Jakarta Sans"],
+                    "headline-md": ["Quicksand"],
+                    "display-title": ["Quicksand"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "display-title": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bouncy-tap:active {
+            transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .healing-shadow {
+            box-shadow: 0 8px 32px rgba(168, 155, 157, 0.12);
+        }
+        body {
+            background-color: #fff8f7;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-surface selection:bg-primary-container">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-[0_8px_32px_rgba(168,155,157,0.12)]">
+<div class="flex justify-between items-center w-full px-5 py-4 max-w-md mx-auto">
+<button class="bouncy-tap flex items-center justify-center w-10 h-10 rounded-full bg-primary-container text-on-primary-container">
+<span class="material-symbols-outlined" data-icon="paws">Rows</span>
+</button>
+<h1 class="font-display-title text-display-title text-on-primary-container">我的粉丝</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="pt-24 pb-12 px-5 max-w-md mx-auto space-y-4">
+<!-- User Entry 1 -->
+<div class="bouncy-tap bg-surface-container-lowest border border-primary-container/40 rounded-xl p-4 flex items-center gap-4 healing-shadow cursor-pointer">
+<div class="relative">
+<img class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A portrait of a smiling young woman with warm, glowing skin and natural lighting, set against a soft-focus garden background. The image has a dreamy, high-key pastel aesthetic that perfectly matches a healing, soft-ui design system. She radiates a friendly and approachable energy, consistent with a pet-loving community atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTVtWtPp8dhjkU8Veu9MBB5vVESpfImi2A0gXs082xTKeh5y1UrCO-ii3v6Vvd9xG4v_x8qX7DH6CnVqmqtAoWn3nJTcN1sJKahRlsnU02jOrYtjBtS1EYfzSyLMlfLgJTLCwimPfrPLpLsEjYi-1vuf8zxpm3oPUPo0pE5J3N9H08CKc_WdZy-SJOOs_g-NEU_0GaDbEHbmlsRExJY0DJF4oHC2MIn_6cOJsVwrSUtx1KV91TjKjo-1XkTaAGZiulcjgcWjPWtE7r"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-0.5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px]" data-icon="pets" style="font-variation-settings: 'FILL' 1;">pets</span>
+</div>
+</div>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface">可爱的肉垫子</h2>
+<p class="font-body-md text-on-surface-variant/70 text-sm">超级金毛守护者 🐾</p>
+</div>
+</div>
+<!-- User Entry 2 -->
+<div class="bouncy-tap bg-surface-container-lowest border border-primary-container/40 rounded-xl p-4 flex items-center gap-4 healing-shadow cursor-pointer">
+<img class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A cheerful portrait of a young person in a brightly lit environment with soft shadows. The color palette is composed of milky whites and pale pinks, reflecting a gentle, soft-ui visual language. The subject has a warm expression, creating a sense of companionship and emotional warmth suitable for a pet-themed social network app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEB900JhPZ2bNsHNR6jEQKNTy5orSziS0-EAaA4DzQsRAgu5BszcXLNbhAiQbkVpchFTkZvfY0WNzFfuZwyqQfc3zrHkgSzIUbf_hU1fMMWjhlDBAXkvHWYCW_ZCfoCmDxowJUKXm5r-7SPO2JFqnXRF1nfYqNKabHvxmzNZ9OB1MFTqRIzKD4kQ70lW1nFpTlDp3O4nMwVDK1NDNrsBMVg6B996O0fakMWkHoWoperxGtNfTi6h7FyqDODAAKW_TOdPH3FC2jDFHh"/>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface">布丁的麻麻</h2>
+<p class="font-body-md text-on-surface-variant/70 text-sm">家有法斗小霸王</p>
+</div>
+</div>
+<!-- User Entry 3 -->
+<div class="bouncy-tap bg-surface-container-lowest border border-primary-container/40 rounded-xl p-4 flex items-center gap-4 healing-shadow cursor-pointer">
+<img class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A professional yet soft portrait of a friendly man with a kind smile, illuminated by diffused morning light. The background is a clean, minimalist interior with warm cream tones. The overall aesthetic is lightweight and airy, emphasizing the 'healing' brand personality of the pet community app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCfXXNQhRxz8Po4qX376FSVO8o_gqdAJfuiED3fmSKoPsa6jhn_xYGOMFexD-6opXR21EUaS--gUuZx1__2kIkHACOifY0fYdqbYMKISLzk3-abUyNE87hwrF271lZ8SejPZ356a2W2FkpvlOyvDRJRTYxwAP0bW9D07qCnbLgVz5LTA5euDBYnxeyra-lOrECYzJ8dMJiKZB1orUb6T07LGd78SO-CGICKzWpb6Rry31vsEmnVBbyHUnzBvLbtYIhY4e0YblipExM"/>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface">汪汪队长</h2>
+<p class="font-body-md text-on-surface-variant/70 text-sm">每天带狗跑5公里</p>
+</div>
+</div>
+<!-- User Entry 4 -->
+<div class="bouncy-tap bg-surface-container-lowest border border-primary-container/40 rounded-xl p-4 flex items-center gap-4 healing-shadow cursor-pointer">
+<img class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A portrait of a creative individual with a gentle expression, surrounded by soft textures and pastel colors. The lighting is high-key and flattering, removing harsh shadows to maintain a marshmallow-like, tactile feel. The image embodies a refined soft-ui style with subtle saturation and organic shapes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA50LYS-rMJJHqONLVtmalhRIDfphRjngf19PJLZahlRdFif5y0jV4D3DOqXXtd_FK0sGbfgx_gmmdQJYypmsh3AzolhlCsHO5Q_pxwD_AEj6Q_zXVXYrTjzbsgLVcUmvCt3Cms9hMH8Gth29AQnjeFPf2uaC6qTbBOPcm1lrxp5SL58AMCLAJch3dZK6va-2TDB6pZBSoOAA8f7PY9fsdgvS-H-Z6IOMnmI9lcxBy_oZ3RbPh6M9AaXoNvHJGWi12m_yXjNsAwne2d"/>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface">小柯基爱吃草</h2>
+<p class="font-body-md text-on-surface-variant/70 text-sm">收集全世界的小狗瞬间</p>
+</div>
+</div>
+<!-- User Entry 5 -->
+<div class="bouncy-tap bg-surface-container-lowest border border-primary-container/40 rounded-xl p-4 flex items-center gap-4 healing-shadow cursor-pointer">
+<img class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A warm, bright portrait of a stylish user with a friendly demeanor, set in a sun-drenched outdoor setting. The colors are predominantly warm browns and creamy whites, aligned with the app's healing aesthetic. The soft-focus background highlights the approachable, companion-like quality of the brand's identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAE0yPnaQwTkHCJOpAcjmRKslsOzhV2uBZadqInrMwv1uJKtf8HCEro22BZAYwhzSgI0MX7Ou7Lrv3CXtl8MJxHLUn7X1fa1AHFntyXUl0O9ofLpK2Z08d63eCeV2te6ZloSq1wdpax8DA8TA2WX16kPXhdUxNyBRshfSJlnV0VUnEso3LSESqMv30mSi-8oHLRJAANO4pXJRH7rWBEGrZE_k6YHj12Vvt45fdXg8BPd9BE6pu7h7Back9sQq_iS2-9HcFrPXvi8CnK"/>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface">哈士奇观察员</h2>
+<p class="font-body-md text-on-surface-variant/70 text-sm">记录拆家日常中...</p>
+</div>
+</div>
+<!-- User Entry 6 -->
+<div class="bouncy-tap bg-surface-container-lowest border border-primary-container/40 rounded-xl p-4 flex items-center gap-4 healing-shadow cursor-pointer">
+<img class="w-14 h-14 rounded-full border-2 border-primary-container object-cover" data-alt="A portrait of a cheerful person with a bright, welcoming smile. The image uses a palette of soft pastels and milky whites to create an airy, lightweight feeling. The environment is uncluttered and minimalist, evoking a sense of calm and emotional reinforcement central to the healing design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUNC4Lcn3Ml84k5jC6NzT-FW6rA3O0sy3_0iCRuIgw8l_jjQ-q3W_QMhdNUgmdIOPKkPCgCe6A11Y1Y-P6qL6nt3G3PLDC2YUonfN4uY18f_J8-VC7xfyudkSuP-tvEd91TphcciRxGDS3AN5H3upmnuoYGT9ku_Ukn3eiMkw8YHlG-ErVolws2HejBxPPzcs6QEKTFb8xVTuYAspGFkVVz_HdZslZgExX8W1ORW4WtVrKC05Jm_6DaEUYENpfYkFeuQok3ASkhdSV"/>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface">毛茸茸控</h2>
+<p class="font-body-md text-on-surface-variant/70 text-sm">云吸狗深度患者</p>
+</div>
+</div>
+<!-- Empty State Footer (Subtle) -->
+<div class="pt-8 text-center pb-8">
+<div class="inline-block px-4 py-2 bg-secondary-container/30 rounded-full">
+<p class="font-label-caps text-label-caps text-on-secondary-container/60">暂时只有这么多粉丝啦 (•⌄•)</p>
+</div>
+</div>
+</main>
+<!-- Navigation Shell Placeholder (Not rendered as per task: Task-Focused Back Page) -->
+</body></html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&amp;family=Nunito+Sans:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#dfbfc3",
+                    "primary-fixed": "#fcdadf",
+                    "on-surface-variant": "#4f4446",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#795f64",
+                    "surface-dim": "#dfd8d8",
+                    "on-surface": "#1e1b1b",
+                    "on-tertiary-container": "#5b6a5c",
+                    "on-secondary-fixed": "#201b06",
+                    "inverse-primary": "#dfbfc3",
+                    "on-tertiary-fixed-variant": "#3c4a3d",
+                    "on-primary": "#ffffff",
+                    "surface-bright": "#fff8f7",
+                    "inverse-on-surface": "#f6efef",
+                    "on-background": "#1e1b1b",
+                    "background": "#fff8f7",
+                    "primary": "#71585c",
+                    "tertiary-fixed": "#d7e7d5",
+                    "surface-container-highest": "#e8e1e1",
+                    "on-tertiary-fixed": "#121e14",
+                    "inverse-surface": "#333030",
+                    "secondary-fixed": "#ede2c0",
+                    "outline-variant": "#d2c3c4",
+                    "secondary-fixed-dim": "#d0c6a5",
+                    "on-primary-fixed": "#29161a",
+                    "on-error-container": "#93000a",
+                    "tertiary": "#546254",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "surface-container-high": "#eee6e6",
+                    "outline": "#807476",
+                    "on-secondary-container": "#6a6347",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#71585c",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#daead8",
+                    "surface": "#fff8f7",
+                    "on-primary-fixed-variant": "#584145",
+                    "surface-variant": "#e8e1e1",
+                    "primary-container": "#ffdde2",
+                    "surface-container": "#f3ecec",
+                    "surface-container-low": "#f9f2f2",
+                    "secondary": "#655e43",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#bbcbba",
+                    "on-secondary-fixed-variant": "#4d472e",
+                    "secondary-container": "#eadfbd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-page": "20px",
+                    "unit": "4px",
+                    "padding-container": "16px",
+                    "stack-gap": "8px",
+                    "gutter-card": "12px"
+            },
+            "fontFamily": {
+                    "display-title": ["Quicksand"],
+                    "body-md": ["Nunito Sans"],
+                    "body-lg": ["Nunito Sans"],
+                    "label-caps": ["Plus Jakarta Sans"],
+                    "headline-md": ["Quicksand"]
+            },
+            "fontSize": {
+                    "display-title": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bouncy-click:active {
+            transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .soft-shadow-card {
+            box-shadow: 0 8px 24px rgba(168, 155, 157, 0.12);
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-24">
+<!-- TopAppBar Component -->
+<nav class="flex items-center justify-between px-margin-page h-14 w-full z-50 bg-surface fixed top-0 left-0 shadow-sm shadow-primary/10">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer active:scale-95 transition-transform duration-200" data-icon="arrow_back_ios">arrow_back_ios</span>
+<h1 class="font-display-title text-display-title text-primary">用户主页</h1>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-on-surface-variant opacity-70" data-icon="more_horiz">more_horiz</span>
+</div>
+</nav>
+<!-- Content Canvas -->
+<main class="pt-20 px-margin-page space-y-6">
+<!-- Profile Header Section -->
+<section class="flex flex-col items-center text-center space-y-4">
+<div class="relative">
+<div class="w-24 h-24 rounded-full border-4 border-primary-container p-1 bg-surface-container-lowest soft-shadow-card">
+<img alt="User Avatar" class="w-full h-full rounded-full object-cover" data-alt="A warm and friendly professional portrait of a woman in her 20s with a kind expression. She is set against a soft, sun-drenched indoor background with milky white and pastel pink tones. The lighting is bright and high-key, creating a healing and approachable vibe consistent with a soft-ui pet community aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCW3EbCPSXJmQa7Wa1i4mna2uKVqcm-0KlHCWO-Nxo5obWXyIs76KbAQtUQ_lZYumDEysskx0F_scdFmymPSzyds4bnb2t5cusn1HGJCVYPkNKQL2mQczXaBTBl-6pC6aFdUwqZqP4pWHdF9hBvPndtn49OpALoayfK58H1YX7eSbu28XvwT8d14fpejfECGD-2zFeUOXF1OzaMjecsFlTGXG5DMFYIuQA8e76pVTgXM7xUZT81oxyztaG7f89G3mC2BE8sqFNYFUWb"/>
+</div>
+<div class="absolute bottom-0 right-0 bg-primary rounded-full p-1 border-2 border-surface">
+<span class="material-symbols-outlined text-[12px] text-white" data-icon="pets" style="font-variation-settings: 'FILL' 1;">pets</span>
+</div>
+</div>
+<div class="space-y-1">
+<h2 class="font-headline-md text-headline-md text-on-surface">肉垫守护者</h2>
+<p class="font-body-md text-on-surface-variant opacity-80 max-w-[280px]">记录和毛孩子在一起的每一个治愈瞬间</p>
+</div>
+</section>
+<!-- Action Buttons -->
+<section class="flex gap-3">
+<button class="flex-1 h-11 rounded-xl bg-surface-container-highest text-on-surface-variant font-headline-md bouncy-click flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="check">check</span>
+                已关注
+            </button>
+<button class="flex-1 h-11 rounded-xl bg-secondary-container text-on-secondary-container font-headline-md bouncy-click flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="chat_bubble_outline">chat_bubble_outline</span>
+                发私信
+            </button>
+</section>
+<!-- Stats Bar -->
+<section class="flex justify-around py-2 border-y border-outline-variant/20">
+<div class="text-center">
+<div class="font-display-title text-primary">128</div>
+<div class="text-[10px] font-label-caps text-on-surface-variant">动态</div>
+</div>
+<div class="text-center">
+<div class="font-display-title text-primary">3.2k</div>
+<div class="text-[10px] font-label-caps text-on-surface-variant">获赞</div>
+</div>
+<div class="text-center">
+<div class="font-display-title text-primary">542</div>
+<div class="text-[10px] font-label-caps text-on-surface-variant">粉丝</div>
+</div>
+</section>
+<!-- Pets Section -->
+<section class="space-y-3">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md text-on-surface">TA的宠物</h3>
+<span class="text-xs font-label-caps text-primary">查看全部</span>
+</div>
+<div class="flex gap-4 overflow-x-auto pb-4 -mx-margin-page px-margin-page">
+<!-- Pet Card 1 -->
+<div class="flex-shrink-0 w-48 bg-surface-container-lowest rounded-xl p-3 soft-shadow-card border border-primary-container/10 bouncy-click">
+<img class="w-full h-32 rounded-lg object-cover mb-3" data-alt="A golden retriever puppy named Cheese sitting in a field of daisies under golden hour sunlight. The lighting is warm and ethereal, highlighting the dog's soft fur. The image uses a palette of soft yellows, cream, and muted greens, following a healing, dream-like visual style for a pet-loving community." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPTdo5NqyiKthjHY73nrfryJTKFsbNYP_P-IIbOEQO0V0hZbZXfkmwjR9IPJfuvF5-dwQkCpiKantiqlAbdbuSXQ9TXfWdyz81MNLjsiXEe0PxqkDT8A14DnWkYQf20qDY2oQwCQ-6WOgOOpVke2CzPievXeme8dyFshIml5jxYNtaJ8OwrKDlpPAZfmd0chebGUMtmrsUKA3g2MztOfUY7eCk-2CKDzO1gn0B4Sh4fb2Sc0TSl9_MqFup1_T2DAsiqHMils-K3OZ2"/>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline-md text-sm text-on-surface">奶酪</h4>
+<p class="text-[10px] text-on-surface-variant">金毛 · 6个月</p>
+</div>
+<span class="bg-tertiary-container text-on-tertiary-container text-[8px] px-2 py-0.5 rounded-full font-label-caps">活泼</span>
+</div>
+</div>
+<!-- Pet Card 2 -->
+<div class="flex-shrink-0 w-48 bg-surface-container-lowest rounded-xl p-3 soft-shadow-card border border-primary-container/10 bouncy-click">
+<img class="w-full h-32 rounded-lg object-cover mb-3" data-alt="A funny beagle dog named Pudding with long ears, trying to reach a treat on a wooden table. The scene is set in a cozy, bright kitchen with milky white cabinets and soft shadows. The overall mood is playful and humorous, utilizing a warm color palette with pastel brown and cream accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ-oQhYrQNVvFqY4iMsItxBE9Y3fM0kQd5lhR6DxpHIDr20H5RVQKtcWkTngWIJ7Bno7DtWdmTh8mIEqowtxxv6964EU0s79ECfwjGpoy4Q8efJZegMDmiluD3WrSEbsvXiyDO_i5hzFMl0p8y0vAeWHrpiuUrJv1d5miRJdUFbEnaW4oDKla6q3m-iAs08VMDr1jBjG4ahrVDM1WFHQ8vBG4oxs7M6wNyV8ishpcAPGb29BiEzOUOnc3_ZZHQX8ECJpWgHnN1ZhTd"/>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline-md text-sm text-on-surface">布丁</h4>
+<p class="text-[10px] text-on-surface-variant">比格 · 2岁</p>
+</div>
+<span class="bg-secondary-container text-on-secondary-container text-[8px] px-2 py-0.5 rounded-full font-label-caps">贪吃</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Feed Section -->
+<section class="space-y-4">
+<h3 class="font-headline-md text-headline-md text-on-surface">TA的萌宠日常</h3>
+<div class="grid grid-cols-2 gap-3">
+<!-- Feed Card 1 (Taller) -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden soft-shadow-card bouncy-click flex flex-col">
+<div class="relative aspect-[3/4]">
+<img class="w-full h-full object-cover" data-alt="A close-up artistic shot of a small French Bulldog looking directly into the camera with wide innocent eyes. The background is a soft-focus pastel living room. The lighting is exceptionally soft and diffused, creating a marsh-mallow effect on the textures. The colors are dominated by milky whites and very light pinks." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYEJxeYMKDGNpTK7BoAF5iN_6haH3eC9t9IqpBe96_ny4Us0cdEfvlb0jgh3KjSVzyw0IWD3NKhc1r4aCTAn-9nwN9i6L4Y_rI6fRPI-K59BClPYFoqiozDcbKrhvGb5eNlY-CbFtwD23rw2ITzG1KQ3beqBeA8CsxnIpbPIwSpLgpBr4mVSxfQzngKITvau-G4xLFDL402U9Fz7WK1iU2A_jovGFFxPzwzLmr0tC9SWBk70Qgz1nZn_z9eicMzcHfbZEuk9QbjOQl"/>
+</div>
+<div class="p-3 space-y-2">
+<p class="text-xs text-on-surface line-clamp-2">今天也是被小家伙治愈的一天呢，哪怕是拆家也舍不得骂它...</p>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="text-[10px] text-on-surface-variant">1.2k</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="mode_comment">mode_comment</span>
+<span class="text-[10px] text-on-surface-variant">86</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Feed Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden soft-shadow-card bouncy-click flex flex-col">
+<div class="relative aspect-square">
+<img class="w-full h-full object-cover" data-alt="A fluffy corgi dog running joyfully on a lush green lawn. The image is captured in motion with a slight blur, giving it a playful and energetic feel. The surrounding environment is bright and sunny, filled with warm afternoon light. The aesthetic is clean and organic, typical of a high-end pet social app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqKJs_v7RiNAJFX-jAF8fN8wTsz_Xfh1ZT80Whr0nG5Fxa-bvz6ZlmP5v3y8YDPiDSDnbvGn5XMKj6aekFliUz-fe1smXEwb1vDSUvR4IgNbuxk5_nyTabj0D7YwHNnHrdjkDTqiPj8y9-WtDMSDH7vQnvUwn0l2BF1P5xjiQ5i763DU10GztF5Bs2kNKPppe4RgEMOJjpEj8p8dXarNIJazTKlhhpvj0USRE4WmMjnU1VXihO8-pdtP4u65-CmEvX4qGFAYtobZlG"/>
+</div>
+<div class="p-3 space-y-2">
+<p class="text-xs text-on-surface line-clamp-2">带柯基去草地撒欢，这小短腿跑起来太带感了！</p>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="favorite">favorite</span>
+<span class="text-[10px] text-on-surface-variant">943</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="mode_comment">mode_comment</span>
+<span class="text-[10px] text-on-surface-variant">42</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar Component -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-page pb-6 pt-2 bg-surface-container-low rounded-t-xl shadow-[0_-4px_12px_rgba(168,155,157,0.12)]">
+<div class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 active:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps mt-1">首页</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 active:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="pets">pets</span>
+<span class="font-label-caps text-label-caps mt-1">社区</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 transition-all duration-300 active:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-caps text-label-caps mt-1">我的</span>
+</div>
+</nav>
+<!-- Interactive Feedback Overlay (Conceptual) -->
+<!-- Logic: When clicking a "favorite" icon, a burst of SVG hearts would float up from the cursor position using absolute positioning and a fade-out animation. -->
+</body></html>

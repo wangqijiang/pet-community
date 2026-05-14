@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&amp;family=Nunito+Sans:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#d7e7d5",
+                    "on-secondary-fixed-variant": "#4d472e",
+                    "surface-container-highest": "#e8e1e1",
+                    "surface-container": "#f3ecec",
+                    "tertiary-fixed-dim": "#bbcbba",
+                    "tertiary-container": "#daead8",
+                    "secondary-fixed": "#ede2c0",
+                    "primary-fixed-dim": "#dfbfc3",
+                    "surface-tint": "#71585c",
+                    "on-secondary": "#ffffff",
+                    "secondary": "#655e43",
+                    "on-background": "#1e1b1b",
+                    "on-secondary-fixed": "#201b06",
+                    "on-primary-fixed-variant": "#584145",
+                    "on-tertiary-container": "#5b6a5c",
+                    "tertiary": "#546254",
+                    "surface-bright": "#fff8f7",
+                    "error": "#ba1a1a",
+                    "on-surface-variant": "#4f4446",
+                    "error-container": "#ffdad6",
+                    "outline-variant": "#d2c3c4",
+                    "on-primary": "#ffffff",
+                    "background": "#fff8f7",
+                    "on-secondary-container": "#6a6347",
+                    "primary-fixed": "#fcdadf",
+                    "surface": "#fff8f7",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#d0c6a5",
+                    "primary": "#71585c",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed-variant": "#3c4a3d",
+                    "on-tertiary-fixed": "#121e14",
+                    "on-surface": "#1e1b1b",
+                    "on-error-container": "#93000a",
+                    "surface-container-high": "#eee6e6",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed": "#29161a",
+                    "on-primary-container": "#795f64",
+                    "surface-variant": "#e8e1e1",
+                    "inverse-primary": "#dfbfc3",
+                    "inverse-surface": "#333030",
+                    "secondary-container": "#eadfbd",
+                    "outline": "#807476",
+                    "primary-container": "#ffdde2",
+                    "surface-container-low": "#f9f2f2",
+                    "surface-dim": "#dfd8d8",
+                    "inverse-on-surface": "#f6efef"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter-card": "12px",
+                    "padding-container": "16px",
+                    "margin-page": "20px",
+                    "unit": "4px",
+                    "stack-gap": "8px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Plus Jakarta Sans"],
+                    "headline-md": ["Quicksand"],
+                    "display-title": ["Quicksand"],
+                    "body-lg": ["Nunito Sans"],
+                    "body-md": ["Nunito Sans"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "display-title": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .healing-shadow {
+            box-shadow: 0 8px 32px rgba(168, 155, 157, 0.12);
+        }
+        .bouncy-click:active {
+            transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container">
+<!-- Top Navigation Bar -->
+<nav class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md px-5 py-4 flex items-center justify-between shadow-[0_8px_32px_rgba(168,155,157,0.12)]">
+<div class="flex items-center gap-3">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low bouncy-click">
+<span class="material-symbols-outlined text-primary">arrow_back_ios_new</span>
+</button>
+<h1 class="font-display-title text-display-title text-primary tracking-tight">附近遛狗好去处</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low bouncy-click">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+</nav>
+<!-- Main Content Canvas -->
+<main class="max-w-md mx-auto px-5 pb-24">
+<!-- Pull to refresh indicator (Visual only) -->
+<div class="flex justify-center py-4 opacity-40">
+<span class="material-symbols-outlined animate-bounce text-primary">pets</span>
+</div>
+<!-- Category Tabs -->
+<div class="flex gap-3 mb-6">
+<button class="px-5 py-2.5 rounded-xl bg-primary-container text-on-primary-container font-headline-md text-headline-md bouncy-click flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">park</span>
+                宠物友好地点
+            </button>
+<button class="px-5 py-2.5 rounded-xl bg-surface-container-lowest text-primary border border-primary-container font-headline-md text-headline-md bouncy-click flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">storefront</span>
+                宠物门店
+            </button>
+</div>
+<!-- List Section -->
+<div class="space-y-6">
+<!-- List Item 1 -->
+<div class="bg-surface-container-lowest rounded-[24px] border border-primary-fixed p-3 healing-shadow bouncy-click group overflow-hidden">
+<div class="relative aspect-[16/9] rounded-[18px] overflow-hidden mb-4">
+<img alt="Sunny Park" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="A lush green city park during a golden sunset, featuring wide manicured lawns and blooming flower beds. The lighting is warm and ethereal, creating a soft marshmallow glow over the entire landscape. In the center, a golden retriever is joyfully running across the grass. The aesthetic is cute, bright, and healing, with a pastel-infused color palette of soft greens and warm pinks." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFaQclX7QZYBGUTicl-vpp9BEMDCn8GpIReeJ4glgySygGnpIG180ipeaXvuKyYPUU2np6Xce6Ivt7Alty827FbT8Y4EcEUR3If-rHcOnwOTP6u7JxXDMKT50ZEQFtgoL0ZIy0n2jUwRC9_Rz5kScv0eWuM8hmmzNrRCrZWOmp9fjYYsd1eMoK5VT8WuoTt7q8_xFaI8UaZ3H4y-_u74nyJLGWME4BCy79yJPXl7esuD3w5Db6OPQIu_OL7mMTjEa9-XcOStQR2Y9Q"/>
+<div class="absolute top-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary" data-weight="fill">favorite</span>
+<span class="text-label-caps font-label-caps text-primary">9.8</span>
+</div>
+</div>
+<div class="px-2 pb-2">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-display-title text-display-title text-on-surface">阳光草地爱宠公园</h3>
+<span class="text-label-caps font-label-caps text-on-primary-container bg-primary-container px-2 py-0.5 rounded-md">800m</span>
+</div>
+<div class="flex items-center gap-2 mb-4">
+<span class="px-2 py-0.5 bg-tertiary-container text-on-tertiary-container rounded-md text-label-caps font-label-caps">大型犬友好</span>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded-md text-label-caps font-label-caps">设有拾便袋</span>
+</div>
+<button class="w-full py-3 bg-primary text-on-primary rounded-xl font-headline-md text-headline-md flex items-center justify-center gap-2 hover:bg-on-primary-fixed-variant transition-colors">
+<span class="material-symbols-outlined">near_me</span>
+                        立即导航
+                    </button>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="bg-surface-container-lowest rounded-[24px] border border-primary-fixed p-3 healing-shadow bouncy-click group overflow-hidden">
+<div class="relative aspect-[16/9] rounded-[18px] overflow-hidden mb-4">
+<img alt="Riverside Trail" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="A peaceful riverside walking path lined with cherry blossom trees in soft bloom. The water reflects a clear blue sky and fluffy white clouds. Two small dogs are walking on leashes with their owners in the distance. The lighting is high-key and airy, evoking a sense of calm and healing. The scene is rendered in a soft-ui style with delicate pastel saturations and a clean, milky white atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWIQAfIryYt8CLuKwwGbHT5AYiPGKi-Z0JG3wcubyrskdfrNYtbhgs8o2GNOrvUCxrjGdCF_iSyXZZ3PZxTTJ6CHD3FVvL3CsGpivJXAUw-orHk_SR3Pm2omAOzKdBGktGRCUYnsGqAhy0gqeXlCJUZ-Is2h3-YTTm3iwJTwxfhpgV6yCTUrmosApKYLDP2waCEwynoXRMLiEcRl0LeF1dr98OV7wJLt2rngTRXaUwBVy7EOwdW58BGiawU1jv5_-pX7uIY74xRVM5"/>
+<div class="absolute top-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary" data-weight="fill">favorite</span>
+<span class="text-label-caps font-label-caps text-primary">9.5</span>
+</div>
+</div>
+<div class="px-2 pb-2">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-display-title text-display-title text-on-surface">漫步滨江宠物步道</h3>
+<span class="text-label-caps font-label-caps text-on-primary-container bg-primary-container px-2 py-0.5 rounded-md">1.2km</span>
+</div>
+<div class="flex items-center gap-2 mb-4">
+<span class="px-2 py-0.5 bg-tertiary-container text-on-tertiary-container rounded-md text-label-caps font-label-caps">全天开放</span>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded-md text-label-caps font-label-caps">江景视野</span>
+</div>
+<button class="w-full py-3 bg-primary text-on-primary rounded-xl font-headline-md text-headline-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">near_me</span>
+                        立即导航
+                    </button>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="bg-surface-container-lowest rounded-[24px] border border-primary-fixed p-3 healing-shadow bouncy-click group overflow-hidden">
+<div class="relative aspect-[16/9] rounded-[18px] overflow-hidden mb-4">
+<img alt="Cafe Exterior" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="A charming pet-friendly cafe exterior with outdoor seating and white picket fences. There are cute dog bowls with water and treats near the entrance. The architectural style is soft and rounded with cream-colored walls. Bright pink flowers hang from the windows. The lighting is bright afternoon sun, creating a cozy and welcoming vibe. The overall aesthetic is healing, playful, and optimized for a pet-loving community." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzqwO2SG9JIe_1fhXesqYCYTwSSHsEzxfJ6BW2yujlZRO6e1T7vEllJodVzEyd0KA4Y8PwHfIvQtWeGPEjdDtg8fBHZjZrktp3dch0DnAg8K2Xxxm97v28z8nsO-Ue-3nKT06bb8J2mTFGFFl6L-AK6jjxbQdOfxVv14incKUzdEZE8uOOkZwT6cV-73ir63l-rj4sIFEVKHBqJff75uTmRX_RLlaLzSnkIHTm1pvHekE-hBLRt1FKDfX7C6rHAsKqkJfAQCLeZURY"/>
+<div class="absolute top-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary" data-weight="fill">favorite</span>
+<span class="text-label-caps font-label-caps text-primary">9.2</span>
+</div>
+</div>
+<div class="px-2 pb-2">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-display-title text-display-title text-on-surface">汪汪咖啡休闲角</h3>
+<span class="text-label-caps font-label-caps text-on-primary-container bg-primary-container px-2 py-0.5 rounded-md">2.5km</span>
+</div>
+<div class="flex items-center gap-2 mb-4">
+<span class="px-2 py-0.5 bg-tertiary-container text-on-tertiary-container rounded-md text-label-caps font-label-caps">室内外通达</span>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded-md text-label-caps font-label-caps">宠物菜单</span>
+</div>
+<button class="w-full py-3 bg-primary text-on-primary rounded-xl font-headline-md text-headline-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">near_me</span>
+                        立即导航
+                    </button>
+</div>
+</div>
+<!-- Loading indicator -->
+<div class="flex justify-center py-6">
+<div class="flex items-center gap-2 text-primary/60">
+<span class="material-symbols-outlined animate-spin text-[20px]">sync</span>
+<span class="font-label-caps text-label-caps">正在加载更多好地方...</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Fixed) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest flex justify-around items-center px-4 h-[72px] pb-safe rounded-t-xl shadow-[0_-4px_16px_rgba(168,155,157,0.08)] border-t border-outline-variant/30">
+<a class="flex flex-col items-center justify-center text-primary relative after:content-['❤'] after:text-[8px] after:absolute after:-top-1 after:animate-bounce bouncy-click scale-110" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-fixed-variant bouncy-click hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined">pets</span>
+<span class="font-label-caps text-label-caps">Circle</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-fixed-variant bouncy-click hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-label-caps text-label-caps">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-fixed-variant bouncy-click hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-label-caps">Me</span>
+</a>
+</nav>
+<!-- Information Pop-up Overlay (Hidden by default, shown for structure demo) -->
+<!-- This would normally be toggled with JS, but rendered here to show the requested design -->
+<div class="hidden fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+<div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] overflow-hidden healing-shadow animate-in slide-in-from-bottom duration-300">
+<div class="p-5">
+<div class="flex justify-center mb-2">
+<div class="w-12 h-1.5 bg-outline-variant/30 rounded-full"></div>
+</div>
+<div class="aspect-video rounded-2xl overflow-hidden mb-4">
+<img alt="Park Detail" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBe7VyCmDpGZia-ykYKraEjuIzE7-0pmrdkM_V_7Q88xIxZNxUHSGnIciupHDJ90T9S81mxAyr4W2MdxGe-df7Iy1lal-1LkUoB0x4aHega8MaiVviBgZ312GwVcEffA1tqmm5qYpczr55Wgyzf9jmxmkx7ou73Zn4d3k_OsX7dfO56GMv5MmnyYFt0x3MPCMawl0io4qx6EbUS0u-51lW5VsQVWm54Q62cbTK7HKpUflRb_6lk69xv9Re9PxSCl6693g7XTa9jhwvZ"/>
+</div>
+<h2 class="font-display-title text-display-title text-primary mb-2">阳光草地爱宠公园</h2>
+<div class="flex items-center gap-3 text-on-surface-variant mb-4">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span class="font-body-md text-body-md">虹桥路100号 (距离你 800m)</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 leading-relaxed">
+                    这里是全市最有名的宠物友好公园之一！拥有超过 2000 平米的超大草坪，完全不限犬型，大家可以在这里自由奔跑。公园贴心地准备了拾便纸和专门的宠物饮水池。
+                </p>
+<div class="flex gap-4">
+<button class="flex-1 py-4 bg-primary-container text-on-primary-container rounded-2xl font-headline-md text-headline-md bouncy-click">
+                        收藏地点
+                    </button>
+<button class="flex-[1.5] py-4 bg-primary text-on-primary rounded-2xl font-headline-md text-headline-md bouncy-click flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">map</span>
+                        开始导航
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

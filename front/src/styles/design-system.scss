@@ -1,0 +1,329 @@
+/**
+ * Soft & Cute Healing System
+ * 萌宠治愈家设计系统
+ */
+
+/* ==================== Color Variables ==================== */
+:root {
+  /* Surface Colors */
+  --surface: #fff8f7;
+  --surface-dim: #dfd8d8;
+  --surface-bright: #fff8f7;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f9f2f2;
+  --surface-container: #f3ecec;
+  --surface-container-high: #eee6e6;
+  --surface-container-highest: #e8e1e1;
+  --surface-variant: #e8e1e1;
+
+  /* Primary Colors */
+  --primary: #71585c;
+  --on-primary: #ffffff;
+  --primary-container: #ffdde2;
+  --on-primary-container: #795f64;
+  --inverse-primary: #dfbfc3;
+  --primary-fixed: #fcdadf;
+  --primary-fixed-dim: #dfbfc3;
+  --on-primary-fixed: #29161a;
+  --on-primary-fixed-variant: #584145;
+
+  /* Secondary Colors */
+  --secondary: #655e43;
+  --on-secondary: #ffffff;
+  --secondary-container: #eadfbd;
+  --on-secondary-container: #6a6347;
+  --secondary-fixed: #ede2c0;
+  --secondary-fixed-dim: #d0c6a5;
+  --on-secondary-fixed: #201b06;
+  --on-secondary-fixed-variant: #4d472e;
+
+  /* Tertiary Colors */
+  --tertiary: #546254;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #daead8;
+  --on-tertiary-container: #5b6a5c;
+  --tertiary-fixed: #d7e7d5;
+  --tertiary-fixed-dim: #bbcbba;
+  --on-tertiary-fixed: #121e14;
+  --on-tertiary-fixed-variant: #3c4a3d;
+
+  /* Error Colors */
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+
+  /* Text Colors */
+  --on-surface: #1e1b1b;
+  --on-surface-variant: #4f4446;
+  --on-background: #1e1b1b;
+
+  /* Background */
+  --background: #fff8f7;
+
+  /* Outline */
+  --outline: #807476;
+  --outline-variant: #d2c3c4;
+
+  /* Inverse */
+  --inverse-surface: #333030;
+  --inverse-on-surface: #f6efef;
+
+  /* Surface Tint */
+  --surface-tint: #71585c;
+}
+
+/* ==================== Typography ==================== */
+:root {
+  /* Font Families */
+  --font-display: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-label: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Font Sizes & Line Heights */
+  --text-display-title: 20px;
+  --text-display-title-line: 28px;
+  --text-display-title-weight: 700;
+  --text-display-title-spacing: -0.01em;
+
+  --text-headline-md: 18px;
+  --text-headline-md-line: 24px;
+  --text-headline-md-weight: 600;
+
+  --text-body-lg: 16px;
+  --text-body-lg-line: 24px;
+  --text-body-lg-weight: 400;
+
+  --text-body-md: 14px;
+  --text-body-md-line: 20px;
+  --text-body-md-weight: 400;
+
+  --text-label-caps: 12px;
+  --text-label-caps-line: 16px;
+  --text-label-caps-weight: 700;
+  --text-label-caps-spacing: 0.05em;
+}
+
+/* ==================== Border Radius ==================== */
+:root {
+  --radius-sm: 4px;
+  --radius-default: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+  --radius-full: 9999px;
+}
+
+/* ==================== Spacing ==================== */
+:root {
+  --unit: 4px;
+  --margin-page: 20px;
+  --gutter-card: 12px;
+  --padding-container: 16px;
+  --stack-gap: 8px;
+}
+
+/* ==================== Shadows ==================== */
+.marshmallow-shadow {
+  box-shadow: 0 8px 32px rgba(168, 155, 157, 0.12);
+}
+
+.soft-shadow {
+  box-shadow: 0 4px 16px rgba(168, 155, 157, 0.08);
+}
+
+.button-shadow {
+  box-shadow: 0 4px 12px rgba(113, 88, 92, 0.15);
+}
+
+/* ==================== Typography Classes ==================== */
+.font-display-title {
+  font-family: var(--font-display);
+  font-size: var(--text-display-title);
+  line-height: var(--text-display-title-line);
+  font-weight: var(--text-display-title-weight);
+  letter-spacing: var(--text-display-title-spacing);
+}
+
+.font-headline-md {
+  font-family: var(--font-display);
+  font-size: var(--text-headline-md);
+  line-height: var(--text-headline-md-line);
+  font-weight: var(--text-headline-md-weight);
+}
+
+.font-body-lg {
+  font-family: var(--font-body);
+  font-size: var(--text-body-lg);
+  line-height: var(--text-body-lg-line);
+  font-weight: var(--text-body-lg-weight);
+}
+
+.font-body-md {
+  font-family: var(--font-body);
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md-line);
+  font-weight: var(--text-body-md-weight);
+}
+
+.font-label-caps {
+  font-family: var(--font-label);
+  font-size: var(--text-label-caps);
+  line-height: var(--text-label-caps-line);
+  font-weight: var(--text-label-caps-weight);
+  letter-spacing: var(--text-label-caps-spacing);
+  text-transform: uppercase;
+}
+
+/* ==================== Interactive States ==================== */
+.bouncy-active {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.active-sink {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:active {
+    transform: translateY(2px) scale(0.98);
+    box-shadow: 0 2px 8px rgba(168, 155, 157, 0.08);
+  }
+}
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(168, 155, 157, 0.16);
+  }
+}
+
+/* ==================== Animations ==================== */
+@keyframes heart-fly {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.heart-particle {
+  animation: heart-fly 1s ease-out forwards;
+}
+
+.bounce-in {
+  animation: bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fade-in {
+  animation: fade-in 0.3s ease;
+}
+
+/* ==================== Utility Classes ==================== */
+.text-primary {
+  color: var(--primary);
+}
+
+.text-on-surface {
+  color: var(--on-surface);
+}
+
+.text-on-surface-variant {
+  color: var(--on-surface-variant);
+}
+
+.bg-surface {
+  background-color: var(--surface);
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.bg-primary-container {
+  background-color: var(--primary-container);
+}
+
+.bg-surface-container {
+  background-color: var(--surface-container);
+}
+
+.rounded-soft {
+  border-radius: var(--radius-default);
+}
+
+.rounded-card {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-button {
+  border-radius: var(--radius-md);
+}
+
+.rounded-pill {
+  border-radius: var(--radius-full);
+}
+
+/* ==================== Global Styles ==================== */
+page {
+  background-color: var(--surface);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+/* Scrollbar (for web preview) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-container-low);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
+}

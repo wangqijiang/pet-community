@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaggleWorld - 宠物社交小程序原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #FFF9F9;
+            overflow: hidden;
+        }
+
+        /* 全局容器 */
+        .app-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 750px;
+            margin: 0 auto;
+            background: #FFF9F9;
+        }
+
+        /* 顶部导航栏 */
+        .top-nav {
+            height: 48px;
+            background: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .nav-icon:active {
+            transform: scale(0.98);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* 底部标签栏 */
+        .bottom-tab-bar {
+            height: 56px;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .tab-item:active {
+            transform: scale(0.98);
+        }
+
+        .tab-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+
+        .tab-label {
+            font-size: 12px;
+            color: #999999;
+        }
+
+        .tab-item.active .tab-label {
+            color: #FFC1E9;
+            font-weight: 600;
+        }
+
+        /* 首页 - 地图视图 */
+        .home-page {
+            height: 100%;
+            position: relative;
+            background: linear-gradient(180deg, #E0F7FF 0%, #FFF9F9 100%);
+        }
+
+        .map-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #999999;
+        }
+
+        /* 品种筛选器 */
+        .breed-filter {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .breed-chip {
+            padding: 6px 12px;
+            background: #FFF4D2;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #333333;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .breed-chip:active {
+            transform: scale(0.98);
+        }
+
+        .breed-chip.active {
+            background: #FFC1E9;
+            color: #FFFFFF;
+        }
+
+        /* 地图标记点 */
+        .map-marker {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #FFC1E9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 8px rgba(255, 193, 233, 0.4);
+        }
+
+        .map-marker:active {
+            transform: scale(0.98);
+        }
+
+        /* 宠物圈 - 动态列表 */
+        .circle-page {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .post-card {
+            background: #FFFFFF;
+            margin: 12px 16px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #FFC1E9;
+            margin-right: 12px;
+        }
+
+        .post-user-info {
+            flex: 1;
+        }
+
+        .post-username {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .post-time {
+            font-size: 12px;
+            color: #999999;
+            margin-top: 2px;
+        }
+
+        .post-content {
+            font-size: 14px;
+            color: #333333;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .post-images {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .post-image {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #E5E5E5;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-around;
+            padding-top: 12px;
+            border-top: 1px solid #E5E5E5;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .action-btn.active {
+            color: #FFC1E9;
+        }
+
+        /* 发布按钮 */
+        .publish-btn {
+            position: fixed;
+            right: 16px;
+            bottom: 72px;
+            width: 56px;
+            height: 56px;
+            background: #FFC1E9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(255, 193, 233, 0.4);
+            cursor: pointer;
+            transition: transform 0.3s;
+            z-index: 50;
+        }
+
+        .publish-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 消息页面 */
+        .message-page {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .message-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: #FFFFFF;
+            border-bottom: 1px solid #E5E5E5;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .message-item:active {
+            background: #FFF9F9;
+        }
+
+        .message-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #FFC1E9;
+            margin-right: 12px;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+
+        .message-preview {
+            font-size: 12px;
+            color: #999999;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #999999;
+        }
+
+        .message-badge {
+            width: 18px;
+            height: 18px;
+            background: #FF4D4F;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #FFFFFF;
+            margin-left: 8px;
+        }
+
+        /* 我的页面 */
+        .profile-page {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .profile-header {
+            background: linear-gradient(180deg, #FFC1E9 0%, #FFF9F9 100%);
+            padding: 24px 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            margin-right: 16px;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+
+        .profile-bio {
+            font-size: 12px;
+            color: #666666;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 24px;
+            padding: 16px;
+            background: #FFFFFF;
+            margin: 12px 16px;
+            border-radius: 12px;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999999;
+            margin-top: 4px;
+        }
+
+        .profile-menu {
+            background: #FFFFFF;
+            margin: 12px 16px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid #E5E5E5;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item:active {
+            background: #FFF9F9;
+        }
+
+        .menu-label {
+            font-size: 14px;
+            color: #333333;
+        }
+
+        /* 隐藏页面 */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 子页面样式 */
+        .sub-page {
+            display: none;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .sub-page.active {
+            display: block;
+        }
+
+        /* 列表页通用样式 */
+        .list-container {
+            padding: 12px 16px;
+        }
+
+        .list-item {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .list-item:active {
+            transform: scale(0.98);
+            background: #FFF9F9;
+        }
+
+        /* 用户卡片 */
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #FFC1E9;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+
+        .user-desc {
+            font-size: 12px;
+            color: #999999;
+        }
+
+        .follow-btn {
+            padding: 6px 16px;
+            background: #FFC1E9;
+            color: #FFFFFF;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .follow-btn:active {
+            transform: scale(0.98);
+        }
+
+        .follow-btn.following {
+            background: #E5E5E5;
+            color: #999999;
+        }
+
+        /* 地点卡片 */
+        .spot-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .spot-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #FFC1E9 0%, #FFF4D2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .spot-info {
+            padding: 16px;
+        }
+
+        .spot-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .spot-address {
+            font-size: 12px;
+            color: #999999;
+            margin-bottom: 8px;
+        }
+
+        .spot-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .spot-tag {
+            padding: 4px 12px;
+            background: #FFF4D2;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #333333;
+        }
+
+        /* 聊天页面 */
+        .chat-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            word-wrap: break-word;
+        }
+
+        .message-left {
+            background: #FFFFFF;
+            color: #333333;
+            margin-right: auto;
+        }
+
+        .message-right {
+            background: #FFC1E9;
+            color: #FFFFFF;
+            margin-left: auto;
+        }
+
+        .chat-input-bar {
+            height: 60px;
+            background: #FFFFFF;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .chat-input {
+            flex: 1;
+            height: 36px;
+            border-radius: 18px;
+            border: 1px solid #E5E5E5;
+            padding: 0 16px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .send-btn {
+            width: 60px;
+            height: 36px;
+            background: #FFC1E9;
+            color: #FFFFFF;
+            border-radius: 18px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* 表单页面 */
+        .form-container {
+            padding: 16px;
+        }
+
+        .form-item {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid #E5E5E5;
+            padding: 0 16px;
+            font-size: 14px;
+            outline: none;
+            background: #FFFFFF;
+        }
+
+        .form-input:focus {
+            border-color: #FFC1E9;
+        }
+
+        .form-textarea {
+            width: 100%;
+            min-height: 100px;
+            border-radius: 12px;
+            border: 1px solid #E5E5E5;
+            padding: 12px 16px;
+            font-size: 14px;
+            outline: none;
+            resize: vertical;
+            background: #FFFFFF;
+        }
+
+        .form-textarea:focus {
+            border-color: #FFC1E9;
+        }
+
+        /* 图片上传 */
+        .image-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .upload-item {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            background: #F5F5F5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 32px;
+        }
+
+        .upload-item:active {
+            transform: scale(0.98);
+        }
+
+        .upload-item.has-image {
+            background: linear-gradient(135deg, #FFC1E9 0%, #FFF4D2 100%);
+        }
+
+        /* 设置页面 */
+        .settings-section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            color: #999999;
+            padding: 0 16px;
+            margin-bottom: 8px;
+        }
+
+        .settings-list {
+            background: #FFFFFF;
+            border-radius: 12px;
+            margin: 0 16px;
+            overflow: hidden;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid #F5F5F5;
+            cursor: pointer;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item:active {
+            background: #FFF9F9;
+        }
+
+        /* AI助手页面 */
+        .ai-chat-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #FFF9F9;
+        }
+
+        .ai-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .ai-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .ai-bubble.user {
+            background: #FFC1E9;
+            color: #FFFFFF;
+            margin-left: auto;
+        }
+
+        .ai-bubble.assistant {
+            background: #FFFFFF;
+            color: #333333;
+            margin-right: auto;
+        }
+
+        /* 宠物管理卡片 */
+        .pet-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .pet-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .pet-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #FFC1E9;
+        }
+
+        .pet-basic-info {
+            flex: 1;
+        }
+
+        .pet-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+
+        .pet-breed {
+            font-size: 12px;
+            color: #999999;
+        }
+
+        .pet-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pet-action-btn {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pet-action-btn.edit {
+            background: #FFF4D2;
+            color: #333333;
+        }
+
+        .pet-action-btn.delete {
+            background: #FFE5E5;
+            color: #FF6B6B;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            margin-bottom: 16px;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            color: #999999;
+        }
+
+        /* 按钮通用样式 */
+        .btn {
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            border: none;
+            outline: none;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: #FFC1E9;
+            color: #FFFFFF;
+        }
+
+        .btn-secondary {
+            background: #FFF4D2;
+            color: #333333;
+        }
+
+        /* 输入框 */
+        .input {
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid #E5E5E5;
+            padding: 0 16px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input:focus {
+            border-color: #FFC1E9;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <div class="top-nav">
+            <div class="nav-icon">☰</div>
+            <div class="nav-title" id="navTitle">首页</div>
+            <div class="nav-icon">🔔</div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 首页 - 地图 -->
+            <div class="page active" id="homePage">
+                <div class="home-page">
+                    <div class="map-container">
+                        <div class="map-placeholder">🗺️ 地图加载中...</div>
+                        <!-- 品种筛选器 -->
+                        <div class="breed-filter">
+                            <div class="breed-chip active" data-breed="all">全部</div>
+                            <div class="breed-chip" data-breed="golden">金毛</div>
+                            <div class="breed-chip" data-breed="husky">哈士奇</div>
+                            <div class="breed-chip" data-breed="corgi">柯基</div>
+                            <div class="breed-chip" data-breed="poodle">泰迪</div>
+                        </div>
+                        <!-- 地图标记点示例 -->
+                        <div class="map-marker" style="top: 30%; left: 40%;">🐕</div>
+                        <div class="map-marker" style="top: 50%; left: 60%;">🐕</div>
+                        <div class="map-marker" style="top: 70%; left: 30%;">🐕</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 附近狗友列表页 -->
+            <div class="sub-page" id="nearbyFriendsPage">
+                <div class="list-container">
+                    <div class="list-item">
+                        <div class="user-card">
+                            <div class="user-avatar">🐕</div>
+                            <div class="user-info">
+                                <div class="user-name">小明和他的金毛</div>
+                                <div class="user-desc">距离你 500m · 金毛 · 3岁</div>
+                            </div>
+                            <div class="follow-btn">关注</div>
+                        </div>
+                    </div>
+                    <div class="list-item">
+                        <div class="user-card">
+                            <div class="user-avatar">🐕</div>
+                            <div class="user-info">
+                                <div class="user-name">柯基妈妈</div>
+                                <div class="user-desc">距离你 800m · 柯基 · 2岁</div>
+                            </div>
+                            <div class="follow-btn">关注</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 附近遛狗好去处列表页 -->
+            <div class="sub-page" id="nearbySpotsPage">
+                <div class="list-container">
+                    <div class="spot-card">
+                        <div class="spot-image">🌳</div>
+                        <div class="spot-info">
+                            <div class="spot-name">中央公园草坪区</div>
+                            <div class="spot-address">📍 距离你 600m</div>
+                            <div class="spot-tags">
+                                <span class="spot-tag">大草坪</span>
+                                <span class="spot-tag">可撒欢</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 他人用户主页详情页 -->
+            <div class="sub-page" id="userProfilePage">
+                <div class="profile-header" style="background: linear-gradient(135deg, #FFC1E9 0%, #FFE5F1 100%); padding: 60px 16px 20px; text-align: center;">
+                    <div class="user-avatar" style="width: 80px; height: 80px; margin: 0 auto 12px;"></div>
+                    <div class="user-name" style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 8px;">小明和他的金毛</div>
+                    <div class="user-desc" style="font-size: 14px; color: #666; margin-bottom: 16px;">金毛 · 3岁 · 爱运动的大暖男</div>
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <div class="follow-btn" style="padding: 8px 32px;">关注</div>
+                        <div class="follow-btn" style="padding: 8px 32px; background: #FFF; color: #FFC1E9; border: 1px solid #FFC1E9;">私信</div>
+                    </div>
+                </div>
+                <div style="display: flex; padding: 16px; background: #FFF; margin-bottom: 8px;">
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 20px; font-weight: bold; color: #333;">128</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 4px;">动态</div>
+                    </div>
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 20px; font-weight: bold; color: #333;">1.2k</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 4px;">关注</div>
+                    </div>
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 20px; font-weight: bold; color: #333;">3.5k</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 4px;">粉丝</div>
+                    </div>
+                </div>
+                <div class="list-container">
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar"></div>
+                            <div class="post-user-info">
+                                <div class="post-username">小明和他的金毛</div>
+                                <div class="post-time">2小时前</div>
+                            </div>
+                        </div>
+                        <div class="post-content">今天天气真好，带金毛出来遛弯啦！</div>
+                        <div class="post-images">
+                            <div class="post-image"></div>
+                            <div class="post-image"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 动态详情页 -->
+            <div class="sub-page" id="postDetailPage">
+                <div class="post-detail-container">
+                    <div class="post-card" style="margin-bottom: 0; border-radius: 0;">
+                        <div class="post-header">
+                            <div class="post-avatar"></div>
+                            <div class="post-user-info">
+                                <div class="post-username">铲屎官小王</div>
+                                <div class="post-time">2分钟前</div>
+                            </div>
+                        </div>
+                        <div class="post-content">今天带我家金毛去公园玩啦！它超级开心，一直在草地上打滚 🐕💕</div>
+                        <div class="post-images">
+                            <div class="post-image"></div>
+                            <div class="post-image"></div>
+                            <div class="post-image"></div>
+                        </div>
+                        <div class="post-actions">
+                            <div class="action-btn"><span>❤️</span><span>128</span></div>
+                            <div class="action-btn"><span>💬</span><span>32</span></div>
+                            <div class="action-btn"><span>🔗</span><span>分享</span></div>
+                        </div>
+                    </div>
+                    <div style="padding: 16px; background: #FFF; margin-top: 8px;">
+                        <div style="font-size: 16px; font-weight: bold; margin-bottom: 16px;">评论 32</div>
+                        <div class="comment-item" style="margin-bottom: 16px;">
+                            <div style="display: flex; gap: 12px;">
+                                <div class="user-avatar" style="width: 36px; height: 36px;"></div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 14px; color: #333; font-weight: 500;">柯基妈妈</div>
+                                    <div style="font-size: 14px; color: #666; margin: 8px 0;">好可爱啊！我家柯基也超喜欢在草地上打滚</div>
+                                    <div style="font-size: 12px; color: #999;">5分钟前</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comment-item">
+                            <div style="display: flex; gap: 12px;">
+                                <div class="user-avatar" style="width: 36px; height: 36px;"></div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 14px; color: #333; font-weight: 500;">哈士奇爸爸</div>
+                                    <div style="font-size: 14px; color: #666; margin: 8px 0;">这是哪个公园啊？看起来环境不错</div>
+                                    <div style="font-size: 12px; color: #999;">10分钟前</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comment-input-bar" style="position: fixed; bottom: 0; left: 0; right: 0; background: #FFF; padding: 12px 16px; border-top: 1px solid #F0F0F0; display: flex; gap: 12px; align-items: center;">
+                    <input type="text" placeholder="说点什么..." style="flex: 1; padding: 8px 16px; background: #F5F5F5; border: none; border-radius: 20px; font-size: 14px;">
+                    <div style="color: #FFC1E9; font-size: 14px; font-weight: 500;">发送</div>
+                </div>
+            </div>
+
+            <!-- 发布动态页 -->
+            <div class="sub-page" id="createPostPage">
+                <div class="form-container">
+                    <textarea placeholder="分享你和宠物的故事..." style="width: 100%; min-height: 200px; padding: 16px; border: 1px solid #E0E0E0; border-radius: 12px; font-size: 15px; resize: vertical; font-family: inherit;"></textarea>
+                    <div style="margin-top: 16px;">
+                        <div style="font-size: 14px; color: #666; margin-bottom: 12px;">添加图片（最多9张）</div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                            <div style="aspect-ratio: 1; background: #F5F5F5; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #CCC;">+</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 24px;">
+                        <div style="font-size: 14px; color: #666; margin-bottom: 12px;">添加话题</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <div style="padding: 6px 16px; background: #FFF4F6; color: #FFC1E9; border-radius: 16px; font-size: 13px;">#遛狗日常</div>
+                            <div style="padding: 6px 16px; background: #FFF4F6; color: #FFC1E9; border-radius: 16px; font-size: 13px;">#宠物摄影</div>
+                            <div style="padding: 6px 16px; background: #F5F5F5; color: #999; border-radius: 16px; font-size: 13px;">+ 添加话题</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 32px;">
+                        <div class="primary-btn" style="width: 100%; text-align: center;">发布</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 动态预览页 -->
+            <div class="sub-page" id="postPreviewPage">
+                <div style="padding: 16px; background: #FFF;">
+                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 16px; text-align: center;">预览</div>
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar"></div>
+                            <div class="post-user-info">
+                                <div class="post-username">我</div>
+                                <div class="post-time">刚刚</div>
+                            </div>
+                        </div>
+                        <div class="post-content">分享你和宠物的故事...</div>
+                        <div class="post-images">
+                            <div class="post-image"></div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <div class="secondary-btn" style="flex: 1; text-align: center;">返回编辑</div>
+                        <div class="primary-btn" style="flex: 1; text-align: center;">确认发布</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 私信聊天页 -->
+            <div class="sub-page" id="chatPage">
+                <div class="chat-container">
+                    <div class="chat-messages" style="flex: 1; padding: 16px; overflow-y: auto;">
+                        <div class="message-item" style="margin-bottom: 16px;">
+                            <div style="display: flex; gap: 12px;">
+                                <div class="user-avatar" style="width: 40px; height: 40px;"></div>
+                                <div style="max-width: 70%;">
+                                    <div style="background: #F5F5F5; padding: 12px; border-radius: 12px; font-size: 14px; color: #333;">你好，请问你家金毛是在哪里领养的呀？</div>
+                                    <div style="font-size: 12px; color: #999; margin-top: 4px;">10:23</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="message-item" style="margin-bottom: 16px;">
+                            <div style="display: flex; gap: 12px; flex-direction: row-reverse;">
+                                <div class="user-avatar" style="width: 40px; height: 40px;"></div>
+                                <div style="max-width: 70%;">
+                                    <div style="background: #FFC1E9; color: #FFF; padding: 12px; border-radius: 12px; font-size: 14px;">是在市区的宠物救助站领养的，那里还有很多可爱的狗狗等待领养呢</div>
+                                    <div style="font-size: 12px; color: #999; margin-top: 4px; text-align: right;">10:25</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-bar" style="padding: 12px 16px; background: #FFF; border-top: 1px solid #F0F0F0; display: flex; gap: 12px; align-items: center;">
+                        <div style="font-size: 24px;">😊</div>
+                        <input type="text" placeholder="输入消息..." style="flex: 1; padding: 8px 16px; background: #F5F5F5; border: none; border-radius: 20px; font-size: 14px;">
+                        <div style="color: #FFC1E9; font-size: 14px; font-weight: 500;">发送</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系统通知详情页 -->
+            <div class="sub-page" id="notificationDetailPage">
+                <div style="padding: 16px; background: #FFF;">
+                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">系统通知</div>
+                    <div style="font-size: 14px; color: #999; margin-bottom: 24px;">2026-05-13 10:30</div>
+                    <div style="font-size: 15px; color: #333; line-height: 1.8;">
+                        <p style="margin-bottom: 16px;">亲爱的用户，</p>
+                        <p style="margin-bottom: 16px;">感谢您使用WaggleWorld宠物社区！我们很高兴地通知您，您的账号已经通过实名认证。</p>
+                        <p style="margin-bottom: 16px;">现在您可以使用更多功能：</p>
+                        <ul style="margin-left: 20px; margin-bottom: 16px;">
+                            <li>发布动态和评论</li>
+                            <li>参与社区活动</li>
+                            <li>使用AI养宠助手</li>
+                            <li>预约宠物服务</li>
+                        </ul>
+                        <p>祝您使用愉快！</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 编辑个人资料页 -->
+            <div class="sub-page" id="editProfilePage">
+                <div class="form-container">
+                    <div class="form-item">
+                        <div class="form-label">头像</div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="user-avatar" style="width: 60px; height: 60px;"></div>
+                            <div style="color: #FFC1E9; font-size: 14px;">更换头像</div>
+                        </div>
+                    </div>
+                    <div class="form-item">
+                        <div class="form-label">昵称</div>
+                        <input type="text" class="form-input" value="铲屎官小李" placeholder="请输入昵称">
+                    </div>
+                    <div class="form-item">
+                        <div class="form-label">性别</div>
+                        <div style="display: flex; gap: 16px;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="radio" name="gender" value="male" checked>
+                                <span>男</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="radio" name="gender" value="female">
+                                <span>女</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-item">
+                        <div class="form-label">个性签名</div>
+                        <textarea class="form-input" placeholder="介绍一下你和你的宠物吧" style="min-height: 80px; resize: vertical;">爱狗人士，家有金毛一只</textarea>
+                    </div>
+                    <div class="form-item">
+                        <div class="form-label">所在地区</div>
+                        <input type="text" class="form-input" value="北京市 朝阳区" placeholder="请选择地区">
+                    </div>
+                    <div style="margin-top: 32px;">
+                        <div class="primary-btn" style="width: 100%; text-align: center;">保存</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 宠物管理页 -->
+            <div class="sub-page" id="petManagementPage">
+                <div class="list-container">
+                    <div class="list-item">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="user-avatar" style="width: 60px; height: 60px;">🐕</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 16px; font-weight: 500; color: #333; margin-bottom: 4px;">大黄</div>
+                                <div style="font-size: 13px; color: #999;">金毛 · 公 · 3岁</div>
+                            </div>
+                            <div style="color: #FFC1E9; font-size: 14px;">编辑</div>
+                        </div>
+                    </div>
+                    <div class="list-item">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="user-avatar" style="width: 60px; height: 60px;">🐱</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 16px; font-weight: 500; color: #333; margin-bottom: 4px;">小白</div>
+                                <div style="font-size: 13px; color: #999;">英短 · 母 · 2岁</div>
+                            </div>
+                            <div style="color: #FFC1E9; font-size: 14px;">编辑</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px;">
+                        <div class="primary-btn" style="width: 100%; text-align: center;">+ 添加宠物</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 我的关注/粉丝页 -->
+            <div class="sub-page" id="followListPage">
+                <div style="display: flex; border-bottom: 1px solid #F0F0F0; background: #FFF;">
+                    <div class="tab-item active" data-tab="following" style="flex: 1; text-align: center; padding: 16px; font-size: 15px; color: #FFC1E9; border-bottom: 2px solid #FFC1E9;">关注 1.2k</div>
+                    <div class="tab-item" data-tab="followers" style="flex: 1; text-align: center; padding: 16px; font-size: 15px; color: #999;">粉丝 3.5k</div>
+                </div>
+                <div class="list-container">
+                    <div class="list-item">
+                        <div class="user-card">
+                            <div class="user-avatar">🐕</div>
+                            <div class="user-info">
+                                <div class="user-name">小明和他的金毛</div>
+                                <div class="user-desc">金毛 · 3岁</div>
+                            </div>
+                            <div class="follow-btn">已关注</div>
+                        </div>
+                    </div>
+                    <div class="list-item">
+                        <div class="user-card">
+                            <div class="user-avatar">🐱</div>
+                            <div class="user-info">
+                                <div class="user-name">猫咪小姐姐</div>
+                                <div class="user-desc">英短 · 2岁</div>
+                            </div>
+                            <div class="follow-btn">已关注</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 我的动态页 -->
+            <div class="sub-page" id="myPostsPage">
+                <div class="list-container">
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar"></div>
+                            <div class="post-user-info">
+                                <div class="post-username">我</div>
+                                <div class="post-time">1天前</div>
+                            </div>
+                        </div>
+                        <div class="post-content">今天带狗狗去体检，一切正常！</div>
+                        <div class="post-actions">
+                            <div class="action-btn"><span>❤️</span><span>45</span></div>
+                            <div class="action-btn"><span>💬</span><span>12</span></div>
+                            <div class="action-btn"><span>🔗</span><span>分享</span></div>
+                        </div>
+                    </div>
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar"></div>
+                            <div class="post-user-info">
+                                <div class="post-username">我</div>
+                                <div class="post-time">3天前</div>
+                            </div>
+                        </div>
+                        <div class="post-content">分享一个遛狗的好地方</div>
+                        <div class="post-images">
+                            <div class="post-image"></div>
+                            <div class="post-image"></div>
+                        </div>
+                        <div class="post-actions">
+                            <div class="action-btn"><span>❤️</span><span>89</span></div>
+                            <div class="action-btn"><span>💬</span><span>23</span></div>
+                            <div class="action-btn"><span>🔗</span><span>分享</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI养宠助手页 -->
+            <div class="sub-page" id="aiAssistantPage">
+                <div class="chat-container">
+                    <div class="chat-messages" style="flex: 1; padding: 16px; overflow-y: auto;">
+                        <div style="text-align: center; padding: 20px; color: #999; font-size: 13px;">
+                            <div style="font-size: 48px; margin-bottom: 12px;">🤖</div>
+                            <div>我是AI养宠助手</div>
+                            <div>可以为您解答宠物饲养、健康、训练等问题</div>
+                        </div>
+                        <div class="message-item" style="margin-bottom: 16px;">
+                            <div style="display: flex; gap: 12px; flex-direction: row-reverse;">
+                                <div class="user-avatar" style="width: 40px; height: 40px;"></div>
+                                <div style="max-width: 70%;">
+                                    <div style="background: #FFC1E9; color: #FFF; padding: 12px; border-radius: 12px; font-size: 14px;">我家狗狗最近不爱吃饭怎么办？</div>
+                                    <div style="font-size: 12px; color: #999; margin-top: 4px; text-align: right;">10:30</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="message-item" style="margin-bottom: 16px;">
+                            <div style="display: flex; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #FFC1E9, #FFE5F1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🤖</div>
+                                <div style="max-width: 70%;">
+                                    <div style="background: #F5F5F5; padding: 12px; border-radius: 12px; font-size: 14px; color: #333; line-height: 1.6;">
+                                        狗狗不爱吃饭可能有以下几个原因：<br><br>
+                                        1. 天气炎热导致食欲下降<br>
+                                        2. 零食吃太多<br>
+                                        3. 肠胃不适<br>
+                                        4. 食物不新鲜<br><br>
+                                        建议您先观察狗狗的精神状态，如果持续不吃且精神萎靡，建议及时就医。
+                                    </div>
+                                    <div style="font-size: 12px; color: #999; margin-top: 4px;">10:31</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-bar" style="padding: 12px 16px; background: #FFF; border-top: 1px solid #F0F0F0;">
+                        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+                            <input type="text" placeholder="输入您的问题..." style="flex: 1; padding: 8px 16px; background: #F5F5F5; border: none; border-radius: 20px; font-size: 14px;">
+                            <div style="color: #FFC1E9; font-size: 14px; font-weight: 500;">发送</div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <div style="padding: 6px 12px; background: #FFF4F6; color: #FFC1E9; border-radius: 16px; font-size: 12px;">狗狗训练</div>
+                            <div style="padding: 6px 12px; background: #FFF4F6; color: #FFC1E9; border-radius: 16px; font-size: 12px;">健康咨询</div>
+                            <div style="padding: 6px 12px; background: #FFF4F6; color: #FFC1E9; border-radius: 16px; font-size: 12px;">饮食建议</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 设置页 -->
+            <div class="sub-page" id="settingsPage">
+                <div class="list-container">
+                    <div class="list-item">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="font-size: 15px; color: #333;">账号与安全</div>
+                            <div style="color: #999; font-size: 14px;">›</div>
+                        </div>
+                    </div>
+                    <div class="list-item">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="font-size: 15px; color: #333;">隐私设置</div>
+                            <div style="color: #999; font-size: 14px;">›</div>
+                        </div>
+                    </div>
+                    <div class="list-item">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="font-size: 15px; color: #333;">消息通知</div>
+                            <div style="color: #999; font-size: 14px;">›</div>
+                        </div>
+                    </div>
+                    <div class="list-item">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="font-size: 15px; color: #333;">清理缓存</div>
+                            <div style="color: #999; font-size: 13px;">32.5MB</div>
+                        </div>
+                    </div>
+                    <div class="list-item">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="font-size: 15px; color: #333;">关于我们</div>
+                            <div style="color: #999; font-size: 14px;">›</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 32px;">
+                        <div class="secondary-btn" style="width: 100%; text-align: center; color: #FF4444; border-color: #FF4444;">退出登录</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 宠物圈 -->
+            <div class="page" id="circlePage">
+                <div class="circle-page">
+                    <!-- 动态卡片 1 -->
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar"></div>
+                            <div class="post-user-info">
+                                <div class="post-username">铲屎官小王</div>
+                                <div class="post-time">2分钟前</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            今天带我家金毛去公园玩啦！它超级开心，一直在草地上打滚 🐕💕
+                        </div>
+                        <div class="post-images">
+                            <div class="post-image"></div>
+                            <div class="post-image"></div>
+                            <div class="post-image"></div>
+                        </div>
+                        <div class="post-actions">
+                            <div class="action-btn" data-action="like">
+                                <span>❤️</span>
+                                <span>128</span>
+                            </div>
+                            <div class="action-btn" data-action="comment">
+                                <span>💬</span>
+                                <span>32</span>
+                            </div>
+                            <div class="action-btn" data-action="share">
+                                <span>🔗</span>
+                                <span>分享</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 动态卡片 2 -->
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar"></div>
+                            <div class="post-user-info">
+                                <div class="post-username">柯基妈妈</div>
+                                <div class="post-time">1小时前</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            求推荐附近好的宠物医院！我家柯基最近有点拉肚子 😢
+                        </div>
+                        <div class="post-actions">
+                            <div class="action-btn" data-action="like">
+                                <span>❤️</span>
+                                <span>45</span>
+                            </div>
+                            <div class="action-btn" data-action="comment">
+                                <span>💬</span>
+                                <span>18</span>
+                            </div>
+                            <div class="action-btn" data-action="share">
+                                <span>🔗</span>
+                                <span>分享</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 动态卡片 3 -->
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar"></div>
+                            <div class="post-user-info">
+                                <div class="post-username">哈士奇爸爸</div>
+                                <div class="post-time">3小时前</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            我家二哈又拆家了...沙发被咬烂了一个角 😭 有没有训练狗狗的好方法？
+                        </div>
+                        <div class="post-images">
+                            <div class="post-image"></div>
+                            <div class="post-image"></div>
+                        </div>
+                        <div class="post-actions">
+                            <div class="action-btn" data-action="like">
+                                <span>❤️</span>
+                                <span>89</span>
+                            </div>
+                            <div class="action-btn" data-action="comment">
+                                <span>💬</span>
+                                <span>56</span>
+                            </div>
+                            <div class="action-btn" data-action="share">
+                                <span>🔗</span>
+                                <span>分享</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 发布按钮 -->
+                <div class="publish-btn">
+                    <span style="font-size: 24px; color: white;">+</span>
+                </div>
+            </div>
+
+            <!-- 消息 -->
+            <div class="page" id="messagePage">
+                <div class="message-page">
+                    <div class="message-item">
+                        <div class="message-avatar"></div>
+                        <div class="message-content">
+                            <div class="message-title">系统通知</div>
+                            <div class="message-preview">您的动态获得了新的点赞</div>
+                        </div>
+                        <div class="message-time">10:30</div>
+                        <div class="message-badge">3</div>
+                    </div>
+
+                    <div class="message-item">
+                        <div class="message-avatar"></div>
+                        <div class="message-content">
+                            <div class="message-title">铲屎官小王</div>
+                            <div class="message-preview">你家狗狗好可爱呀！</div>
+                        </div>
+                        <div class="message-time">昨天</div>
+                    </div>
+
+                    <div class="message-item">
+                        <div class="message-avatar"></div>
+                        <div class="message-content">
+                            <div class="message-title">柯基妈妈</div>
+                            <div class="message-preview">谢谢推荐的宠物医院</div>
+                        </div>
+                        <div class="message-time">2天前</div>
+                    </div>
+
+                    <div class="message-item">
+                        <div class="message-avatar"></div>
+                        <div class="message-content">
+                            <div class="message-title">活动通知</div>
+                            <div class="message-preview">本周末宠物聚会活动开始报名啦</div>
+                        </div>
+                        <div class="message-time">3天前</div>
+                        <div class="message-badge">1</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 我的 -->
+            <div class="page" id="profilePage">
+                <div class="profile-page">
+                    <div class="profile-header">
+                        <div class="profile-avatar"></div>
+                        <div class="profile-info">
+                            <div class="profile-name">我的昵称</div>
+                            <div class="profile-bio">爱狗人士 | 金毛铲屎官</div>
+                        </div>
+                    </div>
+
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">128</div>
+                            <div class="stat-label">关注</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">256</div>
+                            <div class="stat-label">粉丝</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">45</div>
+                            <div class="stat-label">动态</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">89</div>
+                            <div class="stat-label">收藏</div>
+                        </div>
+                    </div>
+
+                    <div class="profile-menu">
+                        <div class="menu-item">
+                            <div class="menu-label">🐕 我的宠物</div>
+                            <div>›</div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-label">📝 我的动态</div>
+                            <div>›</div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-label">⭐ 我的收藏</div>
+                            <div>›</div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-label">📍 常去地点</div>
+                            <div>›</div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-label">⚙️ 设置</div>
+                            <div>›</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部标签栏 -->
+        <div class="bottom-tab-bar">
+            <div class="tab-item active" data-page="homePage">
+                <div class="tab-icon">🏠</div>
+                <div class="tab-label">首页</div>
+            </div>
+            <div class="tab-item" data-page="circlePage">
+                <div class="tab-icon">🐾</div>
+                <div class="tab-label">宠物圈</div>
+            </div>
+            <div class="tab-item" data-page="messagePage">
+                <div class="tab-icon">💬</div>
+                <div class="tab-label">消息</div>
+            </div>
+            <div class="tab-item" data-page="profilePage">
+                <div class="tab-icon">👤</div>
+                <div class="tab-label">我的</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面导航系统
+        const pageStack = ['homePage']; // 页面栈
+        let currentPage = 'homePage';
+
+        const pageTitles = {
+            'homePage': '首页',
+            'circlePage': '宠物圈',
+            'messagePage': '消息',
+            'profilePage': '我的',
+            'nearbyFriendsPage': '附近狗友',
+            'nearbySpotsPage': '遛狗好去处',
+            'userProfilePage': '用户主页',
+            'postDetailPage': '动态详情',
+            'createPostPage': '发布动态',
+            'postPreviewPage': '预览',
+            'chatPage': '私信',
+            'notificationDetailPage': '通知详情',
+            'editProfilePage': '编辑资料',
+            'petManagementPage': '宠物管理',
+            'followListPage': '关注/粉丝',
+            'myPostsPage': '我的动态',
+            'aiAssistantPage': 'AI助手',
+            'settingsPage': '设置'
+        };
+
+        // 显示页面
+        function showPage(pageId, isSubPage = false) {
+            const allPages = document.querySelectorAll('.page');
+            const allSubPages = document.querySelectorAll('.sub-page');
+            const navTitle = document.getElementById('navTitle');
+            const backBtn = document.querySelector('.nav-icon:first-child');
+            const tabBar = document.querySelector('.bottom-tab-bar');
+
+            // 隐藏所有页面
+            allPages.forEach(page => page.classList.remove('active'));
+            allSubPages.forEach(page => page.classList.remove('active'));
+
+            // 显示目标页面
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+
+            // 更新导航标题
+            navTitle.textContent = pageTitles[pageId] || '首页';
+
+            // 更新返回按钮和底部标签栏
+            if (isSubPage) {
+                backBtn.style.display = 'block';
+                tabBar.style.display = 'none';
+            } else {
+                backBtn.style.display = 'none';
+                tabBar.style.display = 'flex';
+            }
+
+            currentPage = pageId;
+        }
+
+        // 导航到页面（入栈）
+        function navigateTo(pageId) {
+            pageStack.push(pageId);
+            const isSubPage = document.getElementById(pageId).classList.contains('sub-page');
+            showPage(pageId, isSubPage);
+        }
+
+        // 返回上一页（出栈）
+        function navigateBack() {
+            if (pageStack.length > 1) {
+                pageStack.pop();
+                const previousPage = pageStack[pageStack.length - 1];
+                const isSubPage = document.getElementById(previousPage).classList.contains('sub-page');
+                showPage(previousPage, isSubPage);
+            }
+        }
+
+        // 标签栏切换
+        const tabItems = document.querySelectorAll('.tab-item');
+        tabItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const targetPage = item.getAttribute('data-page');
+
+                // 清空页面栈，重置为主页面
+                pageStack.length = 0;
+                pageStack.push(targetPage);
+
+                // 移除所有标签激活状态
+                tabItems.forEach(tab => tab.classList.remove('active'));
+                item.classList.add('active');
+
+                // 显示页面
+                showPage(targetPage, false);
+            });
+        });
+
+        // 返回按钮
+        const backBtn = document.querySelector('.nav-icon:first-child');
+        backBtn.addEventListener('click', navigateBack);
+
+        // 首页 - 附近狗友列表
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.stat-item') && e.target.closest('.stat-item').querySelector('.stat-label')?.textContent === '附近狗友') {
+                navigateTo('nearbyFriendsPage');
+            }
+        });
+
+        // 首页 - 遛狗好去处列表
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.stat-item') && e.target.closest('.stat-item').querySelector('.stat-label')?.textContent === '遛狗好去处') {
+                navigateTo('nearbySpotsPage');
+            }
+        });
+
+        // 用户卡片点击 - 跳转到用户主页
+        document.addEventListener('click', (e) => {
+            const userCard = e.target.closest('.user-card');
+            if (userCard && !e.target.classList.contains('follow-btn')) {
+                navigateTo('userProfilePage');
+            }
+        });
+
+        // 地点卡片点击
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.spot-card')) {
+                console.log('查看地点详情');
+            }
+        });
+
+        // 品种筛选器
+        const breedChips = document.querySelectorAll('.breed-chip');
+        breedChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                breedChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+
+                const breed = chip.getAttribute('data-breed');
+                console.log('筛选品种:', breed);
+            });
+        });
+
+        // 地图标记点点击
+        const mapMarkers = document.querySelectorAll('.map-marker');
+        mapMarkers.forEach(marker => {
+            marker.addEventListener('click', () => {
+                navigateTo('userProfilePage');
+            });
+        });
+
+        // 动态卡片点击 - 跳转到动态详情
+        document.addEventListener('click', (e) => {
+            const postCard = e.target.closest('.post-card');
+            if (postCard && !e.target.closest('.action-btn') && !e.target.closest('.post-avatar')) {
+                navigateTo('postDetailPage');
+            }
+        });
+
+        // 动态操作按钮
+        document.addEventListener('click', (e) => {
+            const actionBtn = e.target.closest('.action-btn');
+            if (actionBtn) {
+                const action = actionBtn.getAttribute('data-action');
+
+                if (action === 'like') {
+                    actionBtn.classList.toggle('active');
+                    const countSpan = actionBtn.querySelector('span:last-child');
+                    let count = parseInt(countSpan.textContent);
+                    countSpan.textContent = actionBtn.classList.contains('active') ? count + 1 : count - 1;
+                } else if (action === 'comment') {
+                    navigateTo('postDetailPage');
+                } else if (action === 'share') {
+                    console.log('分享功能');
+                }
+            }
+        });
+
+        // 发布按钮 - 跳转到发布页面
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.publish-btn')) {
+                navigateTo('createPostPage');
+            }
+        });
+
+        // 消息列表点击 - 跳转到聊天页面
+        document.addEventListener('click', (e) => {
+            const messageItem = e.target.closest('.message-item');
+            if (messageItem && messageItem.querySelector('.message-title')) {
+                const title = messageItem.querySelector('.message-title').textContent;
+                if (title.includes('系统通知')) {
+                    navigateTo('notificationDetailPage');
+                } else {
+                    navigateTo('chatPage');
+                }
+            }
+        });
+
+        // 个人中心菜单点击
+        document.addEventListener('click', (e) => {
+            const menuItem = e.target.closest('.menu-item');
+            if (menuItem) {
+                const label = menuItem.querySelector('.menu-label').textContent;
+
+                if (label.includes('我的宠物')) {
+                    navigateTo('petManagementPage');
+                } else if (label.includes('我的动态')) {
+                    navigateTo('myPostsPage');
+                } else if (label.includes('设置')) {
+                    navigateTo('settingsPage');
+                } else {
+                    console.log('进入: ' + label);
+                }
+            }
+        });
+
+        // 个人中心 - 编辑资料按钮
+        document.addEventListener('click', (e) => {
+            if (e.target.textContent === '编辑资料') {
+                navigateTo('editProfilePage');
+            }
+        });
+
+        // 个人中心 - 关注/粉丝统计点击
+        document.addEventListener('click', (e) => {
+            const statItem = e.target.closest('.stat-item');
+            if (statItem && currentPage === 'profilePage') {
+                const label = statItem.querySelector('.stat-label')?.textContent;
+                if (label === '关注' || label === '粉丝') {
+                    navigateTo('followListPage');
+                }
+            }
+        });
+
+        // 导航图标点击
+        const rightNavIcon = document.querySelector('.nav-icon:last-child');
+        rightNavIcon.addEventListener('click', () => {
+            if (currentPage === 'profilePage') {
+                navigateTo('settingsPage');
+            } else if (currentPage === 'messagePage') {
+                console.log('消息设置');
+            } else {
+                console.log('导航功能');
+            }
+        });
+
+        // 统计数据点击
+        document.addEventListener('click', (e) => {
+            const statItem = e.target.closest('.stat-item');
+            if (statItem && currentPage === 'userProfilePage') {
+                const label = statItem.querySelector('div:last-child')?.textContent;
+                if (label === '动态' || label === '关注' || label === '粉丝') {
+                    console.log('查看' + label);
+                }
+            }
+        });
+
+        // 图片预览
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('post-image')) {
+                console.log('图片预览');
+            }
+        });
+
+        // AI助手菜单项点击
+        document.addEventListener('click', (e) => {
+            const menuItem = e.target.closest('.menu-item');
+            if (menuItem) {
+                const label = menuItem.querySelector('.menu-label')?.textContent;
+                if (label && label.includes('AI')) {
+                    navigateTo('aiAssistantPage');
+                }
+            }
+        });
+
+        // 初始化：显示首页
+        showPage('homePage', false);
+
+        console.log('WaggleWorld 原型已加载');
+    </script>
+</body>
+</html>

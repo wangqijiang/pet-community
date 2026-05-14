@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&amp;family=Nunito+Sans:wght@400;600&amp;family=Plus+Jakarta+Sans:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#eadfbd",
+                        "outline-variant": "#d2c3c4",
+                        "surface-bright": "#fff8f7",
+                        "inverse-primary": "#dfbfc3",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed-variant": "#584145",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#546254",
+                        "secondary-fixed": "#ede2c0",
+                        "surface-variant": "#e8e1e1",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#6a6347",
+                        "surface-tint": "#71585c",
+                        "secondary": "#655e43",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#bbcbba",
+                        "surface-container-high": "#eee6e6",
+                        "primary-fixed-dim": "#dfbfc3",
+                        "primary-container": "#ffdde2",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#3c4a3d",
+                        "on-background": "#1e1b1b",
+                        "surface-dim": "#dfd8d8",
+                        "inverse-surface": "#333030",
+                        "tertiary-container": "#daead8",
+                        "outline": "#807476",
+                        "on-surface-variant": "#4f4446",
+                        "on-secondary-fixed": "#201b06",
+                        "on-primary-container": "#795f64",
+                        "background": "#fff8f7",
+                        "tertiary-fixed": "#d7e7d5",
+                        "surface-container-low": "#f9f2f2",
+                        "surface-container-highest": "#e8e1e1",
+                        "inverse-on-surface": "#f6efef",
+                        "on-secondary-fixed-variant": "#4d472e",
+                        "secondary-fixed-dim": "#d0c6a5",
+                        "on-tertiary-container": "#5b6a5c",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#f3ecec",
+                        "on-tertiary-fixed": "#121e14",
+                        "primary": "#71585c",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#1e1b1b",
+                        "primary-fixed": "#fcdadf",
+                        "on-primary-fixed": "#29161a",
+                        "surface": "#fff8f7",
+                        "soft-blue": "#E1F5FE"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "padding-container": "16px",
+                        "stack-gap": "8px",
+                        "gutter-card": "12px",
+                        "unit": "4px",
+                        "margin-page": "20px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Quicksand"],
+                        "body-md": ["Nunito Sans"],
+                        "body-lg": ["Nunito Sans"],
+                        "display-title": ["Quicksand"],
+                        "label-caps": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-title": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body-md text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-[0_8px_32px_rgba(168,155,157,0.12)]">
+<div class="flex justify-between items-center w-full px-5 py-4 max-w-md mx-auto">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined" data-icon="paws">pets</span>
+</div>
+<h1 class="font-display-title text-display-title text-primary-container text-primary drop-shadow-sm">萌宠朋友圈</h1>
+<div class="flex items-center text-on-surface-variant hover:scale-105 transition-transform active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="pt-20 px-margin-page max-w-md mx-auto space-y-6">
+<!-- Category Slider -->
+<section class="flex overflow-x-auto hide-scrollbar gap-stack-gap py-2 -mx-margin-page px-margin-page">
+<button class="flex-shrink-0 px-5 py-2 rounded-full bg-primary-container text-on-primary-container font-headline-md text-body-md transition-all shadow-sm">全部动态</button>
+<button class="flex-shrink-0 px-5 py-2 rounded-full bg-surface-container-lowest text-[#4A90E2] border border-soft-blue font-headline-md text-body-md hover:bg-soft-blue/20 transition-all">日常萌照</button>
+<button class="flex-shrink-0 px-5 py-2 rounded-full bg-surface-container-lowest text-[#4A90E2] border border-soft-blue font-headline-md text-body-md hover:bg-soft-blue/20 transition-all">训练日常</button>
+<button class="flex-shrink-0 px-5 py-2 rounded-full bg-surface-container-lowest text-[#4A90E2] border border-soft-blue font-headline-md text-body-md hover:bg-soft-blue/20 transition-all">寻狗求助</button>
+</section>
+<!-- Social Feed Section -->
+<div class="space-y-6">
+<!-- Feed Card 1 -->
+<article class="bg-surface-container-lowest border border-primary-container/40 rounded-xl p-4 shadow-[0_8px_24px_rgba(168,155,157,0.08)] hover:scale-[1.02] transition-transform duration-300">
+<div class="flex items-center gap-3 mb-3">
+<img alt="User" class="w-10 h-10 rounded-full border-2 border-primary-container" data-alt="A cute profile picture of a golden retriever wearing a small yellow bandana. The background is a soft, out-of-focus park setting with golden hour sunlight filtering through trees. The overall aesthetic is warm, fluffy, and healing, fitting a soft-ui pet community theme with pastel saturation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANmNGa2mq56-t59wPqVwbfmg9WUscrLC_bxwqep6133bU-hGq0HS1yWj4XacAL5jRGjVBgBVok1y8XDzZEhrSV4tiwH0t6K2K7823jDeZ3RO52RTGnDGMoIf6nCJ04GZZF5ID6NUTPsQ9wJ9ixQC4AEJ6bdVHgZwzR0mFwoGcUp9G5xXv_Or5W2oP0uv7SlETw39B3LK1iAO0EbRCCtmFg1RNIXZdfU44FVcXrGhG5uIGfja8aTjGhbKE0rAGdaZVXdvsMJcaQkp2B"/>
+<div class="flex flex-col">
+<span class="font-headline-md text-body-md text-on-surface">布丁麻麻</span>
+<div class="flex gap-1">
+<span class="bg-secondary-container/30 text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-label-caps">柯基 · 2岁</span>
+</div>
+</div>
+<button class="ml-auto text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<p class="text-on-surface-variant font-body-md mb-3 leading-relaxed">
+                    今天带布丁去公园草坪打滚啦！阳光超级好，它开心得像个200斤的孩子哈哈。这就是简单的幸福吧～✨
+                </p>
+<!-- 4-Grid Layout -->
+<div class="grid grid-cols-2 gap-2 mb-4">
+<img alt="Dog 1" class="w-full aspect-square object-cover rounded-lg" data-alt="A close-up shot of a happy corgi dog rolling in lush green grass. The dog has its tongue out and eyes squinted in joy. Bright, warm afternoon sunlight illuminates the scene, creating a soft, dreamy atmosphere with a pastel-toned color palette of milky pinks and sunny yellows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWE6nKqJN9EELphBcvzou3JaAupvqnMmRaIJAKVvz1Tdm2tzvk08SKWgc0jYj9kKRVnDmabDiPGtjNTl39HV-FMknhQThIM2X3gQ4pdqHuEiA8yBY8g6no8cEFy5fj6Jpa1dIY0fS-MfSA5z94fiv0-j1TE6SB7_pHnVRB2NhcF4LBMeEyVW8EfIWrcETsvcm6AmWtvtqMD8qhK1PX34Wf1pE3XsAW0ONC8cRy_R-yGKpDXFsca3aU-6iKVlHPdR4F-Ycdu3Z4SD2o"/>
+<img alt="Dog 2" class="w-full aspect-square object-cover rounded-lg" data-alt="A fluffy dog sitting majestically under a cherry blossom tree with falling pink petals. The lighting is ethereal and soft-focused, emphasizing a healing and serene mood. The background is a blur of pastel pinks and whites, consistent with a high-end pet social media interface design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsB7GBcZQcen2n6ge0IBo2w6EVXv1J6ihFDsBZzT3QeQTvTvub-GpjMJOSPN41a5UtrsA_JzUhqKsFlePRZp5tG1oyHK-S31mdqLDxvNR9AXiAm2lBDggWWFpUK8bfwmrhbq4LSWgNJqn-LfiDZY0mtPWq2kMqm026kf3lwPmg9zKfc7lMUVEwEGlPYxsZLEGXZfRid92BLF9x-KfGfoPm4jCqQ5kMHWc4n312rGrgCAWAW9bOX9OTMdYrYwUQBNgtRcrjfpvdQkWu"/>
+<img alt="Dog 3" class="w-full aspect-square object-cover rounded-lg" data-alt="Two small dogs playing together on a soft white rug in a minimalist, sun-drenched living room. The style is clean and airy, using a milky-white and soft beige color scheme. The image evokes a sense of comfort and domestic bliss, perfectly tailored for a warm pet community app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2bEs4QyfIKzNWaTveVzzgiz-jS_I4D7CqeeeI0yWBBfEdc9216zEbyt48n95uE3S70RxlAWqfieXmXM2FI82sSW1baFcrkNwH1XfaK_ADrlO9SRAZXFZg88U7Woc7PPdXq_msm4pxxorDuGfvd7H2ssYIYgFu0kMwLfs6GPl0fKC0KIpRBsPl0NIF9k9jA0stn4YE8ZN7Ja0cQ_dyhAQ02UXNFG1xvv8DTwlckzN_9gezf31DzU4-kzBWXNFxHCRqCpnYr9rHuO2M"/>
+<img alt="Dog 4" class="w-full aspect-square object-cover rounded-lg" data-alt="A stylish pet dog wearing a miniature denim jacket, sitting on a wooden bench. The background features a blurred urban park with soft-toned buildings. The photography style is high-end and professional, with a shallow depth of field and soft, colored ambient shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyKk1Hg9WWHaDYRzBGl5TfGx7IG2Rg1ukajbyAFcle-a4FgciTNerbOuRbeg1EzlxkBol0zoYkM1fuwbwrOemfK_nWvhZ8KtehvR7JfxI5V5hNipg6MRVgkJpUys9YyDr-qhRi0oVyD0cHl6jdBZo6e1EFSlw1MBd-rYYBA0Qj_Gto4tCV1UqsiIe75RUMP18eG4wZgWRFMcjKbj51J2-qahCYxNeUmVt5IT7_38Z9OpP0kp6_FAX8HspEtN8KZudjB10lU3H07cE-"/>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-surface-container">
+<div class="flex gap-4">
+<button class="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined text-[18px] group-active:scale-125 transition-transform" data-icon="paws">pets</span>
+<span class="text-[12px] font-label-caps">128</span>
+</button>
+<button class="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="chat_bubble">chat_bubble</span>
+<span class="text-[12px] font-label-caps">32</span>
+</button>
+</div>
+<button class="text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="share">share</span>
+</button>
+</div>
+</article>
+<!-- Feed Card 2 (Single Image) -->
+<article class="bg-surface-container-lowest border border-primary-container/40 rounded-xl p-4 shadow-[0_8px_24px_rgba(168,155,157,0.08)]">
+<div class="flex items-center gap-3 mb-3">
+<img alt="User" class="w-10 h-10 rounded-full border-2 border-primary-container" data-alt="A portrait of a person holding a tiny kitten, both looking at the camera with gentle expressions. The lighting is soft and flattering, emphasizing the texture of the kitten's fur. The style is cozy and emotionally resonant, using a palette of creams and soft pinks." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfhfF739whdsL2Idcslqq05cZJ-cyDfvyW-D6zy5IzNyyNAyut2TDeucXaItqJgYJi-Bznzuv4CUt7Tt8SGyEurQ5eNSZSPxpbZR_Lwl-Ut7lHp2DN9dNtUmwZqJ8RPWXpKU81y8MPSQdpJIC8b8klHPBYuQPB4uVJcTtf0kv7m5Yy5PyKYM-CVTOK-kcVUa27G-qMkPpTtp-23aGeGxgQnJv7bSPID-47-j8D4Nm2KT5gkROLJy9ILU5mcxf1-SFtuWbHM1H43cV4"/>
+<div class="flex flex-col">
+<span class="font-headline-md text-body-md text-on-surface">喵星人领养中心</span>
+<div class="flex gap-1">
+<span class="bg-tertiary-container/30 text-on-tertiary-container text-[10px] px-2 py-0.5 rounded-full font-label-caps">志愿者</span>
+</div>
+</div>
+<button class="ml-auto text-outline hover:text-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<p class="text-on-surface-variant font-body-md mb-3 leading-relaxed">
+                    新来的小橘太粘人啦！一进门就开始蹭腿，求一个有缘的家庭带它回家～ 坐标上海。🍊
+                </p>
+<img alt="Cat" class="w-full aspect-[4/3] object-cover rounded-lg mb-4" data-alt="A fluffy ginger kitten looking up with big, curious green eyes. The kitten is sitting on a pale pink knitted blanket. The shot is high-detail with a soft bokeh background, creating a marshmallow-like visual effect that feels lightweight and airy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0Y3ZKA_jACMYrJzh4knM8zGp-F0yGVdVXkjliRhZEcUJxspaqKvZ_y382vUKQQHZs8blRE88QnEm_0DnLlIA6sVDC-0kKt5Ow4K1cGVPOIHuxhdBE7gaJE2Yixu7DiK09FTKxSHywSQHgg09nAeOFun6DW84aCj5Fhiez-9NZodjnmaPLWP29QObOcuOqG0ScggEPRBTOINLq2LFMISSPJFneT-k8jUTs06Gk3y6IzcM3dqdH1_lNfJKromQPWou3umypbwO6XzTM"/>
+<div class="flex items-center justify-between pt-2 border-t border-surface-container">
+<div class="flex gap-4">
+<button class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="paws">pets</span>
+<span class="text-[12px] font-label-caps">456</span>
+</button>
+<button class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="chat_bubble">chat_bubble</span>
+<span class="text-[12px] font-label-caps">89</span>
+</button>
+</div>
+</div>
+</article>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-secondary-fixed text-on-secondary-fixed rounded-full shadow-[0_8px_24px_rgba(234,223,189,0.5)] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-300 z-40">
+<span class="material-symbols-outlined text-[28px]" data-icon="add">add</span>
+</button>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest dark:bg-surface-container-low border-t border-outline-variant/30 shadow-[0_-4px_16px_rgba(168,155,157,0.08)] rounded-t-xl h-[72px] pb-safe flex justify-around items-center px-4">
+<a class="flex flex-col items-center justify-center text-on-secondary-fixed-variant hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim relative after:content-['❤'] after:text-[8px] after:absolute after:-top-1 after:animate-bounce hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="pets">pets</span>
+<span class="font-label-caps text-label-caps mt-1">Circle</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-fixed-variant hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-label-caps text-label-caps mt-1">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-fixed-variant hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps mt-1">Me</span>
+</a>
+</nav>
+</body></html>

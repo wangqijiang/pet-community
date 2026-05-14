@@ -1,0 +1,31 @@
+{
+  "name": "waggleworld-miniprogram",
+  "version": "1.0.0",
+  "description": "萌宠治愈家 - 宠物社交小程序",
+  "main": "main.js",
+  "scripts": {
+    "dev": "uni -p mp-weixin --mode development",
+    "build": "uni build -p mp-weixin --mode production",
+    "build:dev": "uni build -p mp-weixin --mode development",
+    "h5:dev": "uni --mode development",
+    "h5:build": "uni build --mode production"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "3.0.0-alpha-5000920260512001",
+    "@dcloudio/uni-components": "3.0.0-alpha-5000920260512001",
+    "@dcloudio/uni-mp-weixin": "3.0.0-alpha-5000920260512001",
+    "vue": "^3.2.47"
+  },
+  "devDependencies": {
+    "@dcloudio/types": "^3.4.8",
+    "@dcloudio/uni-cli-shared": "3.0.0-alpha-5000920260512001",
+    "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000920260512001",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@vitejs/plugin-vue-jsx": "^4.0.0",
+    "sass": "^1.63.6",
+    "vite": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

@@ -1,0 +1,44 @@
+# Dependencies
+front/node_modules/
+front/npm-debug.log*
+front/yarn-debug.log*
+front/yarn-error.log*
+front/pnpm-debug.log*
+
+# Build outputs
+front/dist/
+front/build/
+front/unpackage/
+front/.temp/
+front/.cache/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# WeChat MiniProgram
+front/project.config.json
+front/project.private.config.json
+front/sitemap.json
+
+# Temporary files
+*.tmp
+*.temp
