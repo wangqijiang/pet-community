@@ -1,0 +1,277 @@
+// WaggleWorld 全局通用样式
+
+@import './variables.scss';
+
+// ==================== 全局重置样式 ====================
+page {
+  width: 100%;
+  height: 100%;
+  background: $color-bg-primary;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: $font-size-body;
+  color: $color-gray-dark;
+  line-height: $line-height-base;
+}
+
+// 清除默认样式
+view, text, image, button, input, textarea {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+// ==================== 通用布局类 ====================
+.container {
+  width: 100%;
+  min-height: 100vh;
+  background: $color-bg-primary;
+}
+
+.page-content {
+  padding: $spacing-page-horizontal;
+  padding-top: calc(#{$nav-bar-height} + #{$spacing-page-vertical});
+  padding-bottom: calc(#{$tab-bar-height} + #{$spacing-page-vertical});
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+// ==================== 通用文字类 ====================
+.text-primary {
+  color: $color-primary;
+}
+
+.text-secondary {
+  color: $color-gray-medium;
+}
+
+.text-tertiary {
+  color: $color-gray-lighter;
+}
+
+.text-bold {
+  font-weight: $font-weight-bold;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ==================== 通用按钮类 ====================
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $border-radius-base;
+  font-size: $font-size-button;
+  font-weight: $font-weight-bold;
+  transition: transform $transition-base ease;
+  border: none;
+  outline: none;
+
+  &.btn-pressed {
+    transform: scale($scale-press);
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
+  color: $color-bg-white;
+  box-shadow: $shadow-pink;
+}
+
+.btn-secondary {
+  background: $color-bg-white;
+  color: $color-gray-medium;
+  border: $border-width solid $border-color;
+}
+
+.btn-large {
+  height: $button-height-large;
+  padding: 0 48rpx;
+}
+
+.btn-medium {
+  height: $button-height-medium;
+  padding: 0 32rpx;
+}
+
+.btn-small {
+  height: $button-height-small;
+  padding: 0 24rpx;
+}
+
+// ==================== 通用卡片类 ====================
+.card {
+  background: $color-bg-white;
+  border-radius: $border-radius-base;
+  padding: $spacing-component;
+  box-shadow: $shadow-light;
+}
+
+.card-hover {
+  transition: transform $transition-base ease, box-shadow $transition-base ease;
+
+  &:active {
+    transform: scale($scale-press);
+    box-shadow: $shadow-medium;
+  }
+}
+
+// ==================== 通用间距类 ====================
+.mt-small { margin-top: $spacing-small; }
+.mt-base { margin-top: $spacing-item; }
+.mt-medium { margin-top: $spacing-component; }
+.mt-large { margin-top: $spacing-section; }
+
+.mb-small { margin-bottom: $spacing-small; }
+.mb-base { margin-bottom: $spacing-item; }
+.mb-medium { margin-bottom: $spacing-component; }
+.mb-large { margin-bottom: $spacing-section; }
+
+.ml-small { margin-left: $spacing-small; }
+.ml-base { margin-left: $spacing-item; }
+.ml-medium { margin-left: $spacing-component; }
+
+.mr-small { margin-right: $spacing-small; }
+.mr-base { margin-right: $spacing-item; }
+.mr-medium { margin-right: $spacing-component; }
+
+.pt-small { padding-top: $spacing-small; }
+.pt-base { padding-top: $spacing-item; }
+.pt-medium { padding-top: $spacing-component; }
+.pt-large { padding-top: $spacing-section; }
+
+.pb-small { padding-bottom: $spacing-small; }
+.pb-base { padding-bottom: $spacing-item; }
+.pb-medium { padding-bottom: $spacing-component; }
+.pb-large { padding-bottom: $spacing-section; }
+
+.pl-small { padding-left: $spacing-small; }
+.pl-base { padding-left: $spacing-item; }
+.pl-medium { padding-left: $spacing-component; }
+
+.pr-small { padding-right: $spacing-small; }
+.pr-base { padding-right: $spacing-item; }
+.pr-medium { padding-right: $spacing-component; }
+
+// ==================== 通用头像类 ====================
+.avatar {
+  border-radius: $border-radius-circle;
+  overflow: hidden;
+
+  &.avatar-large {
+    width: $avatar-size-large;
+    height: $avatar-size-large;
+  }
+
+  &.avatar-medium {
+    width: $avatar-size-medium;
+    height: $avatar-size-medium;
+  }
+
+  &.avatar-small {
+    width: $avatar-size-small;
+    height: $avatar-size-small;
+  }
+}
+
+// ==================== 通用图标类 ====================
+.icon {
+  &.icon-large {
+    width: $icon-size-large;
+    height: $icon-size-large;
+  }
+
+  &.icon-medium {
+    width: $icon-size-medium;
+    height: $icon-size-medium;
+  }
+
+  &.icon-small {
+    width: $icon-size-small;
+    height: $icon-size-small;
+  }
+}
+
+// ==================== 通用分割线类 ====================
+.divider {
+  width: 100%;
+  height: $border-width;
+  background: $border-color;
+}
+
+.divider-vertical {
+  width: $border-width;
+  height: 100%;
+  background: $border-color;
+}
+
+// ==================== 通用标签类 ====================
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 16rpx;
+  border-radius: $border-radius-small;
+  font-size: $font-size-helper;
+
+  &.tag-primary {
+    background: rgba($color-primary, 0.1);
+    color: $color-primary;
+  }
+
+  &.tag-secondary {
+    background: rgba($color-secondary, 0.3);
+    color: $color-gray-dark;
+  }
+}
+
+// ==================== 通用遮罩类 ====================
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: $z-index-mask;
+}

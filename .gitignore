@@ -12,6 +12,19 @@ front/unpackage/
 front/.temp/
 front/.cache/
 
+
+app/node_modules/
+app/npm-debug.log*
+app/yarn-debug.log*
+app/yarn-error.log*
+app/pnpm-debug.log*
+
+# Build outputs
+app/dist/
+app/build/
+app/unpackage/
+app/.temp/
+app/.cache/
 # IDE
 .vscode/
 .idea/
@@ -38,6 +51,9 @@ Thumbs.db
 front/project.config.json
 front/project.private.config.json
 front/sitemap.json
+app/project.config.json
+app/project.private.config.json
+app/sitemap.json
 
 # Temporary files
 *.tmp

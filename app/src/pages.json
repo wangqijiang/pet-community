@@ -1,0 +1,187 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "WaggleWorld"
+			}
+		}
+	],
+	"tabBar": {
+		"custom": true,
+		"color": "#666666",
+		"selectedColor": "#FFC1E9",
+		"backgroundColor": "#FFFFFF",
+		"list": [
+			{
+				"pagePath": "pages/home/index",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/circle/index",
+				"text": "萌宠圈"
+			},
+			{
+				"pagePath": "pages/message/index",
+				"text": "消息"
+			},
+			{
+				"pagePath": "pages/mine/index",
+				"text": "我的"
+			}
+		]
+	},
+	"subPackages": [
+		{
+			"root": "pages/home",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "friendList",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "placeList",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "storeDetail",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/circle",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "publish",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "detail",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "preview",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/message",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "systemDetail",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "chat",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/mine",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "editInfo",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "follow",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "fans",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "myDynamic",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "collection",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "petInfo",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "setting",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/notification-detail",
+			"pages": [
+				{
+					"path": "notification-detail",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "WaggleWorld",
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#FFF9F9"
+	}
+}
