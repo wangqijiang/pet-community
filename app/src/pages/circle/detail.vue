@@ -1,12 +1,15 @@
 <template>
   <view class="detail-container">
-    <TopNavBar title="动态详情" />
-    
+    <TopNavBar :showBack="true" title="动态详情" />
+
     <scroll-view scroll-y class="detail-content">
       <view class="feed-card">
         <view class="card-header">
           <view class="user-avatar">
-            <view class="avatar-bg" :style="{ background: dynamic.avatarColor }"></view>
+            <view
+              class="avatar-bg"
+              :style="{ background: dynamic.avatarColor }"
+            ></view>
           </view>
           <view class="user-info">
             <text class="user-name">{{ dynamic.userName }}</text>
@@ -18,18 +21,18 @@
             <view class="more-icon"></view>
           </view>
         </view>
-        
+
         <text class="card-content">{{ dynamic.content }}</text>
-        
+
         <view class="card-images" v-if="dynamic.images.length > 0">
-          <view 
-            v-for="(img, imgIndex) in dynamic.images" 
-            :key="imgIndex" 
+          <view
+            v-for="(img, imgIndex) in dynamic.images"
+            :key="imgIndex"
             class="image-item"
             :style="{ background: img }"
           ></view>
         </view>
-        
+
         <view class="card-footer">
           <view class="footer-item" @click="handleLike">
             <view class="footer-icon" :class="{ liked: dynamic.liked }">
@@ -45,18 +48,21 @@
           </view>
         </view>
       </view>
-      
+
       <view class="comment-section">
         <text class="section-title">评论 ({{ comments.length }})</text>
-        
+
         <view class="comment-list">
-          <view 
-            v-for="(comment, index) in comments" 
-            :key="index" 
+          <view
+            v-for="(comment, index) in comments"
+            :key="index"
             class="comment-item"
           >
             <view class="comment-avatar">
-              <view class="avatar-bg" :style="{ background: comment.avatarColor }"></view>
+              <view
+                class="avatar-bg"
+                :style="{ background: comment.avatarColor }"
+              ></view>
             </view>
             <view class="comment-content">
               <view class="comment-header">
@@ -69,7 +75,10 @@
                   <text class="action-text">回复</text>
                 </view>
                 <view class="action-item" @click="handleCommentLike(comment)">
-                  <view class="action-icon" :class="{ liked: comment.liked }"></view>
+                  <view
+                    class="action-icon"
+                    :class="{ liked: comment.liked }"
+                  ></view>
                   <text class="action-text">{{ comment.likes }}</text>
                 </view>
               </view>
@@ -78,9 +87,9 @@
         </view>
       </view>
     </scroll-view>
-    
+
     <view class="input-bar">
-      <input 
+      <input
         v-model="inputText"
         class="input-field"
         placeholder="发表评论..."
@@ -94,85 +103,107 @@
 </template>
 
 <script setup lang="ts">
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import { ref } from 'vue'
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import { ref } from "vue";
 
-const inputText = ref('')
+const inputText = ref("");
 
 const dynamic = ref({
-  userName: '布丁麻麻',
-  avatarColor: '#FFC1E9',
-  userTag: '柯基 · 2岁',
-  content: '今天带布丁去公园草坪打滚啦！阳光超级好，它开心得像个200斤的孩子哈哈。这就是简单的幸福吧～✨',
-  images: ['#FFE4E1', '#FFD4F0', '#FFC1E9', '#FFB6C1'],
+  userName: "布丁麻麻",
+  avatarColor: "#FFC1E9",
+  userTag: "柯基 · 2岁",
+  content:
+    "今天带布丁去公园草坪打滚啦！阳光超级好，它开心得像个200斤的孩子哈哈。这就是简单的幸福吧～✨",
+  images: ["#FFE4E1", "#FFD4F0", "#FFC1E9", "#FFB6C1"],
   likes: 128,
   comments: 32,
-  liked: false
-})
+  liked: false,
+});
 
 const comments = ref([
-  { userName: '阿花', avatarColor: '#FFD4F0', time: '5分钟前', content: '好可爱呀！布丁好活泼~', likes: 5, liked: false },
-  { userName: '旺财', avatarColor: '#FFB6C1', time: '3分钟前', content: '下次一起去呀！', likes: 3, liked: true },
-  { userName: '球球', avatarColor: '#FFC0CB', time: '1分钟前', content: '这就是幸福的模样 💕', likes: 8, liked: false }
-])
+  {
+    userName: "阿花",
+    avatarColor: "#FFD4F0",
+    time: "5分钟前",
+    content: "好可爱呀！布丁好活泼~",
+    likes: 5,
+    liked: false,
+  },
+  {
+    userName: "旺财",
+    avatarColor: "#FFB6C1",
+    time: "3分钟前",
+    content: "下次一起去呀！",
+    likes: 3,
+    liked: true,
+  },
+  {
+    userName: "球球",
+    avatarColor: "#FFC0CB",
+    time: "1分钟前",
+    content: "这就是幸福的模样 💕",
+    likes: 8,
+    liked: false,
+  },
+]);
 
 const handleLike = () => {
-  dynamic.value.liked = !dynamic.value.liked
-  dynamic.value.likes += dynamic.value.liked ? 1 : -1
-}
+  dynamic.value.liked = !dynamic.value.liked;
+  dynamic.value.likes += dynamic.value.liked ? 1 : -1;
+};
 
 const handleShare = () => {
   uni.showShareMenu({
-    withShareTicket: true
-  })
-}
+    withShareTicket: true,
+  });
+};
 
 const previewImage = (index: number) => {
   uni.previewImage({
     urls: dynamic.value.images,
-    current: index
-  })
-}
+    current: index,
+  });
+};
 
 const handleReply = (comment: any) => {
   uni.showToast({
     title: `回复 ${comment.userName}`,
-    icon: 'none'
-  })
-}
+    icon: "none",
+  });
+};
 
 const handleCommentLike = (comment: any) => {
-  comment.liked = !comment.liked
-  comment.likes += comment.liked ? 1 : -1
-}
+  comment.liked = !comment.liked;
+  comment.likes += comment.liked ? 1 : -1;
+};
 
 const sendComment = () => {
   if (!inputText.value.trim()) {
     uni.showToast({
-      title: '请输入评论内容',
-      icon: 'none'
-    })
-    return
+      title: "请输入评论内容",
+      icon: "none",
+    });
+    return;
   }
-  
+
   comments.value.push({
-    userName: '我',
-    avatarColor: '#FFC1E9',
-    time: '刚刚',
+    userName: "我",
+    avatarColor: "#FFC1E9",
+    time: "刚刚",
     content: inputText.value,
     likes: 0,
-    liked: false
-  })
-  
-  inputText.value = ''
-  dynamic.value.comments++
-}
+    liked: false,
+  });
+
+  inputText.value = "";
+  dynamic.value.comments++;
+};
 </script>
 
 <style lang="scss" scoped>
 .detail-container {
   min-height: 100vh;
-  background: #FFF8F7;
+  background: #fff8f7;
   padding-bottom: 120rpx;
 }
 
@@ -184,7 +215,7 @@ const sendComment = () => {
 }
 
 .feed-card {
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 24rpx;
   padding: 32rpx;
   margin-bottom: 32rpx;
@@ -203,7 +234,7 @@ const sendComment = () => {
   height: 80rpx;
   border-radius: 50%;
   padding: 4rpx;
-  border: 4rpx solid #FFDDE2;
+  border: 4rpx solid #ffdde2;
   margin-right: 20rpx;
 }
 
@@ -223,7 +254,7 @@ const sendComment = () => {
 .user-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #1E1B1B;
+  color: #1e1b1b;
 }
 
 .user-tags {
@@ -234,7 +265,7 @@ const sendComment = () => {
 .tag {
   padding: 6rpx 16rpx;
   background: rgba(234, 223, 189, 0.3);
-  color: #6A6347;
+  color: #6a6347;
   font-size: 20rpx;
   font-weight: 600;
   border-radius: 16rpx;
@@ -247,13 +278,14 @@ const sendComment = () => {
 .more-icon {
   width: 36rpx;
   height: 36rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 
 .card-content {
   font-size: 28rpx;
-  color: #4F4446;
+  color: #4f4446;
   line-height: 1.6;
   margin-bottom: 24rpx;
 }
@@ -274,7 +306,7 @@ const sendComment = () => {
   display: flex;
   gap: 48rpx;
   padding-top: 24rpx;
-  border-top: 1rpx solid #F3ECEC;
+  border-top: 1rpx solid #f3ecec;
 }
 
 .footer-item {
@@ -286,10 +318,11 @@ const sendComment = () => {
 .footer-icon {
   width: 36rpx;
   height: 36rpx;
-  
+
   &.liked {
     .like-icon {
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+        no-repeat center;
       background-size: 100%;
     }
   }
@@ -298,14 +331,16 @@ const sendComment = () => {
 .like-icon {
   width: 100%;
   height: 100%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 
 .comment-icon {
   width: 100%;
   height: 100%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 
@@ -316,7 +351,7 @@ const sendComment = () => {
 }
 
 .comment-section {
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 24rpx;
   padding: 32rpx;
   border: 1rpx solid rgba(255, 221, 226, 0.4);
@@ -326,7 +361,7 @@ const sendComment = () => {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #71585C;
+  color: #71585c;
   margin-bottom: 24rpx;
   display: block;
 }
@@ -347,7 +382,7 @@ const sendComment = () => {
   height: 64rpx;
   border-radius: 50%;
   padding: 3rpx;
-  background: #FFDDE2;
+  background: #ffdde2;
 }
 
 .comment-content {
@@ -364,7 +399,7 @@ const sendComment = () => {
 .comment-name {
   font-size: 26rpx;
   font-weight: 600;
-  color: #1E1B1B;
+  color: #1e1b1b;
 }
 
 .comment-time {
@@ -374,7 +409,7 @@ const sendComment = () => {
 
 .comment-text {
   font-size: 26rpx;
-  color: #4F4446;
+  color: #4f4446;
   line-height: 1.5;
   margin-bottom: 12rpx;
   display: block;
@@ -394,11 +429,13 @@ const sendComment = () => {
 .action-icon {
   width: 28rpx;
   height: 28rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
-  
+
   &.liked {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+      no-repeat center;
     background-size: 100%;
   }
 }
@@ -418,7 +455,7 @@ const sendComment = () => {
   gap: 20rpx;
   padding: 16rpx 32rpx;
   padding-bottom: calc(16rpx + constant(safe-area-inset-bottom));
-  background: #FFFFFF;
+  background: #ffffff;
   border-top: 1rpx solid rgba(255, 221, 226, 0.4);
   box-shadow: 0 -4rpx 16rpx rgba(168, 155, 157, 0.08);
 }
@@ -426,7 +463,7 @@ const sendComment = () => {
 .input-field {
   flex: 1;
   height: 72rpx;
-  background: #FFF8F7;
+  background: #fff8f7;
   border-radius: 36rpx;
   padding: 0 24rpx;
   font-size: 26rpx;
@@ -439,9 +476,9 @@ const sendComment = () => {
 
 .send-btn {
   padding: 16rpx 32rpx;
-  background: #FFDDE2;
+  background: #ffdde2;
   border-radius: 36rpx;
-  
+
   &:active {
     transform: scale(0.98);
   }
@@ -449,7 +486,7 @@ const sendComment = () => {
 
 .send-text {
   font-size: 26rpx;
-  color: #71585C;
+  color: #71585c;
   font-weight: 600;
 }
 </style>
