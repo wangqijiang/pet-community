@@ -1,489 +1,469 @@
 <template>
-  <view class="detail-page">
-    <TopNavBar title="动态详情">
-      <template #right>
-        <image
-          class="more-icon"
-          src="/static/images/icon-more.png"
-          mode="aspectFit"
-          @tap="showMoreActions"
-        ></image>
-      </template>
-    </TopNavBar>
-
-    <view class="page-content">
-      <scroll-view class="content-scroll" scroll-y>
-        <!-- 动态内容 -->
-        <view class="post-card">
-          <view class="post-header">
-            <image class="user-avatar" :src="postDetail.avatar" mode="aspectFill"></image>
-            <view class="user-info">
-              <text class="user-name">{{ postDetail.nickname }}</text>
-              <text class="post-time">{{ postDetail.time }}</text>
-            </view>
+  <view class="detail-container">
+    <TopNavBar title="动态详情" />
+    
+    <scroll-view scroll-y class="detail-content">
+      <view class="dynamic-detail">
+        <view class="dynamic-header">
+          <view class="user-avatar">
+            <view class="avatar-bg" :style="{ background: dynamic.avatarColor }"></view>
           </view>
-
-          <text class="post-content">{{ postDetail.content }}</text>
-
-          <view v-if="postDetail.images && postDetail.images.length > 0" class="post-images">
-            <image
-              v-for="(img, index) in postDetail.images"
-              :key="index"
-              class="post-image"
-              :class="{ 'single': postDetail.images.length === 1 }"
-              :src="img"
-              mode="aspectFill"
-              @tap="previewImage(index)"
-            ></image>
+          <view class="user-info">
+            <text class="user-name">{{ dynamic.userName }}</text>
+            <text class="dynamic-time">{{ dynamic.time }}</text>
           </view>
-
-          <view class="post-footer">
-            <view class="action-item" @tap="toggleLike">
-              <image
-                class="action-icon"
-                :src="postDetail.isLiked ? '/static/images/icon-like-filled.png' : '/static/images/icon-like.png'"
-                mode="aspectFit"
-              ></image>
-              <text class="action-text">{{ postDetail.likeCount }}</text>
-            </view>
-            <view class="action-item">
-              <image class="action-icon" src="/static/images/icon-comment.png" mode="aspectFit"></image>
-              <text class="action-text">{{ postDetail.commentCount }}</text>
-            </view>
-            <view class="action-item" @tap="toggleCollect">
-              <image
-                class="action-icon"
-                :src="postDetail.isCollected ? '/static/images/icon-star-filled.png' : '/static/images/icon-star-gray.png'"
-                mode="aspectFit"
-              ></image>
-            </view>
+          <view class="user-pet">
+            <view class="pet-avatar" :style="{ background: dynamic.petColor }"></view>
+            <text class="pet-name">{{ dynamic.petName }}</text>
           </view>
         </view>
-
-        <!-- 评论列表 -->
-        <view class="comment-section">
-          <view class="section-title">
-            <text class="title-text">评论 {{ commentList.length }}</text>
+        
+        <text class="dynamic-content">{{ dynamic.content }}</text>
+        
+        <view class="dynamic-images" v-if="dynamic.images.length > 0">
+          <view 
+            v-for="(img, imgIndex) in dynamic.images" 
+            :key="imgIndex" 
+            class="dynamic-image"
+            :style="{ background: img }"
+            @click="previewImage(imgIndex)"
+          ></view>
+        </view>
+        
+        <view class="dynamic-footer">
+          <view class="footer-item" @click="handleLike">
+            <view class="footer-icon" :class="{ liked: dynamic.liked }">
+              <view class="like-icon"></view>
+            </view>
+            <text class="footer-text">{{ dynamic.likes }}</text>
           </view>
-          <view class="comment-list">
-            <view v-for="comment in commentList" :key="comment.id" class="comment-item">
-              <image class="comment-avatar" :src="comment.avatar" mode="aspectFill"></image>
-              <view class="comment-content">
-                <text class="comment-name">{{ comment.nickname }}</text>
-                <text class="comment-text">{{ comment.content }}</text>
-                <view class="comment-footer">
-                  <text class="comment-time">{{ comment.time }}</text>
-                  <view class="comment-actions">
-                    <view class="comment-action" @tap="likeComment(comment)">
-                      <image
-                        class="action-icon-small"
-                        :src="comment.isLiked ? '/static/images/icon-like-filled.png' : '/static/images/icon-like.png'"
-                        mode="aspectFit"
-                      ></image>
-                      <text class="action-count">{{ comment.likeCount }}</text>
-                    </view>
-                  </view>
+          <view class="footer-item">
+            <view class="footer-icon">
+              <view class="comment-icon"></view>
+            </view>
+            <text class="footer-text">{{ dynamic.comments }}</text>
+          </view>
+          <view class="footer-item" @click="handleShare">
+            <view class="footer-icon">
+              <view class="share-icon"></view>
+            </view>
+            <text class="footer-text">分享</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="comment-section">
+        <text class="section-title">评论 ({{ comments.length }})</text>
+        
+        <view class="comment-list">
+          <view 
+            v-for="(comment, index) in comments" 
+            :key="index" 
+            class="comment-item"
+          >
+            <view class="comment-avatar">
+              <view class="avatar-bg" :style="{ background: comment.avatarColor }"></view>
+            </view>
+            <view class="comment-content">
+              <view class="comment-header">
+                <text class="comment-name">{{ comment.userName }}</text>
+                <text class="comment-time">{{ comment.time }}</text>
+              </view>
+              <text class="comment-text">{{ comment.content }}</text>
+              <view class="comment-actions">
+                <view class="action-item" @click="handleReply(comment)">
+                  <text class="action-text">回复</text>
+                </view>
+                <view class="action-item" @click="handleCommentLike(comment)">
+                  <view class="action-icon" :class="{ liked: comment.liked }"></view>
+                  <text class="action-text">{{ comment.likes }}</text>
                 </view>
               </view>
             </view>
           </view>
         </view>
-      </scroll-view>
-
-      <!-- 评论输入框 -->
-      <view class="comment-input-bar">
-        <input
-          class="comment-input"
-          v-model="commentText"
-          placeholder="说点什么..."
-          confirm-type="send"
-          @confirm="sendComment"
-        />
-        <view class="send-btn" @tap="sendComment">
-          <text class="send-text">发送</text>
-        </view>
+      </view>
+    </scroll-view>
+    
+    <view class="input-bar">
+      <input 
+        v-model="inputText"
+        class="input-field"
+        placeholder="发表评论..."
+        placeholder-class="input-placeholder"
+      />
+      <view class="send-btn" @click="sendComment">
+        <text class="send-text">发送</text>
       </view>
     </view>
-
-    <Loading :visible="loading" />
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
 import TopNavBar from '@/components/common/TopNavBar.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref, reactive } from 'vue'
 
-const loading = ref(false)
-const commentText = ref('')
+const inputText = ref('')
 
-const postDetail = ref({
-  id: 1,
-  avatar: '/static/images/avatar-default.png',
-  nickname: '铲屎官小王',
-  time: '2小时前',
-  content: '今天带旺财去公园玩，遇到了好多小伙伴！天气真好，狗狗们玩得特别开心。分享一些今天拍的照片给大家～',
-  images: [
-    '/static/images/post-default.png',
-    '/static/images/post-default.png',
-    '/static/images/post-default.png'
-  ],
-  likeCount: 128,
-  commentCount: 32,
-  isLiked: false,
-  isCollected: false
+const dynamic = reactive({
+  userName: '小明',
+  avatarColor: '#FFC1E9',
+  petName: '旺财',
+  petColor: '#FFD4F0',
+  time: '10分钟前',
+  content: '今天带旺财去公园玩，它玩得特别开心！看到了好多小伙伴，还交到了新朋友~ 🐕',
+  images: ['#FFC1E9', '#FFD4F0', '#FFB6C1'],
+  likes: 128,
+  comments: 23,
+  liked: false
 })
 
-const commentList = ref([
-  {
-    id: 1,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '爱狗人士',
-    content: '好可爱的狗狗！',
-    time: '1小时前',
-    likeCount: 5,
-    isLiked: false
-  },
-  {
-    id: 2,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '宠物达人',
-    content: '这是在哪个公园啊？我也想带我家狗狗去玩',
-    time: '30分钟前',
-    likeCount: 2,
-    isLiked: true
-  }
+const comments = ref([
+  { userName: '阿花', avatarColor: '#FFD4F0', time: '5分钟前', content: '好可爱！', likes: 5, liked: false },
+  { userName: '旺财', avatarColor: '#FFB6C1', time: '3分钟前', content: '旺财好活泼呀', likes: 3, liked: true },
+  { userName: '球球', avatarColor: '#FFC0CB', time: '1分钟前', content: '下次一起遛狗呀~', likes: 0, liked: false }
 ])
 
-onMounted(() => {
-  loadPostDetail()
-})
-
-const loadPostDetail = () => {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 1000)
+const handleLike = () => {
+  dynamic.liked = !dynamic.liked
+  dynamic.likes += dynamic.liked ? 1 : -1
 }
 
-const toggleLike = () => {
-  postDetail.value.isLiked = !postDetail.value.isLiked
-  postDetail.value.likeCount += postDetail.value.isLiked ? 1 : -1
-  uni.vibrateShort({ type: 'light' })
-}
-
-const toggleCollect = () => {
-  postDetail.value.isCollected = !postDetail.value.isCollected
-  uni.vibrateShort({ type: 'light' })
-  uni.showToast({
-    title: postDetail.value.isCollected ? '收藏成功' : '取消收藏',
-    icon: 'none'
+const handleShare = () => {
+  uni.showShareMenu({
+    withShareTicket: true
   })
 }
 
-const previewImage = (index) => {
+const previewImage = (index: number) => {
   uni.previewImage({
-    urls: postDetail.value.images,
+    urls: dynamic.images,
     current: index
   })
 }
 
-const likeComment = (comment) => {
-  comment.isLiked = !comment.isLiked
-  comment.likeCount += comment.isLiked ? 1 : -1
-  uni.vibrateShort({ type: 'light' })
+const handleReply = (comment: any) => {
+  uni.showToast({
+    title: `回复 ${comment.userName}`,
+    icon: 'none'
+  })
+}
+
+const handleCommentLike = (comment: any) => {
+  comment.liked = !comment.liked
+  comment.likes += comment.liked ? 1 : -1
 }
 
 const sendComment = () => {
-  if (!commentText.value.trim()) {
+  if (!inputText.value.trim()) {
+    uni.showToast({
+      title: '请输入评论内容',
+      icon: 'none'
+    })
     return
   }
-
-  uni.vibrateShort({ type: 'medium' })
-
-  commentList.value.unshift({
-    id: Date.now(),
-    avatar: '/static/images/avatar-default.png',
-    nickname: '我',
-    content: commentText.value,
+  
+  comments.value.push({
+    userName: '我',
+    avatarColor: '#FFC1E9',
     time: '刚刚',
-    likeCount: 0,
-    isLiked: false
+    content: inputText.value,
+    likes: 0,
+    liked: false
   })
-
-  postDetail.value.commentCount++
-  commentText.value = ''
-
-  uni.showToast({
-    title: '评论成功',
-    icon: 'success'
-  })
-}
-
-const showMoreActions = () => {
-  uni.vibrateShort({ type: 'light' })
-  uni.showActionSheet({
-    itemList: ['分享', '举报'],
-    success: (res) => {
-      if (res.tapIndex === 0) {
-        uni.showToast({
-          title: '分享功能开发中',
-          icon: 'none'
-        })
-      } else if (res.tapIndex === 1) {
-        uni.showToast({
-          title: '举报功能开发中',
-          icon: 'none'
-        })
-      }
-    }
-  })
+  
+  inputText.value = ''
+  dynamic.comments++
 }
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
-.detail-page {
-  width: 100%;
+.detail-container {
   min-height: 100vh;
-  background: $color-bg-primary;
-}
-
-.page-content {
-  padding-top: $nav-bar-height;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.content-scroll {
-  flex: 1;
-  padding: $spacing-page-horizontal;
+  background: #FFF9F9;
   padding-bottom: 120rpx;
 }
 
-.post-card {
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  padding: $spacing-component;
-  margin-bottom: $spacing-component;
-  box-shadow: $shadow-light;
+.detail-content {
+  padding: 24rpx 32rpx;
+  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
+  height: calc(100vh - var(--status-bar-height, 44px) - 120rpx);
+}
 
-  .post-header {
-    display: flex;
-    align-items: center;
-    gap: $spacing-small;
-    margin-bottom: $spacing-item;
+.dynamic-detail {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid #FFC1E9;
+}
 
-    .user-avatar {
-      width: $avatar-size-medium;
-      height: $avatar-size-medium;
-      border-radius: $border-radius-circle;
-    }
+.dynamic-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
 
-    .user-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 4rpx;
+.user-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  padding: 4rpx;
+  background: #FFC1E9;
+  margin-right: 16rpx;
+}
 
-      .user-name {
-        font-size: $font-size-button;
-        font-weight: $font-weight-bold;
-        color: $color-gray-dark;
-      }
+.avatar-bg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
 
-      .post-time {
-        font-size: $font-size-helper;
-        color: $color-gray-lighter;
-      }
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.user-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.dynamic-time {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.user-pet {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.pet-avatar {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+}
+
+.pet-name {
+  font-size: 22rpx;
+  color: #FFC1E9;
+}
+
+.dynamic-content {
+  font-size: 28rpx;
+  color: #333333;
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+}
+
+.dynamic-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.dynamic-image {
+  width: calc(33.33% - 8rpx);
+  height: 200rpx;
+  border-radius: 16rpx;
+}
+
+.dynamic-footer {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #E5E5E5;
+}
+
+.footer-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.footer-icon {
+  width: 40rpx;
+  height: 40rpx;
+  
+  &.liked {
+    .like-icon {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B6B'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+      background-size: 100%;
     }
   }
+}
 
-  .post-content {
-    font-size: $font-size-body;
-    color: $color-gray-dark;
-    line-height: 1.8;
-    margin-bottom: $spacing-component;
-  }
+.like-icon {
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
 
-  .post-images {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-small;
-    margin-bottom: $spacing-component;
+.comment-icon {
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
 
-    .post-image {
-      width: calc((100% - #{$spacing-small} * 2) / 3);
-      height: 200rpx;
-      border-radius: $border-radius-base;
+.share-icon {
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
 
-      &.single {
-        width: 100%;
-        height: 500rpx;
-      }
-    }
-  }
-
-  .post-footer {
-    display: flex;
-    align-items: center;
-    gap: $spacing-component;
-    padding-top: $spacing-item;
-    border-top: $border-width solid $border-color;
-
-    .action-item {
-      display: flex;
-      align-items: center;
-      gap: 8rpx;
-
-      .action-icon {
-        width: 36rpx;
-        height: 36rpx;
-      }
-
-      .action-text {
-        font-size: $font-size-body;
-        color: $color-gray-medium;
-      }
-    }
-  }
+.footer-text {
+  font-size: 24rpx;
+  color: #999999;
 }
 
 .comment-section {
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  padding: $spacing-component;
-  box-shadow: $shadow-light;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  border: 2rpx solid #FFC1E9;
+}
 
-  .section-title {
-    margin-bottom: $spacing-component;
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #FFC1E9;
+  margin-bottom: 20rpx;
+  display: block;
+}
 
-    .title-text {
-      font-size: $font-size-button;
-      font-weight: $font-weight-bold;
-      color: $color-gray-dark;
-    }
-  }
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
 
-  .comment-list {
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-component;
+.comment-item {
+  display: flex;
+  gap: 16rpx;
+}
 
-    .comment-item {
-      display: flex;
-      gap: $spacing-small;
+.comment-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  padding: 4rpx;
+  background: #FFC1E9;
+}
 
-      .comment-avatar {
-        width: $avatar-size-small;
-        height: $avatar-size-small;
-        border-radius: $border-radius-circle;
-        flex-shrink: 0;
-      }
+.comment-content {
+  flex: 1;
+}
 
-      .comment-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 8rpx;
+.comment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
 
-        .comment-name {
-          font-size: $font-size-body;
-          font-weight: $font-weight-bold;
-          color: $color-gray-dark;
-        }
+.comment-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333333;
+}
 
-        .comment-text {
-          font-size: $font-size-body;
-          color: $color-gray-medium;
-          line-height: 1.6;
-        }
+.comment-time {
+  font-size: 22rpx;
+  color: #999999;
+}
 
-        .comment-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
+.comment-text {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.5;
+  margin-bottom: 12rpx;
+}
 
-          .comment-time {
-            font-size: $font-size-helper;
-            color: $color-gray-lighter;
-          }
+.comment-actions {
+  display: flex;
+  gap: 24rpx;
+}
 
-          .comment-actions {
-            display: flex;
-            gap: $spacing-component;
-
-            .comment-action {
-              display: flex;
-              align-items: center;
-              gap: 4rpx;
-
-              .action-icon-small {
-                width: 24rpx;
-                height: 24rpx;
-              }
-
-              .action-count {
-                font-size: $font-size-helper;
-                color: $color-gray-lighter;
-              }
-            }
-          }
-        }
-      }
-    }
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  
+  &:active {
+    opacity: 0.7;
   }
 }
 
-.comment-input-bar {
+.action-icon {
+  width: 28rpx;
+  height: 28rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+  
+  &.liked {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B6B'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+}
+
+.action-text {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.input-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: $spacing-component $spacing-page-horizontal;
-  background: $color-bg-white;
-  border-top: $border-width solid $border-color;
   display: flex;
   align-items: center;
-  gap: $spacing-small;
-  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
+  gap: 20rpx;
+  padding: 16rpx 32rpx;
+  padding-bottom: calc(16rpx + constant(safe-area-inset-bottom));
+  background: #FFFFFF;
+  border-top: 2rpx solid #FFC1E9;
+}
 
-  .comment-input {
-    flex: 1;
-    height: 72rpx;
-    padding: 0 $spacing-component;
-    background: $color-bg-primary;
-    border-radius: $border-radius-base;
-    font-size: $font-size-body;
-    color: $color-gray-dark;
-  }
+.input-field {
+  flex: 1;
+  height: 72rpx;
+  background: #FFF9F9;
+  border-radius: 36rpx;
+  padding: 0 24rpx;
+  font-size: 26rpx;
+}
 
-  .send-btn {
-    padding: 0 32rpx;
-    height: 72rpx;
-    background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-    border-radius: $border-radius-base;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform $transition-base ease;
+.input-placeholder {
+  color: #999999;
+}
 
-    &:active {
-      transform: scale($scale-press);
-    }
-
-    .send-text {
-      font-size: $font-size-button;
-      font-weight: $font-weight-bold;
-      color: $color-bg-white;
-    }
+.send-btn {
+  padding: 16rpx 32rpx;
+  background: #FFC1E9;
+  border-radius: 36rpx;
+  
+  &:active {
+    transform: scale(0.98);
   }
 }
 
-.more-icon {
-  width: $icon-size-medium;
-  height: $icon-size-medium;
+.send-text {
+  font-size: 26rpx;
+  color: #FFFFFF;
+  font-weight: 600;
 }
 </style>

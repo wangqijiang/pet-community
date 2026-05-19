@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&amp;family=Nunito+Sans:wght@300;400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#3c4a3d",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed-dim": "#bbcbba",
+                    "surface": "#fff8f7",
+                    "tertiary-container": "#daead8",
+                    "on-primary-fixed-variant": "#584145",
+                    "outline-variant": "#d2c3c4",
+                    "on-error": "#ffffff",
+                    "secondary-fixed-dim": "#d0c6a5",
+                    "primary": "#71585c",
+                    "on-surface": "#1e1b1b",
+                    "inverse-primary": "#dfbfc3",
+                    "on-background": "#1e1b1b",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "inverse-surface": "#333030",
+                    "surface-dim": "#dfd8d8",
+                    "tertiary": "#546254",
+                    "secondary-container": "#eadfbd",
+                    "on-surface-variant": "#4f4446",
+                    "background": "#fff8f7",
+                    "on-primary-fixed": "#29161a",
+                    "on-secondary-fixed-variant": "#4d472e",
+                    "error": "#ba1a1a",
+                    "secondary": "#655e43",
+                    "on-primary-container": "#795f64",
+                    "on-secondary-fixed": "#201b06",
+                    "primary-container": "#ffdde2",
+                    "on-tertiary-fixed": "#121e14",
+                    "inverse-on-surface": "#f6efef",
+                    "surface-variant": "#e8e1e1",
+                    "on-tertiary-container": "#5b6a5c",
+                    "on-secondary-container": "#6a6347",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-low": "#f9f2f2",
+                    "surface-container-high": "#eee6e6",
+                    "surface-container": "#f3ecec",
+                    "surface-container-highest": "#e8e1e1",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed": "#d7e7d5",
+                    "primary-fixed": "#fcdadf",
+                    "on-error-container": "#93000a",
+                    "primary-fixed-dim": "#dfbfc3",
+                    "surface-bright": "#fff8f7",
+                    "secondary-fixed": "#ede2c0",
+                    "surface-tint": "#71585c",
+                    "outline": "#807476"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "gutter-card": "12px",
+                    "padding-container": "16px",
+                    "margin-page": "20px",
+                    "stack-gap": "8px"
+            },
+            "fontFamily": {
+                    "body-md": ["Nunito Sans"],
+                    "body-lg": ["Nunito Sans"],
+                    "display-title": ["Quicksand"],
+                    "label-caps": ["Plus Jakarta Sans"],
+                    "headline-md": ["Quicksand"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-title": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #fff8f7; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .bouncy-hover { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .bouncy-hover:active { transform: scale(0.95); }
+        .glass-nav { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .marshmallow-shadow { box-shadow: 0 8px 32px rgba(168, 155, 157, 0.12); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-surface antialiased">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface/80 glass-nav marshmallow-shadow">
+<div class="flex justify-between items-center w-full px-5 py-4 max-w-md mx-auto">
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-primary hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="paws" style="font-variation-settings: 'FILL' 1;">Rows</span>
+</button>
+<h1 class="font-display-title text-display-title text-primary">我的动态</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-24 px-5 max-w-md mx-auto space-y-6">
+<!-- Profile Mini Summary -->
+<section class="flex items-center gap-4 p-4 rounded-xl bg-surface-container-lowest border border-primary-container/30 marshmallow-shadow">
+<div class="relative">
+<img alt="Profile" class="w-16 h-16 rounded-full border-2 border-primary-container object-cover" data-alt="A warm and friendly close-up portrait of a young adult with a kind smile, set against a soft-focus sunny garden background. The lighting is high-key and airy, creating a gentle and welcoming mood. The overall aesthetic is clean and modern, following a soft pastel color palette of milky whites and pale pinks." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6a2WFITaNx1kCdGbUW3i_S9TBvOVo3kn3z-DCKi818Zughb9x7ajzaPB9EvWQO6XaSTrxBiFJdmeU2oBOmh0DPlo_DvhuaAzxkHVmNLT6pjIv7JtoOV0sI9uxU6S_lfrLWk_19xLEuyv1KmVrfMg3lX12O3hEomgoRvooXKXqI4COvsv3RFu7BDIYGm9ElJZyvOLvlHRO-x9_3drXX1T8xNU8sbAa8A1aTkBkX4_sEfOghIUc8ewKi_p6EEEat-2qFzI6YPDA-2zX"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-white p-1 rounded-full border-2 border-white">
+<span class="material-symbols-outlined text-[12px]" data-icon="edit" style="font-variation-settings: 'FILL' 1;">edit</span>
+</div>
+</div>
+<div>
+<h2 class="font-headline-md text-primary">豆豆爸爸</h2>
+<p class="font-body-md text-on-surface-variant">记录豆豆的成长每一刻 🐾</p>
+</div>
+</section>
+<!-- Dynamic Feed List -->
+<div class="space-y-6">
+<!-- Post Card 1: Multi-image Grid -->
+<article class="p-4 rounded-[12px] bg-surface-container-lowest border border-primary-container marshmallow-shadow relative group">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A small circular profile avatar of a smiling man with a warm expression, high-key lighting, soft focus background, matching the healing aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0P_Slz4qOAvH7Ilz3lk1EZhBar5qse0OMaP-MuUeAcl_Rq2KRKKamRU9dl1L-GqtM3ylc0m4HVTZ_DXJifzBloSjVkkclDnrsdfaUgKOIGqCnPCIjeUKjgudzuPW9CLvy7kfQrlY9LkUHYCgPPCm1qxtijFKvIDPGRR_5ZaUnMFb3y5RhlLKyihY3eUBBTU5kr2nwcl-dpaJq7-C1iQVX_rxAm1A_MQY-V5ZskijWcxW-yS3TJgS1Sd2nAnYkD6V2lbOfLiFUXIBJ"/>
+<div>
+<div class="font-headline-md text-on-surface leading-tight">豆豆爸爸</div>
+<div class="font-label-caps text-on-surface-variant opacity-60">2小时前</div>
+</div>
+</div>
+<button class="text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<p class="font-body-lg text-on-surface mb-4 leading-relaxed">
+                    今天带豆豆去公园玩了，它看到蝴蝶的时候简直开心疯了！满草坪乱跑，真是个治愈系小天使呀~ ☀️🌸
+                </p>
+<!-- Grid of 3 images -->
+<div class="grid grid-cols-3 gap-2 mb-4">
+<img class="aspect-square w-full object-cover rounded-lg" data-alt="A cute golden retriever puppy sitting on lush green grass in a sun-drenched park. The puppy is looking directly at the camera with sparkling eyes. Soft, golden afternoon light creates a warm, healing atmosphere. The image is bright and colorful, emphasizing soft textures and high-key tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyn3DD-aXQO454mJu6pTg6_F3JIVxTW_cgAoE3GEU8NUOmtj-vl5pAdJ4i_9NGppcMCDnaaA1FDWoxatGp8g132QC5ZOcce1AgLRPUhmvaHGqJhkpqZ9EQXRajU6k9-vWMk1j8G8qu4KtK2WnJ0c_L6brxVbib1UlvqNJKnAo2aOC5aa0idevUhuBhb6g2o6nCcnmaDg9-fLvYLye5ypaoQxBI-pcydXqly9bWN8EaHcB5NY4E6sqK1KesCS27szrb1210N-_1NqII"/>
+<img class="aspect-square w-full object-cover rounded-lg" data-alt="A playful dog running through a field of wildflowers. The focus is sharp on the dog's joyful expression while the flowers in the foreground are softly blurred. The lighting is bright and airy, with a gentle pastel haze. The mood is pure happiness and energy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAluTASZYqwJNXpVXtA6arV1wTrKdK9dqawls5C5gir9HrdNFE--rw3ki-DohS5WqzI40xli2FsgrztyIhT2G7HmU3llr9Fnxeq21oUl5z34NghmFbV9u-4Ce_ZiAgQ7l1ldP0dhYgRDEBRsQgtUqz1-76mTeC-iWdUeyDruS_0vzEer8ir--AqnkTXTx6pTDXq7-ContHhXSrmZeK3oTgxm4QaNuvBRAzS-PY6sCVnDFvbnnTQZS65g78qtXAlPp-IAQ1MedMColGo"/>
+<img class="aspect-square w-full object-cover rounded-lg" data-alt="A close-up of a dog's wet nose and curious eyes peeking through tall grass. Soft bokeh background with highlights of pink and yellow. The visual style is organic and tactile, evoking a sense of calm and nature. High-key lighting palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqGJ6XcGPKRWWT3YOvzhOL4ecyyeSatTEBxMiKyfnY9MnBa01mH_kfZwQTbSMgQp7YLOIGDERLPplcRCO3gDNwwe6VCn2y8_2gQ-jBDuZZWWfrKtXfPtP8LiJ4UZi7dQQFsUO5ip0H5Y8RarKVu5PZExfnAuCMCG8CA538KjKJWB_yEvtwmX65299K2PjZaN7rW1qjEFoQNN3pr4pIWAVpQmN4w3HMW20qXBM5U1x5n2yNS41VlsZIEIzJJXUnGtcp-xUsKHrbTEg1"/>
+</div>
+<!-- Card Actions -->
+<div class="flex items-center gap-6 pt-2 border-t border-outline-variant/20">
+<button class="flex items-center gap-1 text-primary bouncy-hover">
+<span class="material-symbols-outlined text-primary" data-icon="pets">pets</span>
+<span class="font-label-caps">128</span>
+</button>
+<button class="flex items-center gap-1 text-on-surface-variant bouncy-hover">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-label-caps">24</span>
+</button>
+</div>
+<!-- Hidden Context Menu (Simulated for long press) -->
+<div class="absolute inset-0 bg-primary/5 rounded-[12px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+<div class="bg-surface-container-highest p-4 rounded-xl shadow-xl pointer-events-auto scale-90 group-hover:scale-100 transition-transform">
+<button class="flex items-center gap-2 text-error px-4 py-2 hover:bg-error-container/50 rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+<span class="font-headline-md">删除动态</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Post Card 2: Single Large Image -->
+<article class="p-4 rounded-[12px] bg-surface-container-lowest border border-primary-container marshmallow-shadow relative group">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A small circular profile avatar of a smiling man." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCl73Zm5IoCZIpczq4VcrTJzoCMISduoZleUs_Y0EqzRyi6LdsL5dDqu_6Qx4HLjyPOloMvOY142ddNYw02sYgrNR1ktkxGaYsJW2SsZVj2Y8aJF2IcvQFkCwKzEKAPon3d7woEquQLK4PQjqV4H5nfrKwferE2hqFb1gXmOKs0nrypYnrNLVHiGFxhWuPhplns1F0pYJ0xQt14iHaqzcs5DD6NG2EmATQpNV4Vz_8UAcgtCcXwt6Q1wZD7UqHJNyrQ4nN537Zq6jQT"/>
+<div>
+<div class="font-headline-md text-on-surface leading-tight">豆豆爸爸</div>
+<div class="font-label-caps text-on-surface-variant opacity-60">昨天 18:30</div>
+</div>
+</div>
+</div>
+<p class="font-body-lg text-on-surface mb-4 leading-relaxed">
+                    午后的小憩时光，它睡得像个小猪哼唧哼唧的。安静的日子，真好。💤
+                </p>
+<img class="w-full aspect-video object-cover rounded-lg mb-4" data-alt="A fluffy dog curled up on a cream-colored soft rug, sleeping peacefully in a pool of warm sunlight. The interior design is minimalist and cozy, with soft pastel accents. The light creates long, soft shadows. The mood is serene, quiet, and deeply healing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZc4KyPxIVzKRSON9wU14uk8RV6RLgnMGWVR1dwKVKw0MZUL79y71YLEFeYAZAd6zr2lsVG8jEzJn5RmAwKb3vtl7knk1bupTR1qbg2LHInU_adN16o815tCzbBWXzIO7FdeTcHpHaUGFgRUXeTIEm-z2uQ2NaD8Vxc1Z_JUC_IUvmrOrW3WAyY5_CbXGx6yM2WYEY81gdUd49AgQMRaKueRfJ2HlLYUSeaerIxytwld6qGkfHMUFBM7qJqdXYkQGlzkIcKQ87BifC"/>
+<div class="flex items-center gap-6 pt-2 border-t border-outline-variant/20">
+<button class="flex items-center gap-1 text-on-surface-variant bouncy-hover">
+<span class="material-symbols-outlined" data-icon="pets">pets</span>
+<span class="font-label-caps">85</span>
+</button>
+<button class="flex items-center gap-1 text-on-surface-variant bouncy-hover">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-label-caps">12</span>
+</button>
+</div>
+</article>
+</div>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest border-t border-outline-variant/30 marshmallow-shadow flex justify-around items-center px-4 h-[72px] pb-safe rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-secondary-fixed-variant hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-caps">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-fixed-variant hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="pets">pets</span>
+<span class="font-label-caps">宠友圈</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-fixed-variant hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-label-caps">消息</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary relative after:content-['❤️'] after:text-[8px] after:absolute after:-top-1 after:animate-bounce" href="#">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-caps">我的</span>
+</a>
+</nav>
+<!-- Floating Action Button: Add New Post -->
+<button class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-full marshmallow-shadow flex items-center justify-center bouncy-hover z-40 border-4 border-primary-container">
+<span class="material-symbols-outlined text-[32px]" data-icon="add" style="font-variation-settings: 'wght' 600;">add</span>
+</button>
+</body></html>

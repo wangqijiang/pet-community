@@ -1,322 +1,272 @@
 <template>
-  <view class="chat-page">
-    <TopNavBar :title="chatInfo.nickname" />
-
-    <view class="page-content">
-      <scroll-view
-        class="message-list"
-        scroll-y
-        :scroll-into-view="scrollIntoView"
-        scroll-with-animation
+  <view class="chat-container">
+    <TopNavBar :title="friendName" />
+    
+    <scroll-view 
+      scroll-y 
+      class="chat-content"
+      :scroll-into-view="scrollToId"
+      scroll-with-animation
+    >
+      <view 
+        v-for="(msg, index) in messages" 
+        :key="index"
+        :id="'msg-' + index"
+        class="message-bubble"
+        :class="{ 'is-me': msg.isMe }"
       >
-        <view
-          v-for="msg in messageList"
-          :key="msg.id"
-          :id="`msg-${msg.id}`"
-          class="message-item"
-          :class="{ 'self': msg.isSelf }"
-        >
-          <image class="msg-avatar" :src="msg.avatar" mode="aspectFill"></image>
-          <view class="msg-content">
-            <view v-if="msg.type === 'text'" class="msg-bubble text-bubble">
-              <text class="msg-text">{{ msg.content }}</text>
-            </view>
-            <view v-if="msg.type === 'image'" class="msg-bubble image-bubble">
-              <image class="msg-image" :src="msg.content" mode="aspectFill" @tap="previewImage(msg.content)"></image>
-            </view>
-          </view>
+        <view class="bubble-avatar">
+          <view class="avatar-bg" :style="{ background: msg.isMe ? '#FFC1E9' : msg.avatarColor }"></view>
         </view>
-      </scroll-view>
-
-      <!-- 输入栏 -->
-      <view class="input-bar">
-        <image class="input-icon" src="/static/images/icon-emoji.png" mode="aspectFit" @tap="showEmojiPicker"></image>
-        <input
-          class="message-input"
+        <view class="bubble-content">
+          <text class="bubble-text">{{ msg.content }}</text>
+          <text class="bubble-time">{{ msg.time }}</text>
+        </view>
+      </view>
+    </scroll-view>
+    
+    <view class="chat-input">
+      <view class="input-tools">
+        <view class="tool-item">
+          <view class="tool-icon icon-emoji"></view>
+        </view>
+        <view class="tool-item">
+          <view class="tool-icon icon-image"></view>
+        </view>
+        <view class="tool-item">
+          <view class="tool-icon icon-camera"></view>
+        </view>
+      </view>
+      <view class="input-area">
+        <input 
           v-model="inputText"
-          placeholder="说点什么..."
-          confirm-type="send"
-          @confirm="sendMessage"
+          class="input-field"
+          placeholder="输入消息..."
+          placeholder-class="input-placeholder"
         />
-        <image class="input-icon" src="/static/images/icon-image.png" mode="aspectFit" @tap="chooseImage"></image>
-        <view class="send-btn" @tap="sendMessage">
+        <view class="send-btn" :class="{ active: inputText.trim() }" @click="sendMessage">
           <text class="send-text">发送</text>
         </view>
       </view>
     </view>
-
-    <Loading :visible="loading" />
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted, nextTick } from 'vue'
+<script setup lang="ts">
 import TopNavBar from '@/components/common/TopNavBar.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref, watch, onMounted } from 'vue'
 
-const loading = ref(false)
+const friendName = ref('小明')
 const inputText = ref('')
-const scrollIntoView = ref('')
+const scrollToId = ref('')
 
-const chatInfo = ref({
-  id: 1,
-  nickname: '铲屎官小王',
-  avatar: '/static/images/avatar-default.png'
-})
-
-const messageList = ref([
-  {
-    id: 1,
-    type: 'text',
-    content: '你好，今天有空一起遛狗吗？',
-    avatar: '/static/images/avatar-default.png',
-    isSelf: false,
-    time: '10:30'
-  },
-  {
-    id: 2,
-    type: 'text',
-    content: '好啊，几点？',
-    avatar: '/static/images/avatar-default.png',
-    isSelf: true,
-    time: '10:31'
-  },
-  {
-    id: 3,
-    type: 'text',
-    content: '下午3点怎么样？在朝阳公园见',
-    avatar: '/static/images/avatar-default.png',
-    isSelf: false,
-    time: '10:32'
-  },
-  {
-    id: 4,
-    type: 'text',
-    content: '没问题！到时候见',
-    avatar: '/static/images/avatar-default.png',
-    isSelf: true,
-    time: '10:33'
-  }
+const messages = ref([
+  { id: 1, content: '你好！', time: '10:00', isMe: false, avatarColor: '#FFC1E9' },
+  { id: 2, content: '你好呀！', time: '10:01', isMe: true, avatarColor: '#FFC1E9' },
+  { id: 3, content: '今天天气不错，要不要一起遛狗？', time: '10:02', isMe: false, avatarColor: '#FFC1E9' },
+  { id: 4, content: '好呀！去哪里呢？', time: '10:03', isMe: true, avatarColor: '#FFC1E9' },
+  { id: 5, content: '中央公园吧，那边草坪大', time: '10:05', isMe: false, avatarColor: '#FFC1E9' },
+  { id: 6, content: '可以，几点？', time: '10:06', isMe: true, avatarColor: '#FFC1E9' },
+  { id: 7, content: '下午3点怎么样？', time: '10:08', isMe: false, avatarColor: '#FFC1E9' },
+  { id: 8, content: '没问题，到时见！', time: '10:10', isMe: true, avatarColor: '#FFC1E9' }
 ])
 
-onMounted(() => {
-  loadChatHistory()
-  scrollToBottom()
-})
-
-const loadChatHistory = () => {
-  loading.value = true
+const sendMessage = () => {
+  if (!inputText.value.trim()) return
+  
+  messages.value.push({
+    id: messages.value.length + 1,
+    content: inputText.value,
+    time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+    isMe: true,
+    avatarColor: '#FFC1E9'
+  })
+  
+  inputText.value = ''
+  
   setTimeout(() => {
-    loading.value = false
+    messages.value.push({
+      id: messages.value.length + 1,
+      content: '好的，不见不散！',
+      time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      isMe: false,
+      avatarColor: '#FFC1E9'
+    })
   }, 1000)
 }
 
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (messageList.value.length > 0) {
-      scrollIntoView.value = `msg-${messageList.value[messageList.value.length - 1].id}`
-    }
-  })
-}
+watch(messages, () => {
+  setTimeout(() => {
+    scrollToId.value = 'msg-' + (messages.value.length - 1)
+  }, 100)
+}, { deep: true })
 
-const sendMessage = () => {
-  if (!inputText.value.trim()) {
-    return
-  }
-
-  uni.vibrateShort({ type: 'medium' })
-
-  const newMsg = {
-    id: Date.now(),
-    type: 'text',
-    content: inputText.value,
-    avatar: '/static/images/avatar-default.png',
-    isSelf: true,
-    time: '刚刚'
-  }
-
-  messageList.value.push(newMsg)
-  inputText.value = ''
-  scrollToBottom()
-}
-
-const chooseImage = () => {
-  uni.vibrateShort({ type: 'light' })
-  uni.chooseImage({
-    count: 1,
-    sizeType: ['compressed'],
-    sourceType: ['album', 'camera'],
-    success: (res) => {
-      const newMsg = {
-        id: Date.now(),
-        type: 'image',
-        content: res.tempFilePaths[0],
-        avatar: '/static/images/avatar-default.png',
-        isSelf: true,
-        time: '刚刚'
-      }
-      messageList.value.push(newMsg)
-      scrollToBottom()
-    }
-  })
-}
-
-const previewImage = (url) => {
-  const imageUrls = messageList.value
-    .filter(msg => msg.type === 'image')
-    .map(msg => msg.content)
-
-  uni.previewImage({
-    urls: imageUrls,
-    current: url
-  })
-}
-
-const showEmojiPicker = () => {
-  uni.vibrateShort({ type: 'light' })
-  uni.showToast({
-    title: '表情功能开发中',
-    icon: 'none'
-  })
-}
+onMounted(() => {
+  scrollToId.value = 'msg-' + (messages.value.length - 1)
+})
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
-.chat-page {
-  width: 100%;
-  height: 100vh;
-  background: $color-bg-primary;
+.chat-container {
+  min-height: 100vh;
+  background: #FFF9F9;
   display: flex;
   flex-direction: column;
 }
 
-.page-content {
+.chat-content {
   flex: 1;
-  padding-top: $nav-bar-height;
-  display: flex;
-  flex-direction: column;
+  padding: 24rpx 32rpx;
+  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
+  padding-bottom: 200rpx;
 }
 
-.message-list {
-  flex: 1;
-  padding: $spacing-component $spacing-page-horizontal;
-  padding-bottom: 120rpx;
-}
-
-.message-item {
+.message-bubble {
   display: flex;
-  gap: $spacing-small;
-  margin-bottom: $spacing-component;
-
-  &.self {
+  margin-bottom: 24rpx;
+  
+  &.is-me {
     flex-direction: row-reverse;
-
-    .msg-content {
-      align-items: flex-end;
-    }
-
-    .text-bubble {
-      background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-
-      .msg-text {
-        color: $color-bg-white;
+    
+    .bubble-content {
+      background: #FFC1E9;
+      border-radius: 24rpx 8rpx 24rpx 24rpx;
+      
+      .bubble-text {
+        color: #FFFFFF;
       }
-    }
-  }
-
-  .msg-avatar {
-    width: $avatar-size-small;
-    height: $avatar-size-small;
-    border-radius: $border-radius-circle;
-    flex-shrink: 0;
-  }
-
-  .msg-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-
-    .msg-bubble {
-      max-width: 480rpx;
-      border-radius: $border-radius-base;
-      overflow: hidden;
-
-      &.text-bubble {
-        padding: $spacing-component;
-        background: $color-bg-white;
-        box-shadow: $shadow-light;
-
-        .msg-text {
-          font-size: $font-size-body;
-          color: $color-gray-dark;
-          line-height: 1.6;
-          word-break: break-all;
-        }
-      }
-
-      &.image-bubble {
-        .msg-image {
-          width: 320rpx;
-          height: 320rpx;
-          display: block;
-        }
+      
+      .bubble-time {
+        color: rgba(255, 255, 255, 0.8);
       }
     }
   }
 }
 
-.input-bar {
+.bubble-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  padding: 4rpx;
+  background: #FFC1E9;
+  flex-shrink: 0;
+}
+
+.avatar-bg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.bubble-content {
+  max-width: 70%;
+  background: #FFFFFF;
+  border-radius: 8rpx 24rpx 24rpx 24rpx;
+  padding: 20rpx;
+  margin: 0 16rpx;
+  border: 2rpx solid #FFC1E9;
+}
+
+.bubble-text {
+  font-size: 28rpx;
+  color: #333333;
+  line-height: 1.5;
+}
+
+.bubble-time {
+  display: block;
+  text-align: right;
+  font-size: 20rpx;
+  color: #999999;
+  margin-top: 8rpx;
+}
+
+.chat-input {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: $spacing-component $spacing-page-horizontal;
-  background: $color-bg-white;
-  border-top: $border-width solid $border-color;
+  background: #FFFFFF;
+  padding: 16rpx 32rpx;
+  padding-bottom: calc(16rpx + constant(safe-area-inset-bottom));
+  border-top: 2rpx solid #FFC1E9;
+}
+
+.input-tools {
+  display: flex;
+  gap: 32rpx;
+  margin-bottom: 16rpx;
+}
+
+.tool-item {
+  width: 56rpx;
+  height: 56rpx;
+  
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.tool-icon {
+  width: 100%;
+  height: 100%;
+  
+  &.icon-emoji {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+  
+  &.icon-image {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+  
+  &.icon-camera {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+}
+
+.input-area {
   display: flex;
   align-items: center;
-  gap: $spacing-small;
-  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
+  gap: 20rpx;
+}
 
-  .input-icon {
-    width: 48rpx;
-    height: 48rpx;
-    flex-shrink: 0;
-  }
+.input-field {
+  flex: 1;
+  height: 72rpx;
+  background: #FFF9F9;
+  border-radius: 36rpx;
+  padding: 0 24rpx;
+  font-size: 26rpx;
+}
 
-  .message-input {
-    flex: 1;
-    height: 72rpx;
-    padding: 0 $spacing-component;
-    background: $color-bg-primary;
-    border-radius: $border-radius-base;
-    font-size: $font-size-body;
-    color: $color-gray-dark;
-  }
+.input-placeholder {
+  color: #999999;
+}
 
-  .send-btn {
-    padding: 0 32rpx;
-    height: 72rpx;
-    background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-    border-radius: $border-radius-base;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform $transition-base ease;
-    flex-shrink: 0;
-
-    &:active {
-      transform: scale($scale-press);
-    }
-
+.send-btn {
+  padding: 16rpx 32rpx;
+  background: #E5E5E5;
+  border-radius: 36rpx;
+  
+  &.active {
+    background: #FFC1E9;
+    
     .send-text {
-      font-size: $font-size-button;
-      font-weight: $font-weight-bold;
-      color: $color-bg-white;
+      color: #FFFFFF;
     }
   }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.send-text {
+  font-size: 26rpx;
+  color: #999999;
+  font-weight: 600;
 }
 </style>

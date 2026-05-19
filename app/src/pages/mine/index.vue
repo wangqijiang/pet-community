@@ -1,6 +1,6 @@
 <template>
   <view class="mine-page">
-    <TopNavBar title="我的" :show-back="false">
+    <TopNavBar title="我的" :showBack="false">
       <template #right>
         <image
           class="setting-icon"
@@ -13,7 +13,6 @@
 
     <view class="page-content">
       <scroll-view class="content-scroll" scroll-y>
-        <!-- 个人信息卡片 -->
         <view class="profile-card">
           <view class="profile-header">
             <image class="user-avatar" src="/static/images/avatar-default.png" mode="aspectFill"></image>
@@ -42,7 +41,6 @@
           </view>
         </view>
 
-        <!-- 宠物信息卡片 -->
         <view class="pet-card">
           <view class="card-header">
             <text class="card-title">我的宠物</text>
@@ -62,7 +60,6 @@
           </view>
         </view>
 
-        <!-- AI养宠助手 -->
         <view class="ai-card" @tap="goToAIAssistant">
           <view class="ai-icon-wrapper">
             <image class="ai-icon" src="/static/images/icon-ai.png" mode="aspectFit"></image>
@@ -74,7 +71,6 @@
           <image class="arrow-icon" src="/static/images/icon-arrow-right.png" mode="aspectFit"></image>
         </view>
 
-        <!-- 功能列表 -->
         <view class="menu-section">
           <view class="menu-item" @tap="goToFollow">
             <image class="menu-icon" src="/static/images/icon-follow.png" mode="aspectFit"></image>
@@ -105,7 +101,7 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import TopNavBar from '@/components/common/TopNavBar.vue'
 import TabBar from '@/components/common/TabBar.vue'

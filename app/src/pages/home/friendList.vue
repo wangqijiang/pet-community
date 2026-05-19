@@ -1,223 +1,221 @@
 <template>
-  <view class="friend-list-page">
-    <TopNavBar title="同片区热门狗友" />
-
-    <view class="page-content">
-      <!-- 筛选栏 -->
-      <view class="filter-row">
-        <view class="filter-item" @tap="showBreedFilter">
-          <text class="filter-text">品种筛选</text>
-          <image class="arrow-icon" src="/static/images/icon-arrow-down.png" mode="aspectFit"></image>
+  <view class="friend-list-container">
+    <TopNavBar title="附近狗友" />
+    
+    <view class="search-bar">
+      <view class="search-input">
+        <view class="search-icon"></view>
+        <input 
+          type="text" 
+          v-model="searchText" 
+          placeholder="搜索狗友昵称或宠物品种"
+          placeholder-class="search-placeholder"
+        />
+        <view class="search-clear" v-if="searchText" @click="searchText = ''"></view>
+      </view>
+    </view>
+    
+    <view class="friend-list">
+      <view 
+        v-for="(friend, index) in friendList" 
+        :key="index" 
+        class="friend-item"
+        @click="goToChat(friend)"
+      >
+        <view class="friend-avatar">
+          <view class="avatar-bg" :style="{ background: friend.color }"></view>
         </view>
-        <view class="filter-item" @tap="showDistanceFilter">
-          <text class="filter-text">距离排序</text>
-          <image class="arrow-icon" src="/static/images/icon-arrow-down.png" mode="aspectFit"></image>
+        <view class="friend-info">
+          <view class="friend-header">
+            <text class="friend-name">{{ friend.name }}</text>
+            <view class="friend-breed" :class="friend.breed">{{ friend.breed }}</view>
+          </view>
+          <text class="friend-pet">{{ friend.petName }}</text>
+          <text class="friend-distance">{{ friend.distance }}</text>
+        </view>
+        <view class="friend-action">
+          <view class="action-btn">
+            <text class="action-text">打招呼</text>
+          </view>
         </view>
       </view>
-
-      <!-- 狗友列表 -->
-      <scroll-view
-        class="friend-list"
-        scroll-y
-        @scrolltolower="loadMore"
-        refresher-enabled
-        @refresherrefresh="onRefresh"
-      >
-        <view
-          v-for="friend in friendList"
-          :key="friend.id"
-          class="friend-card"
-          @tap="goToUserProfile(friend.id)"
-        >
-          <image class="avatar" :src="friend.avatar" mode="aspectFill"></image>
-          <view class="friend-info">
-            <text class="nickname">{{ friend.nickname }}</text>
-            <text class="pet-info">{{ friend.petBreed }} · {{ friend.petName }}</text>
-            <text class="distance">距离 {{ friend.distance }}km</text>
-          </view>
-          <view
-            class="follow-btn"
-            :class="{ 'followed': friend.isFollowed }"
-            @tap.stop="toggleFollow(friend)"
-          >
-            <text class="btn-text">{{ friend.isFollowed ? '已关注' : '关注' }}</text>
-          </view>
-        </view>
-
-        <Empty v-if="friendList.length === 0 && !loading" type="noData" text="暂无狗友数据" />
-      </scroll-view>
     </view>
-
-    <Loading :visible="loading" />
+    
+    <view class="list-footer">
+      <text class="footer-text">- 已显示全部狗友 -</text>
+    </view>
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
 import TopNavBar from '@/components/common/TopNavBar.vue'
-import Empty from '@/components/common/Empty.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref } from 'vue'
 
-const loading = ref(false)
-const friendList = ref([
-  {
-    id: 1,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '铲屎官小王',
-    petBreed: '金毛',
-    petName: '旺财',
-    distance: 0.5,
-    isFollowed: false
-  }
-])
+const searchText = ref('')
 
-onMounted(() => {
-  loadFriendList()
-})
+const friendList = [
+  { name: '小明', petName: '金毛犬 - 旺财', breed: 'golden', distance: '100m', color: '#FFC1E9' },
+  { name: '阿花', petName: '泰迪犬 - 球球', breed: 'teddy', distance: '200m', color: '#FFD4F0' },
+  { name: '旺财', petName: '哈士奇 - 二哈', breed: 'husky', distance: '300m', color: '#FFB6C1' },
+  { name: '球球', petName: '柯基犬 - 短腿', breed: 'corgi', distance: '400m', color: '#FFC0CB' },
+  { name: '豆豆', petName: '萨摩耶 - 小白', breed: 'samoyed', distance: '500m', color: '#FFE4E1' },
+  { name: '乐乐', petName: '柴犬 - 小柴', breed: 'shiba', distance: '600m', color: '#FFB6C1' },
+  { name: '小美', petName: '法斗 - 胖胖', breed: 'french', distance: '700m', color: '#FFD4F0' },
+  { name: '大壮', petName: '拉布拉多 - 大黑', breed: 'labrador', distance: '800m', color: '#FFC1E9' }
+]
 
-const loadFriendList = () => {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
-
-const onRefresh = () => {
-  loadFriendList()
-}
-
-const loadMore = () => {
-  console.log('Load more')
-}
-
-const showBreedFilter = () => {
-  uni.vibrateShort({ type: 'light' })
-}
-
-const showDistanceFilter = () => {
-  uni.vibrateShort({ type: 'light' })
-}
-
-const toggleFollow = (friend) => {
-  friend.isFollowed = !friend.isFollowed
-  uni.vibrateShort({ type: 'medium' })
-}
-
-const goToUserProfile = (userId) => {
-  console.log('Go to user profile:', userId)
+const goToChat = (friend: any) => {
+  uni.navigateTo({
+    url: `/pages/message/chat?name=${friend.name}`
+  })
 }
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
-.friend-list-page {
-  width: 100%;
+.friend-list-container {
   min-height: 100vh;
-  background: $color-bg-primary;
+  background: #FFF9F9;
 }
 
-.page-content {
-  padding-top: calc(#{$nav-bar-height} + 20rpx);
+.search-bar {
+  padding: 24rpx 32rpx;
+  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
 }
 
-.filter-row {
+.search-input {
   display: flex;
-  gap: $spacing-component;
-  padding: 0 $spacing-page-horizontal $spacing-component;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 20rpx 24rpx;
+  border: 2rpx solid #FFC1E9;
+}
 
-  .filter-item {
-    flex: 1;
-    height: 72rpx;
-    background: $color-bg-white;
-    border-radius: $border-radius-base;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: $spacing-small;
-    box-shadow: $shadow-light;
+.search-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 16rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.77l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
 
-    .filter-text {
-      font-size: $font-size-body;
-      color: $color-gray-dark;
-    }
+.search-placeholder {
+  font-size: 26rpx;
+  color: #999999;
+}
 
-    .arrow-icon {
-      width: 24rpx;
-      height: 24rpx;
-    }
-  }
+.search-clear {
+  width: 36rpx;
+  height: 36rpx;
+  margin-left: auto;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999999'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
 }
 
 .friend-list {
-  height: calc(100vh - #{$nav-bar-height} - 140rpx);
-  padding: 0 $spacing-page-horizontal;
+  padding: 0 32rpx;
 }
 
-.friend-card {
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  padding: $spacing-component;
-  margin-bottom: $spacing-component;
+.friend-item {
   display: flex;
   align-items: center;
-  gap: $spacing-component;
-  box-shadow: $shadow-light;
-  transition: transform $transition-base ease;
-
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid #FFC1E9;
+  
   &:active {
-    transform: scale($scale-press);
+    transform: scale(0.98);
   }
+}
 
-  .avatar {
-    width: $avatar-size-medium;
-    height: $avatar-size-medium;
-    border-radius: $border-radius-circle;
+.friend-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  padding: 4rpx;
+  background: #FFC1E9;
+  margin-right: 24rpx;
+}
+
+.avatar-bg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.friend-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.friend-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.friend-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.friend-breed {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  
+  &.golden { background: rgba(255, 215, 0, 0.3); color: #B8860B; }
+  &.teddy { background: rgba(139, 69, 19, 0.3); color: #8B4513; }
+  &.husky { background: rgba(100, 149, 237, 0.3); color: #4169E1; }
+  &.corgi { background: rgba(255, 165, 0, 0.3); color: #D2691E; }
+  &.samoyed { background: rgba(211, 211, 211, 0.3); color: #696969; }
+  &.shiba { background: rgba(255, 140, 0, 0.3); color: #CD853F; }
+  &.french { background: rgba(128, 128, 128, 0.3); color: #333333; }
+  &.labrador { background: rgba(169, 169, 169, 0.3); color: #555555; }
+}
+
+.friend-pet {
+  font-size: 26rpx;
+  color: #999999;
+}
+
+.friend-distance {
+  font-size: 24rpx;
+  color: #FFC1E9;
+}
+
+.friend-action {
+  margin-left: 24rpx;
+}
+
+.action-btn {
+  padding: 16rpx 32rpx;
+  background: #FFC1E9;
+  border-radius: 24rpx;
+  
+  &:active {
+    transform: scale(0.95);
   }
+}
 
-  .friend-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8rpx;
+.action-text {
+  font-size: 26rpx;
+  color: #FFFFFF;
+  font-weight: 600;
+}
 
-    .nickname {
-      font-size: $font-size-button;
-      font-weight: $font-weight-bold;
-      color: $color-gray-dark;
-    }
+.list-footer {
+  padding: 40rpx;
+  text-align: center;
+}
 
-    .pet-info {
-      font-size: $font-size-body;
-      color: $color-gray-medium;
-    }
-
-    .distance {
-      font-size: $font-size-helper;
-      color: $color-gray-lighter;
-    }
-  }
-
-  .follow-btn {
-    padding: 12rpx 32rpx;
-    background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-    border-radius: $border-radius-base;
-    transition: transform $transition-base ease;
-
-    &.followed {
-      background: $color-bg-white;
-      border: $border-width solid $border-color;
-    }
-
-    .btn-text {
-      font-size: $font-size-body;
-      font-weight: $font-weight-bold;
-      color: $color-bg-white;
-    }
-
-    &.followed .btn-text {
-      color: $color-gray-medium;
-    }
-  }
+.footer-text {
+  font-size: 24rpx;
+  color: #E5E5E5;
 }
 </style>

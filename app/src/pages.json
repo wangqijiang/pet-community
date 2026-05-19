@@ -1,187 +1,146 @@
 {
 	"pages": [
 		{
-			"path": "pages/index/index",
+			"path": "pages/home/index",
 			"style": {
-				"navigationBarTitleText": "WaggleWorld"
+				"navigationStyle": "custom"
 			}
-		}
-	],
-	"tabBar": {
-		"custom": true,
-		"color": "#666666",
-		"selectedColor": "#FFC1E9",
-		"backgroundColor": "#FFFFFF",
-		"list": [
-			{
-				"pagePath": "pages/home/index",
-				"text": "首页"
-			},
-			{
-				"pagePath": "pages/circle/index",
-				"text": "萌宠圈"
-			},
-			{
-				"pagePath": "pages/message/index",
-				"text": "消息"
-			},
-			{
-				"pagePath": "pages/mine/index",
-				"text": "我的"
+		},
+		{
+			"path": "pages/circle/index",
+			"style": {
+				"navigationStyle": "custom"
 			}
-		]
-	},
-	"subPackages": [
-		{
-			"root": "pages/home",
-			"pages": [
-				{
-					"path": "index",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "friendList",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "placeList",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "storeDetail",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				}
-			]
 		},
 		{
-			"root": "pages/circle",
-			"pages": [
-				{
-					"path": "index",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "publish",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "detail",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "preview",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				}
-			]
+			"path": "pages/message/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
 		},
 		{
-			"root": "pages/message",
-			"pages": [
-				{
-					"path": "index",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "systemDetail",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "chat",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				}
-			]
+			"path": "pages/mine/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
 		},
 		{
-			"root": "pages/mine",
-			"pages": [
-				{
-					"path": "index",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "editInfo",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "follow",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "fans",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "myDynamic",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "collection",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "petInfo",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "setting",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				}
-			]
+			"path": "pages/circle/detail",
+			"style": {
+				"navigationBarTitleText": "动态详情",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
 		},
 		{
-			"root": "pages/notification-detail",
-			"pages": [
-				{
-					"path": "notification-detail",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				}
-			]
+			"path": "pages/circle/publish",
+			"style": {
+				"navigationBarTitleText": "发布动态",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/circle/preview",
+			"style": {
+				"navigationBarTitleText": "预览",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/message/chat",
+			"style": {
+				"navigationBarTitleText": "聊天",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/message/systemDetail",
+			"style": {
+				"navigationBarTitleText": "系统通知",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/mine/myDynamic",
+			"style": {
+				"navigationBarTitleText": "我的动态",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/mine/petInfo",
+			"style": {
+				"navigationBarTitleText": "宠物信息",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/mine/collection",
+			"style": {
+				"navigationBarTitleText": "我的收藏",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/mine/follow",
+			"style": {
+				"navigationBarTitleText": "关注",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/mine/fans",
+			"style": {
+				"navigationBarTitleText": "粉丝",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/mine/editInfo",
+			"style": {
+				"navigationBarTitleText": "编辑资料",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/mine/setting",
+			"style": {
+				"navigationBarTitleText": "设置",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/home/friendList",
+			"style": {
+				"navigationBarTitleText": "好友列表",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/home/placeList",
+			"style": {
+				"navigationBarTitleText": "附近场所",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/home/storeDetail",
+			"style": {
+				"navigationBarTitleText": "店铺详情",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/notification-detail/notification-detail",
+			"style": {
+				"navigationBarTitleText": "通知详情",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
 		}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "WaggleWorld",
-		"navigationBarBackgroundColor": "#FFFFFF",
-		"backgroundColor": "#FFF9F9"
+		"navigationBarTitleText": "Waggleworld",
+		"navigationBarBackgroundColor": "#ffffff",
+		"backgroundColor": "#f5f5f5"
 	}
 }

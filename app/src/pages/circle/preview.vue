@@ -60,8 +60,9 @@
   </view>
 </template>
 
-<script setup>
-import { ref, onLoad } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import TopNavBar from '@/components/common/TopNavBar.vue'
 import Loading from '@/components/common/Loading.vue'
 
@@ -69,19 +70,18 @@ const loading = ref(false)
 
 const previewData = ref({
   content: '',
-  images: [],
+  images: [] as string[],
   topic: '',
   location: ''
 })
 
-onLoad((options) => {
-  // 从上一页获取数据
+onLoad((options: any) => {
   if (options.data) {
     previewData.value = JSON.parse(decodeURIComponent(options.data))
   }
 })
 
-const previewImage = (index) => {
+const previewImage = (index: number) => {
   uni.previewImage({
     urls: previewData.value.images,
     current: index

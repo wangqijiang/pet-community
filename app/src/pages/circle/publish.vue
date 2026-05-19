@@ -1,147 +1,152 @@
 <template>
-  <view class="publish-page">
-    <TopNavBar title="发布动态">
-      <template #right>
-        <view class="publish-btn" @tap="handlePublish">
-          <text class="btn-text">发布</text>
-        </view>
-      </template>
-    </TopNavBar>
-
-    <view class="page-content">
-      <!-- 文字输入 -->
-      <textarea
-        class="content-input"
-        v-model="formData.content"
-        placeholder="分享你和宠物的快乐时光..."
-        maxlength="500"
-        :auto-height="true"
-      ></textarea>
-      <view class="char-count">
-        <text class="count-text">{{ formData.content.length }}/500</text>
+  <view class="publish-container">
+    <TopNavBar title="发布动态" rightText="发布" @rightClick="handlePublish" />
+    
+    <view class="publish-content">
+      <view class="input-area">
+        <textarea 
+          v-model="content"
+          class="content-input"
+          placeholder="分享你的萌宠日常..."
+          placeholder-class="input-placeholder"
+          :maxlength="500"
+          auto-height
+        />
+        <view class="char-count">{{ content.length }}/500</view>
       </view>
-
-      <!-- 图片上传 -->
-      <view class="image-section">
-        <view class="section-title">
-          <text class="title-text">添加图片</text>
-          <text class="subtitle-text">最多9张</text>
-        </view>
+      
+      <view class="image-area">
+        <text class="area-title">添加图片</text>
         <view class="image-grid">
-          <view
-            v-for="(image, index) in formData.images"
-            :key="index"
+          <view 
+            v-for="(img, index) in images" 
+            :key="index" 
             class="image-item"
+            @click="previewImage(index)"
           >
-            <image class="preview-image" :src="image" mode="aspectFill"></image>
-            <view class="delete-btn" @tap="deleteImage(index)">
-              <image class="delete-icon" src="/static/images/icon-close.png" mode="aspectFit"></image>
-            </view>
+            <view class="image-content" :style="{ background: img }"></view>
+            <view class="image-delete" @click.stop="deleteImage(index)"></view>
           </view>
-          <view
-            v-if="formData.images.length < 9"
-            class="add-image-btn"
-            @tap="chooseImage"
-          >
-            <image class="add-icon" src="/static/images/icon-add-gray.png" mode="aspectFit"></image>
+          <view class="image-add" v-if="images.length < 9" @click="chooseImage">
+            <view class="add-icon"></view>
+            <text class="add-text">添加</text>
           </view>
         </view>
       </view>
-
-      <!-- 话题选择 -->
-      <view class="option-section" @tap="showTopicPicker">
-        <view class="option-label">
-          <image class="option-icon" src="/static/images/icon-topic.png" mode="aspectFit"></image>
-          <text class="option-text">添加话题</text>
-        </view>
-        <view class="option-value">
-          <text class="value-text">{{ formData.topic || '选择话题' }}</text>
-          <image class="arrow-icon" src="/static/images/icon-arrow-right.png" mode="aspectFit"></image>
+      
+      <view class="video-area" v-if="showVideo">
+        <text class="area-title">视频</text>
+        <view class="video-preview">
+          <view class="video-placeholder"></view>
+          <view class="video-delete" @click="removeVideo"></view>
         </view>
       </view>
-
-      <!-- 位置选择 -->
-      <view class="option-section" @tap="showLocationPicker">
-        <view class="option-label">
-          <image class="option-icon" src="/static/images/icon-location-small.png" mode="aspectFit"></image>
-          <text class="option-text">添加位置</text>
+      
+      <view class="type-select">
+        <text class="area-title">内容类型</text>
+        <view class="type-options">
+          <view 
+            class="type-option"
+            :class="{ active: contentType === 'text' }"
+            @click="contentType = 'text'"
+          >
+            <view class="type-icon icon-text"></view>
+            <text class="type-label">纯文字</text>
+          </view>
+          <view 
+            class="type-option"
+            :class="{ active: contentType === 'image' }"
+            @click="contentType = 'image'"
+          >
+            <view class="type-icon icon-image"></view>
+            <text class="type-label">图文</text>
+          </view>
+          <view 
+            class="type-option"
+            :class="{ active: contentType === 'video' }"
+            @click="contentType = 'video'"
+          >
+            <view class="type-icon icon-video"></view>
+            <text class="type-label">视频</text>
+          </view>
         </view>
-        <view class="option-value">
-          <text class="value-text">{{ formData.location || '选择位置' }}</text>
-          <image class="arrow-icon" src="/static/images/icon-arrow-right.png" mode="aspectFit"></image>
+      </view>
+      
+      <view class="topic-area">
+        <text class="area-title">添加话题</text>
+        <view class="topic-list">
+          <view 
+            v-for="(topic, index) in hotTopics" 
+            :key="index"
+            class="topic-item"
+            :class="{ active: selectedTopics.includes(topic) }"
+            @click="toggleTopic(topic)"
+          >
+            #{{ topic }}
+          </view>
         </view>
       </view>
     </view>
-
-    <Loading :visible="loading" />
   </view>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
 import TopNavBar from '@/components/common/TopNavBar.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref } from 'vue'
 
-const loading = ref(false)
+const content = ref('')
+const images = ref<string[]>([])
+const showVideo = ref(false)
+const contentType = ref('text')
+const selectedTopics = ref<string[]>([])
 
-const formData = ref({
-  content: '',
-  images: [],
-  topic: '',
-  location: ''
-})
+const hotTopics = ['萌宠日常', '狗狗日记', '猫咪可爱', '宠物训练', '宠物美食', '遛狗日常']
 
 const chooseImage = () => {
-  uni.vibrateShort({ type: 'light' })
-  uni.chooseImage({
-    count: 9 - formData.value.images.length,
-    sizeType: ['compressed'],
-    sourceType: ['album', 'camera'],
-    success: (res) => {
-      formData.value.images.push(...res.tempFilePaths)
-    }
+  const colors = ['#FFC1E9', '#FFD4F0', '#FFB6C1', '#FFC0CB', '#FFE4E1', '#E0F7FF', '#FFF4D2']
+  const randomColor = colors[Math.floor(Math.random() * colors.length)]
+  images.value.push(randomColor)
+}
+
+const deleteImage = (index: number) => {
+  images.value.splice(index, 1)
+}
+
+const previewImage = (index: number) => {
+  uni.previewImage({
+    urls: images.value,
+    current: index
   })
 }
 
-const deleteImage = (index) => {
-  uni.vibrateShort({ type: 'light' })
-  formData.value.images.splice(index, 1)
+const removeVideo = () => {
+  showVideo.value = false
 }
 
-const showTopicPicker = () => {
-  uni.vibrateShort({ type: 'light' })
-  uni.showActionSheet({
-    itemList: ['日常分享', '遛狗日记', '萌宠美食', '训练技巧', '求助问答'],
-    success: (res) => {
-      const topics = ['日常分享', '遛狗日记', '萌宠美食', '训练技巧', '求助问答']
-      formData.value.topic = topics[res.tapIndex]
-    }
-  })
-}
-
-const showLocationPicker = () => {
-  uni.vibrateShort({ type: 'light' })
-  uni.chooseLocation({
-    success: (res) => {
-      formData.value.location = res.name
-    }
-  })
+const toggleTopic = (topic: string) => {
+  const index = selectedTopics.value.indexOf(topic)
+  if (index > -1) {
+    selectedTopics.value.splice(index, 1)
+  } else {
+    selectedTopics.value.push(topic)
+  }
 }
 
 const handlePublish = () => {
-  if (!formData.value.content.trim()) {
+  if (!content.value.trim() && images.value.length === 0 && !showVideo.value) {
     uni.showToast({
-      title: '请输入内容',
+      title: '请填写内容',
       icon: 'none'
     })
     return
   }
-
-  uni.vibrateShort({ type: 'medium' })
-  loading.value = true
-
+  
+  uni.showLoading({
+    title: '发布中...'
+  })
+  
   setTimeout(() => {
-    loading.value = false
+    uni.hideLoading()
     uni.showToast({
       title: '发布成功',
       icon: 'success'
@@ -149,188 +154,238 @@ const handlePublish = () => {
     setTimeout(() => {
       uni.navigateBack()
     }, 1500)
-  }, 1500)
+  }, 1000)
 }
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
-.publish-page {
-  width: 100%;
+.publish-container {
   min-height: 100vh;
-  background: $color-bg-primary;
+  background: #FFF9F9;
 }
 
-.page-content {
-  padding-top: calc(#{$nav-bar-height} + 20rpx);
-  padding: calc(#{$nav-bar-height} + 20rpx) $spacing-page-horizontal $spacing-page-horizontal;
+.publish-content {
+  padding: 24rpx 32rpx;
+  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
 }
 
-.publish-btn {
-  padding: 8rpx 24rpx;
-  background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-  border-radius: $border-radius-base;
-  transition: transform $transition-base ease;
-
-  &:active {
-    transform: scale($scale-press);
-  }
-
-  .btn-text {
-    font-size: $font-size-body;
-    font-weight: $font-weight-bold;
-    color: $color-bg-white;
-  }
+.input-area {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid #FFC1E9;
 }
 
 .content-input {
   width: 100%;
-  min-height: 300rpx;
-  padding: $spacing-component;
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  font-size: $font-size-body;
-  color: $color-gray-dark;
+  min-height: 200rpx;
+  font-size: 28rpx;
+  color: #333333;
   line-height: 1.6;
-  box-shadow: $shadow-light;
+}
+
+.input-placeholder {
+  color: #999999;
 }
 
 .char-count {
   text-align: right;
-  padding: $spacing-small 0;
-
-  .count-text {
-    font-size: $font-size-helper;
-    color: $color-gray-lighter;
-  }
+  font-size: 22rpx;
+  color: #999999;
+  margin-top: 12rpx;
 }
 
-.image-section {
-  margin-top: $spacing-component;
-
-  .section-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: $spacing-item;
-
-    .title-text {
-      font-size: $font-size-button;
-      font-weight: $font-weight-bold;
-      color: $color-gray-dark;
-    }
-
-    .subtitle-text {
-      font-size: $font-size-helper;
-      color: $color-gray-lighter;
-    }
-  }
-
-  .image-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-small;
-
-    .image-item {
-      width: calc((100% - #{$spacing-small} * 2) / 3);
-      height: 200rpx;
-      position: relative;
-
-      .preview-image {
-        width: 100%;
-        height: 100%;
-        border-radius: $border-radius-base;
-      }
-
-      .delete-btn {
-        position: absolute;
-        top: -12rpx;
-        right: -12rpx;
-        width: 48rpx;
-        height: 48rpx;
-        background: rgba(0, 0, 0, 0.6);
-        border-radius: $border-radius-circle;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        .delete-icon {
-          width: 24rpx;
-          height: 24rpx;
-        }
-      }
-    }
-
-    .add-image-btn {
-      width: calc((100% - #{$spacing-small} * 2) / 3);
-      height: 200rpx;
-      background: $color-bg-white;
-      border: 2rpx dashed $border-color;
-      border-radius: $border-radius-base;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform $transition-base ease;
-
-      &:active {
-        transform: scale($scale-press);
-      }
-
-      .add-icon {
-        width: 64rpx;
-        height: 64rpx;
-        opacity: 0.4;
-      }
-    }
-  }
+.image-area {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid #FFC1E9;
 }
 
-.option-section {
-  margin-top: $spacing-component;
-  padding: $spacing-component;
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
+.area-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #FFC1E9;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.image-grid {
   display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.image-item {
+  position: relative;
+  width: calc(33.33% - 12rpx);
+  height: 200rpx;
+}
+
+.image-content {
+  width: 100%;
+  height: 100%;
+  border-radius: 16rpx;
+}
+
+.image-delete {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background: #FF6B6B;
+  border-radius: 50%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 60%;
+}
+
+.image-add {
+  width: calc(33.33% - 12rpx);
+  height: 200rpx;
+  border: 2rpx dashed #FFC1E9;
+  border-radius: 16rpx;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  box-shadow: $shadow-light;
-  transition: transform $transition-base ease;
+  justify-content: center;
+  gap: 8rpx;
+}
 
-  &:active {
-    transform: scale($scale-press);
+.add-icon {
+  width: 48rpx;
+  height: 48rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
+
+.add-text {
+  font-size: 24rpx;
+  color: #FFC1E9;
+}
+
+.video-area {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid #FFC1E9;
+}
+
+.video-preview {
+  position: relative;
+  height: 300rpx;
+  border-radius: 16rpx;
+}
+
+.video-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #FFC1E9 0%, #FFD4F0 100%);
+}
+
+.video-delete {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  width: 48rpx;
+  height: 48rpx;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 60%;
+}
+
+.type-select {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid #FFC1E9;
+}
+
+.type-options {
+  display: flex;
+  gap: 24rpx;
+}
+
+.type-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid #E5E5E5;
+  
+  &.active {
+    border-color: #FFC1E9;
+    background: rgba(255, 193, 233, 0.1);
+    
+    .type-icon {
+      filter: none;
+    }
+    
+    .type-label {
+      color: #FFC1E9;
+      font-weight: 600;
+    }
   }
+}
 
-  .option-label {
-    display: flex;
-    align-items: center;
-    gap: $spacing-small;
-
-    .option-icon {
-      width: 32rpx;
-      height: 32rpx;
-    }
-
-    .option-text {
-      font-size: $font-size-button;
-      color: $color-gray-dark;
-    }
+.type-icon {
+  width: 48rpx;
+  height: 48rpx;
+  filter: grayscale(50%);
+  
+  &.icon-text {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
   }
+  
+  &.icon-image {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+  
+  &.icon-video {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+}
 
-  .option-value {
-    display: flex;
-    align-items: center;
-    gap: $spacing-small;
+.type-label {
+  font-size: 24rpx;
+  color: #999999;
+}
 
-    .value-text {
-      font-size: $font-size-body;
-      color: $color-gray-lighter;
-    }
+.topic-area {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  border: 2rpx solid #FFC1E9;
+}
 
-    .arrow-icon {
-      width: 24rpx;
-      height: 24rpx;
-    }
+.topic-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.topic-item {
+  padding: 12rpx 24rpx;
+  background: rgba(255, 193, 233, 0.1);
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  color: #FFC1E9;
+  border: 2rpx solid transparent;
+  
+  &.active {
+    background: #FFC1E9;
+    color: #FFFFFF;
   }
 }
 </style>

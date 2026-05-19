@@ -1,287 +1,255 @@
 <template>
-  <view class="place-list-page">
-    <TopNavBar title="附近遛狗好去处" />
-
-    <view class="page-content">
-      <!-- 筛选栏 -->
-      <view class="filter-row">
-        <view class="filter-item" @tap="showTypeFilter">
-          <text class="filter-text">类型筛选</text>
-          <image class="arrow-icon" src="/static/images/icon-arrow-down.png" mode="aspectFit"></image>
-        </view>
-        <view class="filter-item" @tap="showDistanceFilter">
-          <text class="filter-text">距离排序</text>
-          <image class="arrow-icon" src="/static/images/icon-arrow-down.png" mode="aspectFit"></image>
-        </view>
-      </view>
-
-      <!-- 地点列表 -->
-      <scroll-view
-        class="place-list"
-        scroll-y
-        @scrolltolower="loadMore"
-        refresher-enabled
-        @refresherrefresh="onRefresh"
+  <view class="place-list-container">
+    <TopNavBar title="遛狗好去处" />
+    
+    <view class="place-tabs">
+      <view 
+        v-for="(tab, index) in tabs" 
+        :key="index"
+        class="tab-item"
+        :class="{ active: currentTab === index }"
+        @click="currentTab = index"
       >
-        <view
-          v-for="place in placeList"
-          :key="place.id"
-          class="place-card"
-          @tap="goToStoreDetail(place.id)"
-        >
-          <image class="place-image" :src="place.image" mode="aspectFill"></image>
-          <view class="place-info">
-            <view class="place-header">
-              <text class="place-name">{{ place.name }}</text>
-              <view class="place-type">
-                <text class="type-text">{{ place.type }}</text>
-              </view>
+        {{ tab }}
+      </view>
+    </view>
+    
+    <view class="place-list">
+      <view 
+        v-for="(place, index) in placeList" 
+        :key="index" 
+        class="place-item"
+        @click="goToDetail(place)"
+      >
+        <view class="place-image">
+          <view class="image-placeholder" :style="{ background: place.color }"></view>
+          <view class="place-tag">{{ place.type }}</view>
+        </view>
+        <view class="place-info">
+          <text class="place-name">{{ place.name }}</text>
+          <text class="place-desc">{{ place.desc }}</text>
+          <view class="place-footer">
+            <view class="place-meta">
+              <view class="meta-icon icon-star"></view>
+              <text class="meta-text">{{ place.rating }}</text>
             </view>
             <view class="place-meta">
-              <view class="meta-item">
-                <image class="meta-icon" src="/static/images/icon-location-small.png" mode="aspectFit"></image>
-                <text class="meta-text">{{ place.distance }}km</text>
-              </view>
-              <view class="meta-item">
-                <image class="meta-icon" src="/static/images/icon-star.png" mode="aspectFit"></image>
-                <text class="meta-text">{{ place.rating }}</text>
-              </view>
+              <view class="meta-icon icon-foot"></view>
+              <text class="meta-text">{{ place.distance }}</text>
             </view>
-            <text class="place-address">{{ place.address }}</text>
-          </view>
-          <view
-            class="collect-btn"
-            :class="{ 'collected': place.isCollected }"
-            @tap.stop="toggleCollect(place)"
-          >
-            <image
-              class="collect-icon"
-              :src="place.isCollected ? '/static/images/icon-heart-filled.png' : '/static/images/icon-heart.png'"
-              mode="aspectFit"
-            ></image>
+            <view class="place-meta">
+              <view class="meta-icon icon-paw"></view>
+              <text class="meta-text">{{ place.petCount }}只宠物</text>
+            </view>
           </view>
         </view>
-
-        <Empty v-if="placeList.length === 0 && !loading" type="noData" text="暂无地点数据" />
-      </scroll-view>
+      </view>
     </view>
-
-    <Loading :visible="loading" />
+    
+    <view class="list-footer">
+      <text class="footer-text">- 已显示全部地点 -</text>
+    </view>
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
 import TopNavBar from '@/components/common/TopNavBar.vue'
-import Empty from '@/components/common/Empty.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref } from 'vue'
 
-const loading = ref(false)
-const placeList = ref([
-  {
-    id: 1,
-    image: '/static/images/place-default.png',
-    name: '朝阳公园',
-    type: '公园',
-    distance: 1.2,
-    rating: 4.8,
-    address: '朝阳区朝阳公园南路1号',
-    isCollected: false
+const currentTab = ref(0)
+
+const tabs = ['全部', '公园', '宠物乐园', '宠物店']
+
+const placeList = [
+  { 
+    name: '中央公园', 
+    desc: '草坪宽广，宠物友好设施完善，有专门的宠物活动区域', 
+    type: '公园', 
+    rating: '4.9', 
+    distance: '500m', 
+    petCount: 23,
+    color: '#FFC1E9' 
   },
-  {
-    id: 2,
-    image: '/static/images/place-default.png',
-    name: '萌宠乐园宠物店',
-    type: '宠物店',
-    distance: 0.8,
-    rating: 4.9,
-    address: '朝阳区建国路88号',
-    isCollected: true
+  { 
+    name: '萌宠乐园', 
+    desc: '室内宠物乐园，有各种游乐设施，适合雨天遛狗', 
+    type: '宠物乐园', 
+    rating: '4.8', 
+    distance: '1.2km', 
+    petCount: 15,
+    color: '#FFD4F0' 
+  },
+  { 
+    name: '汪汪宠物店', 
+    desc: '提供宠物美容、洗澡、用品销售等一站式服务', 
+    type: '宠物店', 
+    rating: '4.7', 
+    distance: '800m', 
+    petCount: 8,
+    color: '#FFB6C1' 
+  },
+  { 
+    name: '滨江绿道', 
+    desc: '沿江绿道，风景优美，适合带宠物散步慢跑', 
+    type: '公园', 
+    rating: '4.6', 
+    distance: '1.5km', 
+    petCount: 18,
+    color: '#FFC0CB' 
+  },
+  { 
+    name: '宠物天地', 
+    desc: '大型户外宠物乐园，有专业训练场地和障碍设施', 
+    type: '宠物乐园', 
+    rating: '4.9', 
+    distance: '2.0km', 
+    petCount: 32,
+    color: '#FFE4E1' 
+  },
+  { 
+    name: '爱心宠物医院', 
+    desc: '专业宠物医疗服务，24小时急诊，设备先进', 
+    type: '宠物店', 
+    rating: '4.8', 
+    distance: '1.0km', 
+    petCount: 5,
+    color: '#FFB6C1' 
   }
-])
+]
 
-onMounted(() => {
-  loadPlaceList()
-})
-
-const loadPlaceList = () => {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
-
-const onRefresh = () => {
-  loadPlaceList()
-}
-
-const loadMore = () => {
-  console.log('Load more')
-}
-
-const showTypeFilter = () => {
-  uni.vibrateShort({ type: 'light' })
-}
-
-const showDistanceFilter = () => {
-  uni.vibrateShort({ type: 'light' })
-}
-
-const toggleCollect = (place) => {
-  place.isCollected = !place.isCollected
-  uni.vibrateShort({ type: 'medium' })
-}
-
-const goToStoreDetail = (placeId) => {
+const goToDetail = (place: any) => {
   uni.navigateTo({
-    url: `/pages/home/storeDetail?id=${placeId}`
+    url: `/pages/home/storeDetail?name=${place.name}`
   })
 }
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
-.place-list-page {
-  width: 100%;
+.place-list-container {
   min-height: 100vh;
-  background: $color-bg-primary;
+  background: #FFF9F9;
 }
 
-.page-content {
-  padding-top: calc(#{$nav-bar-height} + 20rpx);
-}
-
-.filter-row {
+.place-tabs {
   display: flex;
-  gap: $spacing-component;
-  padding: 0 $spacing-page-horizontal $spacing-component;
+  padding: 24rpx 32rpx;
+  gap: 24rpx;
+  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
+}
 
-  .filter-item {
-    flex: 1;
-    height: 72rpx;
-    background: $color-bg-white;
-    border-radius: $border-radius-base;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: $spacing-small;
-    box-shadow: $shadow-light;
-
-    .filter-text {
-      font-size: $font-size-body;
-      color: $color-gray-dark;
-    }
-
-    .arrow-icon {
-      width: 24rpx;
-      height: 24rpx;
-    }
+.tab-item {
+  padding: 16rpx 32rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  font-size: 26rpx;
+  color: #999999;
+  border: 2rpx solid #E5E5E5;
+  
+  &.active {
+    background: #FFC1E9;
+    color: #FFFFFF;
+    border-color: #FFC1E9;
   }
 }
 
 .place-list {
-  height: calc(100vh - #{$nav-bar-height} - 140rpx);
-  padding: 0 $spacing-page-horizontal;
+  padding: 0 32rpx;
 }
 
-.place-card {
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  padding: $spacing-component;
-  margin-bottom: $spacing-component;
-  display: flex;
-  gap: $spacing-component;
-  box-shadow: $shadow-light;
-  transition: transform $transition-base ease;
-  position: relative;
-
+.place-item {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+  border: 2rpx solid #FFC1E9;
+  
   &:active {
-    transform: scale($scale-press);
+    transform: scale(0.98);
   }
+}
 
-  .place-image {
-    width: 160rpx;
-    height: 160rpx;
-    border-radius: $border-radius-base;
-    flex-shrink: 0;
+.place-image {
+  position: relative;
+  height: 280rpx;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.place-tag {
+  position: absolute;
+  top: 16rpx;
+  left: 16rpx;
+  padding: 8rpx 20rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  color: #FFC1E9;
+}
+
+.place-info {
+  padding: 24rpx;
+}
+
+.place-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 12rpx;
+}
+
+.place-desc {
+  font-size: 26rpx;
+  color: #999999;
+  line-height: 1.5;
+  margin-bottom: 16rpx;
+}
+
+.place-footer {
+  display: flex;
+  gap: 32rpx;
+}
+
+.place-meta {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.meta-icon {
+  width: 28rpx;
+  height: 28rpx;
+  
+  &.icon-star {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
   }
-
-  .place-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 12rpx;
-
-    .place-header {
-      display: flex;
-      align-items: center;
-      gap: $spacing-small;
-
-      .place-name {
-        font-size: $font-size-button;
-        font-weight: $font-weight-bold;
-        color: $color-gray-dark;
-        flex: 1;
-      }
-
-      .place-type {
-        padding: 4rpx 16rpx;
-        background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-        border-radius: $border-radius-small;
-
-        .type-text {
-          font-size: $font-size-helper;
-          color: $color-bg-white;
-        }
-      }
-    }
-
-    .place-meta {
-      display: flex;
-      gap: $spacing-component;
-
-      .meta-item {
-        display: flex;
-        align-items: center;
-        gap: 8rpx;
-
-        .meta-icon {
-          width: 24rpx;
-          height: 24rpx;
-        }
-
-        .meta-text {
-          font-size: $font-size-body;
-          color: $color-gray-medium;
-        }
-      }
-    }
-
-    .place-address {
-      font-size: $font-size-helper;
-      color: $color-gray-lighter;
-      line-height: 1.5;
-    }
+  
+  &.icon-foot {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
   }
-
-  .collect-btn {
-    position: absolute;
-    top: $spacing-component;
-    right: $spacing-component;
-    width: 56rpx;
-    height: 56rpx;
-    background: $color-bg-white;
-    border-radius: $border-radius-circle;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: $shadow-light;
-
-    .collect-icon {
-      width: 32rpx;
-      height: 32rpx;
-    }
+  
+  &.icon-paw {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
   }
+}
+
+.meta-text {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.list-footer {
+  padding: 40rpx;
+  text-align: center;
+}
+
+.footer-text {
+  font-size: 24rpx;
+  color: #E5E5E5;
 }
 </style>

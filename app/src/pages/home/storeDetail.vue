@@ -1,488 +1,357 @@
 <template>
-  <view class="store-detail-page">
-    <TopNavBar title="门店详情">
-      <template #right>
-        <image
-          class="share-icon"
-          src="/static/images/icon-share.png"
-          mode="aspectFit"
-          @tap="handleShare"
-        ></image>
-      </template>
-    </TopNavBar>
-
-    <view class="page-content">
-      <!-- 轮播图 -->
-      <swiper class="store-swiper" indicator-dots indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#FFC1E9">
-        <swiper-item v-for="(image, index) in storeInfo.images" :key="index">
-          <image class="swiper-image" :src="image" mode="aspectFill"></image>
-        </swiper-item>
-      </swiper>
-
-      <!-- 基本信息 -->
-      <view class="store-info-card">
-        <view class="store-header">
-          <text class="store-name">{{ storeInfo.name }}</text>
-          <view class="store-type">
-            <text class="type-text">{{ storeInfo.type }}</text>
-          </view>
-        </view>
-        <view class="store-rating">
-          <image class="star-icon" src="/static/images/icon-star.png" mode="aspectFit"></image>
-          <text class="rating-text">{{ storeInfo.rating }}</text>
-          <text class="review-count">({{ storeInfo.reviewCount }}条评价)</text>
-        </view>
+  <view class="store-detail-container">
+    <TopNavBar title="店铺详情" />
+    
+    <view class="store-header">
+      <view class="header-image">
+        <view class="image-placeholder"></view>
+      </view>
+      <view class="store-info">
+        <text class="store-name">中央公园</text>
         <view class="store-meta">
-          <view class="meta-row">
-            <image class="meta-icon" src="/static/images/icon-location-small.png" mode="aspectFit"></image>
-            <text class="meta-text">{{ storeInfo.address }}</text>
+          <view class="meta-item">
+            <view class="meta-icon icon-star"></view>
+            <text class="meta-text">4.9</text>
           </view>
-          <view class="meta-row">
-            <image class="meta-icon" src="/static/images/icon-phone.png" mode="aspectFit"></image>
-            <text class="meta-text">{{ storeInfo.phone }}</text>
+          <view class="meta-divider"></view>
+          <view class="meta-item">
+            <view class="meta-icon icon-foot"></view>
+            <text class="meta-text">500m</text>
           </view>
-          <view class="meta-row">
-            <image class="meta-icon" src="/static/images/icon-time.png" mode="aspectFit"></image>
-            <text class="meta-text">{{ storeInfo.businessHours }}</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 地图位置 -->
-      <view class="map-card">
-        <view class="card-title">
-          <text class="title-text">位置信息</text>
-        </view>
-        <map
-          class="store-map"
-          :latitude="storeInfo.latitude"
-          :longitude="storeInfo.longitude"
-          :markers="markers"
-        ></map>
-      </view>
-
-      <!-- 操作按钮 -->
-      <view class="action-buttons">
-        <view class="action-btn" @tap="handleCall">
-          <image class="btn-icon" src="/static/images/icon-phone-white.png" mode="aspectFit"></image>
-          <text class="btn-text">拨打电话</text>
-        </view>
-        <view class="action-btn" @tap="handleNavigate">
-          <image class="btn-icon" src="/static/images/icon-navigate.png" mode="aspectFit"></image>
-          <text class="btn-text">导航</text>
-        </view>
-        <view
-          class="action-btn collect-btn"
-          :class="{ 'collected': storeInfo.isCollected }"
-          @tap="toggleCollect"
-        >
-          <image
-            class="btn-icon"
-            :src="storeInfo.isCollected ? '/static/images/icon-heart-filled-white.png' : '/static/images/icon-heart-white.png'"
-            mode="aspectFit"
-          ></image>
-          <text class="btn-text">{{ storeInfo.isCollected ? '已收藏' : '收藏' }}</text>
-        </view>
-      </view>
-
-      <!-- 用户评价 -->
-      <view class="review-card">
-        <view class="card-title">
-          <text class="title-text">用户评价</text>
-          <text class="more-text">查看全部</text>
-        </view>
-        <view class="review-list">
-          <view v-for="review in reviewList" :key="review.id" class="review-item">
-            <view class="review-header">
-              <image class="user-avatar" :src="review.avatar" mode="aspectFill"></image>
-              <view class="user-info">
-                <text class="user-name">{{ review.nickname }}</text>
-                <view class="review-rating">
-                  <image
-                    v-for="star in 5"
-                    :key="star"
-                    class="star-small"
-                    :src="star <= review.rating ? '/static/images/icon-star.png' : '/static/images/icon-star-gray.png'"
-                    mode="aspectFit"
-                  ></image>
-                </view>
-              </view>
-              <text class="review-time">{{ review.time }}</text>
-            </view>
-            <text class="review-content">{{ review.content }}</text>
+          <view class="meta-divider"></view>
+          <view class="meta-item">
+            <view class="meta-icon icon-paw"></view>
+            <text class="meta-text">23只宠物</text>
           </view>
         </view>
       </view>
     </view>
-
-    <Loading :visible="loading" />
+    
+    <view class="store-content">
+      <view class="section">
+        <text class="section-title">店铺介绍</text>
+        <text class="section-content">
+          中央公园是城市中最受欢迎的宠物友好公园之一，拥有广阔的草坪和专业的宠物活动区域。公园内设有宠物饮水点、便便袋分发站、休息区等完善设施，是您和爱宠休闲娱乐的最佳选择。
+        </text>
+      </view>
+      
+      <view class="section">
+        <text class="section-title">营业时间</text>
+        <view class="time-info">
+          <text class="time-text">周一至周日 06:00 - 22:00</text>
+        </view>
+      </view>
+      
+      <view class="section">
+        <text class="section-title">地址</text>
+        <text class="section-content">市中心区公园路88号</text>
+      </view>
+      
+      <view class="section">
+        <text class="section-title">用户评价</text>
+        <view class="review-list">
+          <view class="review-item">
+            <view class="review-avatar">
+              <view class="avatar-bg"></view>
+            </view>
+            <view class="review-content">
+              <view class="review-header">
+                <text class="review-name">小明</text>
+                <view class="review-rating">
+                  <view class="star" v-for="i in 5" :key="i"></view>
+                </view>
+              </view>
+              <text class="review-text">非常棒的公园！草坪很干净，设施也很齐全，狗狗玩得很开心。</text>
+              <text class="review-time">2024-01-15</text>
+            </view>
+          </view>
+          <view class="review-item">
+            <view class="review-avatar">
+              <view class="avatar-bg"></view>
+            </view>
+            <view class="review-content">
+              <view class="review-header">
+                <text class="review-name">阿花</text>
+                <view class="review-rating">
+                  <view class="star" v-for="i in 5" :key="i"></view>
+                </view>
+              </view>
+              <text class="review-text">环境很好，人不多，狗狗可以自由奔跑。推荐！</text>
+              <text class="review-time">2024-01-14</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="store-footer">
+      <view class="footer-btn btn-nav" @click="handleNavigate">
+        <view class="btn-icon icon-nav"></view>
+        <text class="btn-text">导航</text>
+      </view>
+      <view class="footer-btn btn-call" @click="handleCall">
+        <view class="btn-icon icon-call"></view>
+        <text class="btn-text">电话</text>
+      </view>
+      <view class="footer-btn btn-collect" @click="handleCollect">
+        <view class="btn-icon icon-collect"></view>
+        <text class="btn-text">收藏</text>
+      </view>
+    </view>
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
 import TopNavBar from '@/components/common/TopNavBar.vue'
-import Loading from '@/components/common/Loading.vue'
 
-const loading = ref(false)
-
-const storeInfo = ref({
-  id: 1,
-  name: '朝阳公园',
-  type: '公园',
-  rating: 4.8,
-  reviewCount: 128,
-  address: '朝阳区朝阳公园南路1号',
-  phone: '010-12345678',
-  businessHours: '06:00-22:00',
-  latitude: 39.908823,
-  longitude: 116.397470,
-  isCollected: false,
-  images: [
-    '/static/images/place-default.png',
-    '/static/images/place-default.png',
-    '/static/images/place-default.png'
-  ]
-})
-
-const markers = ref([
-  {
-    id: 1,
-    latitude: 39.908823,
-    longitude: 116.397470,
-    iconPath: '/static/images/marker-place.png',
-    width: 30,
-    height: 30
-  }
-])
-
-const reviewList = ref([
-  {
-    id: 1,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '铲屎官小王',
-    rating: 5,
-    time: '2天前',
-    content: '环境很好，草坪很大，狗狗玩得很开心！'
-  },
-  {
-    id: 2,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '爱狗人士',
-    rating: 4,
-    time: '5天前',
-    content: '不错的遛狗地点，就是人有点多。'
-  }
-])
-
-onMounted(() => {
-  loadStoreDetail()
-})
-
-const loadStoreDetail = () => {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
-
-const handleShare = () => {
-  uni.vibrateShort({ type: 'light' })
+const handleNavigate = () => {
   uni.showToast({
-    title: '分享功能开发中',
-    icon: 'none'
+    title: '正在导航...',
+    icon: 'loading'
   })
 }
 
 const handleCall = () => {
-  uni.vibrateShort({ type: 'medium' })
-  uni.makePhoneCall({
-    phoneNumber: storeInfo.value.phone
-  })
-}
-
-const handleNavigate = () => {
-  uni.vibrateShort({ type: 'medium' })
-  uni.openLocation({
-    latitude: storeInfo.value.latitude,
-    longitude: storeInfo.value.longitude,
-    name: storeInfo.value.name,
-    address: storeInfo.value.address
-  })
-}
-
-const toggleCollect = () => {
-  storeInfo.value.isCollected = !storeInfo.value.isCollected
-  uni.vibrateShort({ type: 'medium' })
   uni.showToast({
-    title: storeInfo.value.isCollected ? '收藏成功' : '取消收藏',
-    icon: 'none'
+    title: '正在拨打电话...',
+    icon: 'loading'
+  })
+}
+
+const handleCollect = () => {
+  uni.showToast({
+    title: '已收藏',
+    icon: 'success'
   })
 }
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
-.store-detail-page {
-  width: 100%;
+.store-detail-container {
   min-height: 100vh;
-  background: $color-bg-primary;
+  background: #FFF9F9;
+  padding-bottom: 140rpx;
 }
 
-.page-content {
-  padding-top: $nav-bar-height;
-  padding-bottom: $spacing-page-horizontal;
+.store-header {
+  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
 }
 
-.store-swiper {
+.header-image {
+  height: 400rpx;
+}
+
+.image-placeholder {
   width: 100%;
-  height: 500rpx;
-
-  .swiper-image {
-    width: 100%;
-    height: 100%;
-  }
+  height: 100%;
+  background: linear-gradient(135deg, #FFC1E9 0%, #FFD4F0 100%);
 }
 
-.store-info-card {
-  margin: $spacing-component $spacing-page-horizontal;
-  padding: $spacing-component;
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  box-shadow: $shadow-light;
-
-  .store-header {
-    display: flex;
-    align-items: center;
-    gap: $spacing-small;
-    margin-bottom: $spacing-item;
-
-    .store-name {
-      font-size: $font-size-title;
-      font-weight: $font-weight-bold;
-      color: $color-gray-dark;
-      flex: 1;
-    }
-
-    .store-type {
-      padding: 8rpx 20rpx;
-      background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-      border-radius: $border-radius-small;
-
-      .type-text {
-        font-size: $font-size-body;
-        color: $color-bg-white;
-      }
-    }
-  }
-
-  .store-rating {
-    display: flex;
-    align-items: center;
-    gap: 8rpx;
-    margin-bottom: $spacing-component;
-
-    .star-icon {
-      width: 32rpx;
-      height: 32rpx;
-    }
-
-    .rating-text {
-      font-size: $font-size-button;
-      font-weight: $font-weight-bold;
-      color: $color-primary;
-    }
-
-    .review-count {
-      font-size: $font-size-body;
-      color: $color-gray-lighter;
-    }
-  }
-
-  .store-meta {
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-item;
-
-    .meta-row {
-      display: flex;
-      align-items: center;
-      gap: $spacing-small;
-
-      .meta-icon {
-        width: 32rpx;
-        height: 32rpx;
-      }
-
-      .meta-text {
-        font-size: $font-size-body;
-        color: $color-gray-medium;
-        flex: 1;
-      }
-    }
-  }
+.store-info {
+  background: #FFFFFF;
+  padding: 24rpx 32rpx;
+  border-bottom: 2rpx solid #FFC1E9;
 }
 
-.map-card {
-  margin: 0 $spacing-page-horizontal $spacing-component;
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  overflow: hidden;
-  box-shadow: $shadow-light;
-
-  .card-title {
-    padding: $spacing-component;
-    border-bottom: $border-width solid $border-color;
-
-    .title-text {
-      font-size: $font-size-button;
-      font-weight: $font-weight-bold;
-      color: $color-gray-dark;
-    }
-  }
-
-  .store-map {
-    width: 100%;
-    height: 400rpx;
-  }
+.store-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 16rpx;
 }
 
-.action-buttons {
+.store-meta {
   display: flex;
-  gap: $spacing-component;
-  padding: 0 $spacing-page-horizontal;
-  margin-bottom: $spacing-component;
+  align-items: center;
+}
 
-  .action-btn {
-    flex: 1;
-    height: 88rpx;
-    background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-    border-radius: $border-radius-base;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8rpx;
-    box-shadow: $shadow-pink;
-    transition: transform $transition-base ease;
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
 
-    &:active {
-      transform: scale($scale-press);
-    }
-
-    &.collect-btn.collected {
-      background: $color-bg-white;
-      border: $border-width solid $color-primary;
-
-      .btn-text {
-        color: $color-primary;
-      }
-    }
-
-    .btn-icon {
-      width: 32rpx;
-      height: 32rpx;
-    }
-
-    .btn-text {
-      font-size: $font-size-body;
-      color: $color-bg-white;
-    }
+.meta-icon {
+  width: 28rpx;
+  height: 28rpx;
+  
+  &.icon-star {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+  
+  &.icon-foot {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+  
+  &.icon-paw {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
   }
 }
 
-.review-card {
-  margin: 0 $spacing-page-horizontal;
-  padding: $spacing-component;
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  box-shadow: $shadow-light;
+.meta-text {
+  font-size: 24rpx;
+  color: #999999;
+}
 
-  .card-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: $spacing-component;
+.meta-divider {
+  width: 2rpx;
+  height: 24rpx;
+  background: #E5E5E5;
+  margin: 0 24rpx;
+}
 
-    .title-text {
-      font-size: $font-size-button;
-      font-weight: $font-weight-bold;
-      color: $color-gray-dark;
-    }
+.store-content {
+  padding: 24rpx 32rpx;
+}
 
-    .more-text {
-      font-size: $font-size-body;
-      color: $color-primary;
-    }
-  }
+.section {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid #FFC1E9;
+}
 
-  .review-list {
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-component;
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #FFC1E9;
+  margin-bottom: 16rpx;
+}
 
-    .review-item {
-      padding-bottom: $spacing-component;
-      border-bottom: $border-width solid $border-color;
+.section-content {
+  font-size: 26rpx;
+  color: #333333;
+  line-height: 1.6;
+}
 
-      &:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-      }
+.time-info {
+  background: rgba(255, 193, 233, 0.1);
+  border-radius: 16rpx;
+  padding: 16rpx;
+}
 
-      .review-header {
-        display: flex;
-        align-items: center;
-        gap: $spacing-small;
-        margin-bottom: $spacing-item;
+.time-text {
+  font-size: 26rpx;
+  color: #FFC1E9;
+}
 
-        .user-avatar {
-          width: 64rpx;
-          height: 64rpx;
-          border-radius: $border-radius-circle;
-        }
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
 
-        .user-info {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 8rpx;
+.review-item {
+  display: flex;
+  gap: 16rpx;
+}
 
-          .user-name {
-            font-size: $font-size-body;
-            font-weight: $font-weight-bold;
-            color: $color-gray-dark;
-          }
+.review-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  padding: 4rpx;
+  background: #FFC1E9;
+}
 
-          .review-rating {
-            display: flex;
-            gap: 4rpx;
+.avatar-bg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #FFD4F0;
+}
 
-            .star-small {
-              width: 24rpx;
-              height: 24rpx;
-            }
-          }
-        }
+.review-content {
+  flex: 1;
+}
 
-        .review-time {
-          font-size: $font-size-helper;
-          color: $color-gray-lighter;
-        }
-      }
+.review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
 
-      .review-content {
-        font-size: $font-size-body;
-        color: $color-gray-medium;
-        line-height: 1.6;
-      }
-    }
+.review-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.review-rating {
+  display: flex;
+  gap: 4rpx;
+}
+
+.star {
+  width: 24rpx;
+  height: 24rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
+
+.review-text {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.5;
+  margin-bottom: 8rpx;
+}
+
+.review-time {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.store-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: #FFFFFF;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + constant(safe-area-inset-bottom));
+  border-top: 2rpx solid #FFC1E9;
+}
+
+.footer-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  
+  &:active {
+    opacity: 0.7;
   }
 }
 
-.share-icon {
-  width: $icon-size-medium;
-  height: $icon-size-medium;
+.btn-icon {
+  width: 40rpx;
+  height: 40rpx;
+  
+  &.icon-nav {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 3L1 10l4 2.18v6L12 21l7-3.82v-6l4-2.18L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 17.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+  
+  &.icon-call {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+  
+  &.icon-collect {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M17.34 14.86l-1.41 1.41-6.3-6.3-2.83 2.83-1.41-1.41L4.27 11l3.54-3.54 6.3 6.3 9.17-9.17 1.41 1.41-10.58 10.58z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+}
+
+.btn-text {
+  font-size: 22rpx;
+  color: #FFC1E9;
 }
 </style>

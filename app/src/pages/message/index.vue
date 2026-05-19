@@ -1,364 +1,286 @@
 <template>
-  <view class="message-page">
-    <TopNavBar title="消息" :show-back="false" />
-
-    <view class="page-content">
-      <!-- Tab切换 -->
-      <view class="message-tabs">
-        <view
-          v-for="tab in tabs"
-          :key="tab.value"
-          class="tab-item"
-          :class="{ 'active': currentTab === tab.value }"
-          @tap="switchTab(tab.value)"
-        >
-          <text class="tab-text">{{ tab.label }}</text>
-          <view v-if="tab.badge > 0" class="tab-badge">
-            <text class="badge-text">{{ tab.badge > 99 ? '99+' : tab.badge }}</text>
-          </view>
-        </view>
+  <view class="message-container">
+    <TopNavBar title="消息" :showBack="false" />
+    
+    <view class="message-tabs">
+      <view 
+        class="tab-item"
+        :class="{ active: currentTab === 0 }"
+        @click="currentTab = 0"
+      >
+        <text class="tab-text">系统通知</text>
+        <view class="tab-badge" v-if="systemBadge > 0">{{ systemBadge }}</view>
       </view>
-
-      <!-- 私信列表 -->
-      <scroll-view
-        v-if="currentTab === 'chat'"
-        class="message-list"
-        scroll-y
-        refresher-enabled
-        @refresherrefresh="onRefresh"
+      <view 
+        class="tab-item"
+        :class="{ active: currentTab === 1 }"
+        @click="currentTab = 1"
       >
-        <view
-          v-for="chat in chatList"
-          :key="chat.id"
-          class="message-item"
-          @tap="goToChat(chat.id)"
-        >
-          <image class="message-avatar" :src="chat.avatar" mode="aspectFill"></image>
-          <view class="message-content">
-            <view class="content-header">
-              <text class="user-name">{{ chat.nickname }}</text>
-              <text class="message-time">{{ chat.time }}</text>
-            </view>
-            <text class="message-text">{{ chat.lastMessage }}</text>
-          </view>
-          <view v-if="chat.unreadCount > 0" class="unread-badge">
-            <text class="badge-text">{{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}</text>
-          </view>
-        </view>
-
-        <Empty v-if="chatList.length === 0 && !loading" type="noData" text="暂无私信" />
-      </scroll-view>
-
-      <!-- 系统通知列表 -->
-      <scroll-view
-        v-if="currentTab === 'system'"
-        class="message-list"
-        scroll-y
-        refresher-enabled
-        @refresherrefresh="onRefresh"
-      >
-        <view
-          v-for="notice in noticeList"
-          :key="notice.id"
-          class="message-item"
-          @tap="goToSystemDetail(notice.id)"
-        >
-          <view class="notice-icon-wrapper">
-            <image class="notice-icon" :src="notice.icon" mode="aspectFit"></image>
-          </view>
-          <view class="message-content">
-            <view class="content-header">
-              <text class="notice-title">{{ notice.title }}</text>
-              <text class="message-time">{{ notice.time }}</text>
-            </view>
-            <text class="message-text">{{ notice.summary }}</text>
-          </view>
-          <view v-if="!notice.isRead" class="unread-dot"></view>
-        </view>
-
-        <Empty v-if="noticeList.length === 0 && !loading" type="noData" text="暂无通知" />
-      </scroll-view>
+        <text class="tab-text">好友私信</text>
+      </view>
     </view>
-
+    
+    <scroll-view scroll-y class="message-list">
+      <template v-if="currentTab === 0">
+        <view 
+          v-for="(item, index) in systemMessages" 
+          :key="index" 
+          class="message-item"
+          :class="{ unread: item.unread }"
+          @click="goToSystemDetail(item)"
+        >
+          <view class="message-icon system-icon">
+            <view class="icon-inner" :class="item.type"></view>
+          </view>
+          <view class="message-content">
+            <view class="message-header">
+              <text class="message-title">{{ item.title }}</text>
+              <text class="message-time">{{ item.time }}</text>
+            </view>
+            <text class="message-desc">{{ item.desc }}</text>
+          </view>
+          <view class="message-indicator" v-if="item.unread"></view>
+        </view>
+      </template>
+      
+      <template v-else>
+        <view 
+          v-for="(item, index) in chatList" 
+          :key="index" 
+          class="message-item"
+          :class="{ unread: item.unread }"
+          @click="goToChat(item)"
+        >
+          <view class="message-icon chat-icon">
+            <view class="icon-inner" :style="{ background: item.avatarColor }"></view>
+          </view>
+          <view class="message-content">
+            <view class="message-header">
+              <text class="message-title">{{ item.name }}</text>
+              <text class="message-time">{{ item.time }}</text>
+            </view>
+            <text class="message-desc">{{ item.lastMessage }}</text>
+          </view>
+          <view class="message-badge" v-if="item.unreadCount > 0">{{ item.unreadCount }}</view>
+        </view>
+      </template>
+      
+      <Empty 
+        v-if="(currentTab === 0 && systemMessages.length === 0) || (currentTab === 1 && chatList.length === 0)"
+        :type="currentTab === 0 ? 'bell' : 'dog'"
+        :text="currentTab === 0 ? '暂无系统通知' : '暂无私信消息'"
+      />
+    </scroll-view>
+    
     <TabBar :current="2" />
-    <Loading :visible="loading" />
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
 import TopNavBar from '@/components/common/TopNavBar.vue'
 import TabBar from '@/components/common/TabBar.vue'
 import Empty from '@/components/common/Empty.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref } from 'vue'
 
-const loading = ref(false)
-const currentTab = ref('chat')
+const currentTab = ref(0)
+const systemBadge = ref(2)
 
-const tabs = ref([
-  { label: '私信', value: 'chat', badge: 3 },
-  { label: '系统通知', value: 'system', badge: 5 }
+const systemMessages = ref([
+  { id: 1, type: 'like', title: '点赞通知', desc: '小明 点赞了你的动态', time: '5分钟前', unread: true },
+  { id: 2, type: 'comment', title: '评论通知', desc: '阿花 评论了你的动态', time: '10分钟前', unread: true },
+  { id: 3, type: 'follow', title: '关注通知', desc: '旺财 关注了你', time: '1小时前', unread: false },
+  { id: 4, type: 'system', title: '系统通知', desc: '您的账号已完成实名认证', time: '3小时前', unread: false }
 ])
 
 const chatList = ref([
-  {
-    id: 1,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '铲屎官小王',
-    lastMessage: '今天有空一起遛狗吗？',
-    time: '10:30',
-    unreadCount: 2
-  },
-  {
-    id: 2,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '爱狗人士',
-    lastMessage: '你家狗狗好可爱！',
-    time: '昨天',
-    unreadCount: 1
-  },
-  {
-    id: 3,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '宠物达人',
-    lastMessage: '谢谢分享！',
-    time: '2天前',
-    unreadCount: 0
-  }
+  { id: 1, name: '小明', avatarColor: '#FFC1E9', lastMessage: '今天遛狗吗？', time: '刚刚', unread: true, unreadCount: 3 },
+  { id: 2, name: '阿花', avatarColor: '#FFD4F0', lastMessage: '好的，明天见', time: '10分钟前', unread: false, unreadCount: 0 },
+  { id: 3, name: '旺财', avatarColor: '#FFB6C1', lastMessage: '周末一起去公园吧', time: '1小时前', unread: false, unreadCount: 0 },
+  { id: 4, name: '球球', avatarColor: '#FFC0CB', lastMessage: '收到，谢谢', time: '昨天', unread: false, unreadCount: 0 }
 ])
 
-const noticeList = ref([
-  {
-    id: 1,
-    icon: '/static/images/icon-like-filled.png',
-    title: '点赞通知',
-    summary: '铲屎官小王 赞了你的动态',
-    time: '1小时前',
-    isRead: false
-  },
-  {
-    id: 2,
-    icon: '/static/images/icon-comment.png',
-    title: '评论通知',
-    summary: '爱狗人士 评论了你的动态：好可爱的狗狗！',
-    time: '2小时前',
-    isRead: false
-  },
-  {
-    id: 3,
-    icon: '/static/images/icon-follow.png',
-    title: '关注通知',
-    summary: '宠物达人 关注了你',
-    time: '3小时前',
-    isRead: true
-  }
-])
-
-onMounted(() => {
-  loadMessageList()
-})
-
-const loadMessageList = () => {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
-
-const onRefresh = () => {
-  loadMessageList()
-}
-
-const switchTab = (tab) => {
-  currentTab.value = tab
-  uni.vibrateShort({ type: 'light' })
-}
-
-const goToChat = (chatId) => {
-  uni.vibrateShort({ type: 'light' })
+const goToSystemDetail = (item: any) => {
+  item.unread = false
+  systemBadge.value = systemMessages.value.filter(m => m.unread).length
   uni.navigateTo({
-    url: `/pages/message/chat?id=${chatId}`
+    url: '/pages/message/systemDetail'
   })
 }
 
-const goToSystemDetail = (noticeId) => {
-  uni.vibrateShort({ type: 'light' })
+const goToChat = (item: any) => {
+  item.unread = false
+  item.unreadCount = 0
   uni.navigateTo({
-    url: `/pages/message/systemDetail?id=${noticeId}`
+    url: `/pages/message/chat?name=${item.name}`
   })
 }
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
-.message-page {
-  width: 100%;
+.message-container {
   min-height: 100vh;
-  background: $color-bg-primary;
-}
-
-.page-content {
-  padding-top: $nav-bar-height;
-  padding-bottom: $tab-bar-height;
+  background: #FFF9F9;
 }
 
 .message-tabs {
   display: flex;
-  background: $color-bg-white;
-  padding: $spacing-component $spacing-page-horizontal;
-  gap: $spacing-component;
+  padding: 24rpx 32rpx;
+  gap: 24rpx;
+  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
+}
 
-  .tab-item {
-    flex: 1;
-    height: 72rpx;
-    border-radius: $border-radius-base;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    transition: all $transition-base ease;
-
-    &.active {
-      background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-      box-shadow: $shadow-pink;
-
-      .tab-text {
-        color: $color-bg-white;
-        font-weight: $font-weight-bold;
-      }
-    }
-
+.tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 20rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  border: 2rpx solid #E5E5E5;
+  
+  &.active {
+    background: #FFC1E9;
+    border-color: #FFC1E9;
+    
     .tab-text {
-      font-size: $font-size-button;
-      color: $color-gray-medium;
+      color: #FFFFFF;
     }
-
+    
     .tab-badge {
-      position: absolute;
-      top: -8rpx;
-      right: -8rpx;
-      min-width: 32rpx;
-      height: 32rpx;
-      padding: 0 8rpx;
-      background: #FF4D4F;
-      border-radius: 16rpx;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      .badge-text {
-        font-size: 20rpx;
-        color: $color-bg-white;
-        transform: scale(0.9);
-      }
+      background: #FFFFFF;
+      color: #FFC1E9;
     }
   }
+}
+
+.tab-text {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+.tab-badge {
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  background: #FF6B6B;
+  border-radius: 16rpx;
+  font-size: 20rpx;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .message-list {
-  height: calc(100vh - #{$nav-bar-height} - #{$tab-bar-height} - 120rpx);
-  padding: $spacing-component $spacing-page-horizontal;
+  padding: 0 32rpx;
+  padding-bottom: calc(112rpx + constant(safe-area-inset-bottom));
+  height: calc(100vh - var(--status-bar-height, 44px) - 240rpx);
 }
 
 .message-item {
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  padding: $spacing-component;
-  margin-bottom: $spacing-component;
   display: flex;
   align-items: center;
-  gap: $spacing-component;
-  box-shadow: $shadow-light;
-  transition: transform $transition-base ease;
-  position: relative;
-
-  &:active {
-    transform: scale($scale-press);
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  border: 2rpx solid #FFC1E9;
+  
+  &.unread {
+    background: rgba(255, 193, 233, 0.05);
   }
+}
 
-  .message-avatar {
-    width: $avatar-size-medium;
-    height: $avatar-size-medium;
-    border-radius: $border-radius-circle;
-    flex-shrink: 0;
+.message-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  
+  &.system-icon {
+    background: rgba(255, 193, 233, 0.1);
   }
-
-  .notice-icon-wrapper {
-    width: $avatar-size-medium;
-    height: $avatar-size-medium;
-    background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-    border-radius: $border-radius-circle;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    .notice-icon {
-      width: 40rpx;
-      height: 40rpx;
-    }
+  
+  &.chat-icon {
+    padding: 4rpx;
+    background: #FFC1E9;
   }
+}
 
-  .message-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8rpx;
-    overflow: hidden;
-
-    .content-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      .user-name,
-      .notice-title {
-        font-size: $font-size-button;
-        font-weight: $font-weight-bold;
-        color: $color-gray-dark;
-      }
-
-      .message-time {
-        font-size: $font-size-helper;
-        color: $color-gray-lighter;
-        flex-shrink: 0;
-      }
-    }
-
-    .message-text {
-      font-size: $font-size-body;
-      color: $color-gray-medium;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+.icon-inner {
+  width: 100%;
+  height: 100%;
+  
+  &.like {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 60%;
   }
-
-  .unread-badge {
-    min-width: 36rpx;
-    height: 36rpx;
-    padding: 0 8rpx;
-    background: #FF4D4F;
-    border-radius: 18rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    .badge-text {
-      font-size: 22rpx;
-      color: $color-bg-white;
-      font-weight: $font-weight-bold;
-    }
+  
+  &.comment {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 60%;
   }
-
-  .unread-dot {
-    width: 16rpx;
-    height: 16rpx;
-    background: #FF4D4F;
-    border-radius: 8rpx;
-    flex-shrink: 0;
+  
+  &.follow {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 60%;
   }
+  
+  &.system {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 60%;
+  }
+}
+
+.message-content {
+  flex: 1;
+}
+
+.message-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.message-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.message-time {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.message-desc {
+  font-size: 26rpx;
+  color: #999999;
+}
+
+.message-indicator {
+  width: 12rpx;
+  height: 12rpx;
+  background: #FF6B6B;
+  border-radius: 50%;
+}
+
+.message-badge {
+  min-width: 36rpx;
+  height: 36rpx;
+  padding: 0 10rpx;
+  background: #FF6B6B;
+  border-radius: 18rpx;
+  font-size: 22rpx;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

@@ -1,376 +1,395 @@
 <template>
-  <view class="circle-page">
-    <TopNavBar title="萌宠圈" :show-back="false">
-      <template #right>
-        <image
-          class="camera-icon"
-          src="/static/images/icon-camera.png"
-          mode="aspectFit"
-          @tap="goToPublish"
-        ></image>
-      </template>
-    </TopNavBar>
-
-    <view class="page-content">
-      <!-- 顶部筛选 -->
-      <view class="filter-tabs">
-        <view
-          v-for="tab in tabs"
-          :key="tab.value"
-          class="tab-item"
-          :class="{ 'active': currentTab === tab.value }"
-          @tap="switchTab(tab.value)"
-        >
-          <text class="tab-text">{{ tab.label }}</text>
-        </view>
-      </view>
-
-      <!-- 动态列表 -->
-      <scroll-view
-        class="dynamic-list"
-        scroll-y
-        @scrolltolower="loadMore"
-        refresher-enabled
-        @refresherrefresh="onRefresh"
+  <view class="circle-container">
+    <TopNavBar title="萌宠圈" :showBack="false" rightIcon="icon-add" @rightClick="goToPublish" />
+    
+    <view class="filter-tabs">
+      <view 
+        v-for="(tab, index) in tabs" 
+        :key="index"
+        class="tab-item"
+        :class="{ active: currentTab === index }"
+        @click="currentTab = index"
       >
-        <view
-          v-for="item in dynamicList"
-          :key="item.id"
-          class="dynamic-card"
-          @tap="goToDetail(item.id)"
-        >
-          <view class="card-header">
-            <image class="user-avatar" :src="item.avatar" mode="aspectFill"></image>
-            <view class="user-info">
-              <text class="user-name">{{ item.nickname }}</text>
-              <text class="post-time">{{ item.time }}</text>
-            </view>
-            <image class="more-icon" src="/static/images/icon-more.png" mode="aspectFit"></image>
-          </view>
-
-          <text class="post-content">{{ item.content }}</text>
-
-          <view v-if="item.images && item.images.length > 0" class="post-images">
-            <image
-              v-for="(img, index) in item.images"
-              :key="index"
-              class="post-image"
-              :class="{ 'single': item.images.length === 1, 'double': item.images.length === 2 }"
-              :src="img"
-              mode="aspectFill"
-            ></image>
-          </view>
-
-          <view class="card-footer">
-            <view class="action-item" @tap.stop="toggleLike(item)">
-              <image
-                class="action-icon"
-                :src="item.isLiked ? '/static/images/icon-like-filled.png' : '/static/images/icon-like.png'"
-                mode="aspectFit"
-              ></image>
-              <text class="action-text">{{ item.likeCount }}</text>
-            </view>
-            <view class="action-item">
-              <image class="action-icon" src="/static/images/icon-comment.png" mode="aspectFit"></image>
-              <text class="action-text">{{ item.commentCount }}</text>
-            </view>
-            <view class="action-item" @tap.stop="toggleCollect(item)">
-              <image
-                class="action-icon"
-                :src="item.isCollected ? '/static/images/icon-star-filled.png' : '/static/images/icon-star-gray.png'"
-                mode="aspectFit"
-              ></image>
-            </view>
-          </view>
-        </view>
-
-        <Empty v-if="dynamicList.length === 0 && !loading" type="noData" text="暂无动态" />
-      </scroll-view>
-
-      <!-- 发布按钮 -->
-      <view class="publish-btn" @tap="goToPublish">
-        <image class="publish-icon" src="/static/images/icon-add.png" mode="aspectFit"></image>
+        {{ tab.label }}
       </view>
     </view>
-
+    
+    <scroll-view scroll-y class="dynamic-list">
+      <view 
+        v-for="(dynamic, index) in dynamicList" 
+        :key="index" 
+        class="dynamic-item"
+        @click="goToDetail(dynamic)"
+      >
+        <view class="dynamic-header">
+          <view class="user-avatar">
+            <view class="avatar-bg" :style="{ background: dynamic.avatarColor }"></view>
+          </view>
+          <view class="user-info">
+            <text class="user-name">{{ dynamic.userName }}</text>
+            <text class="dynamic-time">{{ dynamic.time }}</text>
+          </view>
+          <view class="user-pet">
+            <view class="pet-avatar" :style="{ background: dynamic.petColor }"></view>
+            <text class="pet-name">{{ dynamic.petName }}</text>
+          </view>
+        </view>
+        
+        <text class="dynamic-content">{{ dynamic.content }}</text>
+        
+        <view class="dynamic-images" v-if="dynamic.images.length > 0">
+          <view 
+            v-for="(img, imgIndex) in dynamic.images" 
+            :key="imgIndex" 
+            class="dynamic-image"
+            :class="{ 'image-full': dynamic.images.length === 1 }"
+            :style="{ background: img }"
+          ></view>
+        </view>
+        
+        <view class="dynamic-footer">
+          <view class="footer-item" @click.stop="handleLike(dynamic)">
+            <view class="footer-icon" :class="{ liked: dynamic.liked }">
+              <view class="like-icon"></view>
+            </view>
+            <text class="footer-text">{{ dynamic.likes }}</text>
+          </view>
+          <view class="footer-item" @click.stop="handleComment(dynamic)">
+            <view class="footer-icon">
+              <view class="comment-icon"></view>
+            </view>
+            <text class="footer-text">{{ dynamic.comments }}</text>
+          </view>
+          <view class="footer-item" @click.stop="handleShare(dynamic)">
+            <view class="footer-icon">
+              <view class="share-icon"></view>
+            </view>
+            <text class="footer-text">分享</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="load-more" @click="loadMore">
+        <text class="load-text">加载更多</text>
+      </view>
+    </scroll-view>
+    
     <TabBar :current="1" />
-    <Loading :visible="loading" />
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
 import TopNavBar from '@/components/common/TopNavBar.vue'
 import TabBar from '@/components/common/TabBar.vue'
-import Empty from '@/components/common/Empty.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref } from 'vue'
 
-const loading = ref(false)
-const currentTab = ref('all')
+const currentTab = ref(0)
 
 const tabs = [
   { label: '全部', value: 'all' },
-  { label: '关注', value: 'follow' },
-  { label: '推荐', value: 'recommend' }
+  { label: '图文', value: 'image' },
+  { label: '视频', value: 'video' },
+  { label: '纯文字', value: 'text' }
 ]
 
 const dynamicList = ref([
   {
     id: 1,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '铲屎官小王',
-    time: '2小时前',
-    content: '今天带旺财去公园玩，遇到了好多小伙伴！',
-    images: [
-      '/static/images/post-default.png',
-      '/static/images/post-default.png',
-      '/static/images/post-default.png'
-    ],
-    likeCount: 128,
-    commentCount: 32,
-    isLiked: false,
-    isCollected: false
+    userName: '小明',
+    avatarColor: '#FFC1E9',
+    petName: '旺财',
+    petColor: '#FFD4F0',
+    time: '10分钟前',
+    content: '今天带旺财去公园玩，它玩得特别开心！看到了好多小伙伴，还交到了新朋友~ 🐕',
+    images: ['#FFC1E9', '#FFD4F0', '#FFB6C1'],
+    likes: 128,
+    comments: 23,
+    liked: false
   },
   {
     id: 2,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '爱狗人士',
-    time: '5小时前',
-    content: '分享一下我家狗狗的日常～',
-    images: [
-      '/static/images/post-default.png'
-    ],
-    likeCount: 256,
-    commentCount: 48,
-    isLiked: true,
-    isCollected: true
+    userName: '阿花',
+    avatarColor: '#FFD4F0',
+    petName: '球球',
+    petColor: '#FFC1E9',
+    time: '30分钟前',
+    content: '球球今天学会了新技能！会握手了，好开心~',
+    images: ['#FFC0CB'],
+    likes: 256,
+    comments: 45,
+    liked: true
+  },
+  {
+    id: 3,
+    userName: '旺财',
+    avatarColor: '#FFB6C1',
+    petName: '二哈',
+    petColor: '#E0F7FF',
+    time: '1小时前',
+    content: '二哈拆家日常...沙发又遭殃了 😂',
+    images: ['#FFE4E1', '#FFB6C1'],
+    likes: 512,
+    comments: 89,
+    liked: false
+  },
+  {
+    id: 4,
+    userName: '球球',
+    avatarColor: '#FFC0CB',
+    petName: '短腿',
+    petColor: '#FFF4D2',
+    time: '2小时前',
+    content: '柯基短腿跑起来真的太可爱了！',
+    images: [],
+    likes: 89,
+    comments: 12,
+    liked: false
+  },
+  {
+    id: 5,
+    userName: '豆豆',
+    avatarColor: '#FFE4E1',
+    petName: '小白',
+    petColor: '#FFFFFF',
+    time: '3小时前',
+    content: '萨摩耶的微笑真的太治愈了！',
+    images: ['#FFC1E9', '#FFD4F0', '#FFB6C1', '#FFC0CB'],
+    likes: 756,
+    comments: 134,
+    liked: false
   }
 ])
 
-onMounted(() => {
-  loadDynamicList()
-})
-
-const loadDynamicList = () => {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
-
-const onRefresh = () => {
-  loadDynamicList()
-}
-
-const loadMore = () => {
-  console.log('Load more')
-}
-
-const switchTab = (tab) => {
-  currentTab.value = tab
-  uni.vibrateShort({ type: 'light' })
-  loadDynamicList()
-}
-
-const toggleLike = (item) => {
-  item.isLiked = !item.isLiked
-  item.likeCount += item.isLiked ? 1 : -1
-  uni.vibrateShort({ type: 'light' })
-}
-
-const toggleCollect = (item) => {
-  item.isCollected = !item.isCollected
-  uni.vibrateShort({ type: 'light' })
-}
-
-const goToDetail = (id) => {
+const goToPublish = () => {
   uni.navigateTo({
-    url: `/pages/circle/detail?id=${id}`
+    url: '/pages/circle/publish'
   })
 }
 
-const goToPublish = () => {
-  uni.vibrateShort({ type: 'medium' })
+const goToDetail = (dynamic: any) => {
   uni.navigateTo({
-    url: '/pages/circle/publish'
+    url: `/pages/circle/detail?id=${dynamic.id}`
+  })
+}
+
+const handleLike = (dynamic: any) => {
+  dynamic.liked = !dynamic.liked
+  dynamic.likes += dynamic.liked ? 1 : -1
+}
+
+const handleComment = (dynamic: any) => {
+  uni.navigateTo({
+    url: `/pages/circle/detail?id=${dynamic.id}`
+  })
+}
+
+const handleShare = () => {
+  uni.showShareMenu({
+    withShareTicket: true
+  })
+}
+
+const loadMore = () => {
+  uni.showToast({
+    title: '加载中...',
+    icon: 'loading'
   })
 }
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
-.circle-page {
-  width: 100%;
+.circle-container {
   min-height: 100vh;
-  background: $color-bg-primary;
-}
-
-.page-content {
-  padding-top: $nav-bar-height;
-  padding-bottom: $tab-bar-height;
+  background: #FFF9F9;
 }
 
 .filter-tabs {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-component;
-  padding: $spacing-component 0;
-  background: $color-bg-white;
-  margin-bottom: $spacing-component;
+  padding: 24rpx 32rpx;
+  gap: 32rpx;
+  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
+}
 
-  .tab-item {
-    padding: 12rpx 32rpx;
-    border-radius: $border-radius-base;
-    transition: all $transition-base ease;
-
-    &.active {
-      background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-      box-shadow: $shadow-pink;
-
-      .tab-text {
-        color: $color-bg-white;
-        font-weight: $font-weight-bold;
-      }
-    }
-
-    .tab-text {
-      font-size: $font-size-button;
-      color: $color-gray-medium;
+.tab-item {
+  font-size: 28rpx;
+  color: #999999;
+  position: relative;
+  
+  &.active {
+    color: #FFC1E9;
+    font-weight: 600;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -8rpx;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40rpx;
+      height: 6rpx;
+      background: #FFC1E9;
+      border-radius: 3rpx;
     }
   }
 }
 
 .dynamic-list {
-  height: calc(100vh - #{$nav-bar-height} - #{$tab-bar-height} - 120rpx);
-  padding: 0 $spacing-page-horizontal;
+  padding: 0 32rpx;
+  padding-bottom: calc(112rpx + constant(safe-area-inset-bottom));
+  height: calc(100vh - var(--status-bar-height, 44px) - 240rpx);
 }
 
-.dynamic-card {
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  padding: $spacing-component;
-  margin-bottom: $spacing-component;
-  box-shadow: $shadow-light;
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: $spacing-small;
-    margin-bottom: $spacing-item;
-
-    .user-avatar {
-      width: $avatar-size-small;
-      height: $avatar-size-small;
-      border-radius: $border-radius-circle;
-    }
-
-    .user-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 4rpx;
-
-      .user-name {
-        font-size: $font-size-button;
-        font-weight: $font-weight-bold;
-        color: $color-gray-dark;
-      }
-
-      .post-time {
-        font-size: $font-size-helper;
-        color: $color-gray-lighter;
-      }
-    }
-
-    .more-icon {
-      width: 32rpx;
-      height: 32rpx;
-    }
-  }
-
-  .post-content {
-    font-size: $font-size-body;
-    color: $color-gray-dark;
-    line-height: 1.6;
-    margin-bottom: $spacing-item;
-  }
-
-  .post-images {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-small;
-    margin-bottom: $spacing-item;
-
-    .post-image {
-      width: calc((100% - #{$spacing-small} * 2) / 3);
-      height: 200rpx;
-      border-radius: $border-radius-base;
-
-      &.single {
-        width: 100%;
-        height: 400rpx;
-      }
-
-      &.double {
-        width: calc((100% - #{$spacing-small}) / 2);
-        height: 300rpx;
-      }
-    }
-  }
-
-  .card-footer {
-    display: flex;
-    align-items: center;
-    gap: $spacing-component;
-    padding-top: $spacing-item;
-    border-top: $border-width solid $border-color;
-
-    .action-item {
-      display: flex;
-      align-items: center;
-      gap: 8rpx;
-
-      .action-icon {
-        width: 32rpx;
-        height: 32rpx;
-      }
-
-      .action-text {
-        font-size: $font-size-body;
-        color: $color-gray-medium;
-      }
-    }
-  }
+.dynamic-item {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid #FFC1E9;
 }
 
-.publish-btn {
-  position: fixed;
-  right: $spacing-page-horizontal;
-  bottom: calc(#{$tab-bar-height} + 40rpx);
-  width: 112rpx;
-  height: 112rpx;
-  background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
-  border-radius: $border-radius-circle;
+.dynamic-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: $shadow-pink;
-  transition: transform $transition-base ease;
+  margin-bottom: 16rpx;
+}
 
-  &:active {
-    transform: scale($scale-press);
-  }
+.user-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  padding: 4rpx;
+  background: #FFC1E9;
+  margin-right: 16rpx;
+}
 
-  .publish-icon {
-    width: 48rpx;
-    height: 48rpx;
+.avatar-bg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.user-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.dynamic-time {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.user-pet {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.pet-avatar {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+}
+
+.pet-name {
+  font-size: 22rpx;
+  color: #FFC1E9;
+}
+
+.dynamic-content {
+  font-size: 28rpx;
+  color: #333333;
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+}
+
+.dynamic-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.dynamic-image {
+  width: calc(33.33% - 8rpx);
+  height: 200rpx;
+  border-radius: 16rpx;
+  
+  &.image-full {
+    width: 100%;
+    height: 400rpx;
   }
 }
 
-.camera-icon {
-  width: $icon-size-medium;
-  height: $icon-size-medium;
+.dynamic-footer {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #E5E5E5;
+}
+
+.footer-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.footer-icon {
+  width: 40rpx;
+  height: 40rpx;
+  
+  &.liked {
+    .like-icon {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B6B'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+      background-size: 100%;
+    }
+  }
+}
+
+.like-icon {
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
+
+.comment-icon {
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
+
+.share-icon {
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
+
+.footer-text {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.load-more {
+  padding: 32rpx;
+  text-align: center;
+}
+
+.load-text {
+  font-size: 26rpx;
+  color: #FFC1E9;
 }
 </style>
