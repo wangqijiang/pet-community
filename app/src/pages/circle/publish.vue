@@ -1,90 +1,83 @@
 <template>
   <view class="publish-container">
-    <TopNavBar title="发布动态" rightText="发布" @rightClick="handlePublish" />
+    <TopNavBar title="发布萌宠日常" :showBack="true" rightIcon="icon-bell" />
     
     <view class="publish-content">
-      <view class="input-area">
+      <view class="text-area">
         <textarea 
           v-model="content"
           class="content-input"
-          placeholder="分享你的萌宠日常..."
+          placeholder="记录自家小可爱的日常吧～🐶"
           placeholder-class="input-placeholder"
           :maxlength="500"
-          auto-height
         />
-        <view class="char-count">{{ content.length }}/500</view>
       </view>
       
-      <view class="image-area">
-        <text class="area-title">添加图片</text>
+      <view class="image-section">
         <view class="image-grid">
           <view 
             v-for="(img, index) in images" 
             :key="index" 
             class="image-item"
-            @click="previewImage(index)"
           >
-            <view class="image-content" :style="{ background: img }"></view>
-            <view class="image-delete" @click.stop="deleteImage(index)"></view>
+            <view class="image-preview" :style="{ background: img }"></view>
+            <view class="image-delete" @click="deleteImage(index)">
+              <view class="delete-icon"></view>
+            </view>
           </view>
-          <view class="image-add" v-if="images.length < 9" @click="chooseImage">
-            <view class="add-icon"></view>
-            <text class="add-text">添加</text>
+          <view class="upload-btn" v-if="images.length < 9" @click="chooseImage">
+            <view class="upload-icon"></view>
+            <text class="upload-count">{{ images.length }}/9</text>
           </view>
         </view>
       </view>
       
-      <view class="video-area" v-if="showVideo">
-        <text class="area-title">视频</text>
-        <view class="video-preview">
-          <view class="video-placeholder"></view>
-          <view class="video-delete" @click="removeVideo"></view>
+      <view class="category-section">
+        <view class="section-header">
+          <view class="section-icon"></view>
+          <text class="section-title">选择分类</text>
         </view>
-      </view>
-      
-      <view class="type-select">
-        <text class="area-title">内容类型</text>
-        <view class="type-options">
+        <view class="category-list">
           <view 
-            class="type-option"
-            :class="{ active: contentType === 'text' }"
-            @click="contentType = 'text'"
-          >
-            <view class="type-icon icon-text"></view>
-            <text class="type-label">纯文字</text>
-          </view>
-          <view 
-            class="type-option"
-            :class="{ active: contentType === 'image' }"
-            @click="contentType = 'image'"
-          >
-            <view class="type-icon icon-image"></view>
-            <text class="type-label">图文</text>
-          </view>
-          <view 
-            class="type-option"
-            :class="{ active: contentType === 'video' }"
-            @click="contentType = 'video'"
-          >
-            <view class="type-icon icon-video"></view>
-            <text class="type-label">视频</text>
-          </view>
-        </view>
-      </view>
-      
-      <view class="topic-area">
-        <text class="area-title">添加话题</text>
-        <view class="topic-list">
-          <view 
-            v-for="(topic, index) in hotTopics" 
+            v-for="(cat, index) in categories" 
             :key="index"
-            class="topic-item"
-            :class="{ active: selectedTopics.includes(topic) }"
-            @click="toggleTopic(topic)"
+            class="category-item"
+            :class="{ active: selectedCategory === index }"
+            @click="selectedCategory = index"
           >
-            #{{ topic }}
+            {{ cat }}
           </view>
         </view>
+      </view>
+      
+      <view class="options-section">
+        <view class="option-item" @click="showLocationPicker">
+          <view class="option-left">
+            <view class="option-icon icon-location"></view>
+            <text class="option-text">{{ location || '你在哪里？' }}</text>
+          </view>
+          <view class="option-arrow"></view>
+        </view>
+        
+        <view class="option-divider"></view>
+        
+        <view class="option-item" @click="showPrivacyPicker">
+          <view class="option-left">
+            <view class="option-icon icon-visible"></view>
+            <text class="option-text">公开范围</text>
+          </view>
+          <view class="option-right">
+            <text class="option-value">{{ privacyText }}</text>
+            <view class="option-arrow"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="action-bar">
+      <view class="publish-btn" @click="handlePublish">
+        <view class="publish-icon"></view>
+        <text class="publish-text">确认发布</text>
       </view>
     </view>
   </view>
@@ -96,46 +89,47 @@ import { ref } from 'vue'
 
 const content = ref('')
 const images = ref<string[]>([])
-const showVideo = ref(false)
-const contentType = ref('text')
-const selectedTopics = ref<string[]>([])
+const selectedCategory = ref(0)
+const location = ref('')
+const privacy = ref(0)
 
-const hotTopics = ['萌宠日常', '狗狗日记', '猫咪可爱', '宠物训练', '宠物美食', '遛狗日常']
+const categories = ['日常萌照', '训练日常', '寻狗求助']
+const privacyOptions = ['所有人可见', '仅好友可见', '仅自己可见']
+
+const privacyText = privacyOptions[privacy.value]
 
 const chooseImage = () => {
-  const colors = ['#FFC1E9', '#FFD4F0', '#FFB6C1', '#FFC0CB', '#FFE4E1', '#E0F7FF', '#FFF4D2']
-  const randomColor = colors[Math.floor(Math.random() * colors.length)]
-  images.value.push(randomColor)
+  const colors = ['#FFE4E1', '#FFD4F0', '#FFC1E9', '#FFB6C1', '#FFC0CB', '#E0F7FF', '#FFF4D2', '#E8F5E9', '#FCE4EC']
+  if (images.value.length < 9) {
+    const randomColor = colors[Math.floor(Math.random() * colors.length)]
+    images.value.push(randomColor)
+  }
 }
 
 const deleteImage = (index: number) => {
   images.value.splice(index, 1)
 }
 
-const previewImage = (index: number) => {
-  uni.previewImage({
-    urls: images.value,
-    current: index
+const showLocationPicker = () => {
+  uni.showToast({
+    title: '选择位置',
+    icon: 'none'
   })
 }
 
-const removeVideo = () => {
-  showVideo.value = false
-}
-
-const toggleTopic = (topic: string) => {
-  const index = selectedTopics.value.indexOf(topic)
-  if (index > -1) {
-    selectedTopics.value.splice(index, 1)
-  } else {
-    selectedTopics.value.push(topic)
-  }
+const showPrivacyPicker = () => {
+  uni.showActionSheet({
+    itemList: privacyOptions,
+    success: (res) => {
+      privacy.value = res.tapIndex
+    }
+  })
 }
 
 const handlePublish = () => {
-  if (!content.value.trim() && images.value.length === 0 && !showVideo.value) {
+  if (!content.value.trim() && images.value.length === 0) {
     uni.showToast({
-      title: '请填写内容',
+      title: '请填写内容或添加图片',
       icon: 'none'
     })
     return
@@ -161,73 +155,59 @@ const handlePublish = () => {
 <style lang="scss" scoped>
 .publish-container {
   min-height: 100vh;
-  background: #FFF9F9;
+  background: #FFF8F7;
+  padding-bottom: 140rpx;
 }
 
 .publish-content {
   padding: 24rpx 32rpx;
   padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
+  box-sizing: border-box;
 }
 
-.input-area {
+.text-area {
   background: #FFFFFF;
-  border-radius: 24rpx;
-  padding: 24rpx;
-  margin-bottom: 24rpx;
-  border: 2rpx solid #FFC1E9;
+  border-radius: 32rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
+  border: 1rpx solid rgba(210, 195, 196, 0.2);
 }
 
 .content-input {
   width: 100%;
-  min-height: 200rpx;
+  min-height: 300rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: #1E1B1B;
   line-height: 1.6;
+  background: transparent;
+  border: none;
 }
 
 .input-placeholder {
-  color: #999999;
+  color: rgba(30, 27, 27, 0.5);
 }
 
-.char-count {
-  text-align: right;
-  font-size: 22rpx;
-  color: #999999;
-  margin-top: 12rpx;
-}
-
-.image-area {
-  background: #FFFFFF;
-  border-radius: 24rpx;
-  padding: 24rpx;
-  margin-bottom: 24rpx;
-  border: 2rpx solid #FFC1E9;
-}
-
-.area-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #FFC1E9;
-  margin-bottom: 16rpx;
-  display: block;
+.image-section {
+  margin-bottom: 32rpx;
 }
 
 .image-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20rpx;
 }
 
 .image-item {
   position: relative;
-  width: calc(33.33% - 12rpx);
-  height: 200rpx;
+  aspect-ratio: 1;
 }
 
-.image-content {
+.image-preview {
   width: 100%;
   height: 100%;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
 }
 
 .image-delete {
@@ -236,156 +216,220 @@ const handlePublish = () => {
   right: -12rpx;
   width: 40rpx;
   height: 40rpx;
-  background: #FF6B6B;
+  background: #BA1A1A;
   border-radius: 50%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E") no-repeat center;
-  background-size: 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
 }
 
-.image-add {
-  width: calc(33.33% - 12rpx);
-  height: 200rpx;
-  border: 2rpx dashed #FFC1E9;
-  border-radius: 16rpx;
+.delete-icon {
+  width: 20rpx;
+  height: 20rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
+
+.upload-btn {
+  aspect-ratio: 1;
+  background: rgba(234, 223, 189, 0.3);
+  border: 4rpx dashed #EADFBD;
+  border-radius: 20rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8rpx;
+  
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
-.add-icon {
-  width: 48rpx;
-  height: 48rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E") no-repeat center;
+.upload-icon {
+  width: 64rpx;
+  height: 64rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23655E43'%3E%3Cpath d='M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm6 9l-4 5h12l-3-4-2.03 2.71L10 13l-4-5H4l2 3-2 2 3 3H18l-4-5-2.5 3.33L12 19l-3-6z'/%3E%3C/svg%3E") no-repeat center;
   background-size: 100%;
 }
 
-.add-text {
-  font-size: 24rpx;
-  color: #FFC1E9;
+.upload-count {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #655E43;
 }
 
-.video-area {
-  background: #FFFFFF;
-  border-radius: 24rpx;
-  padding: 24rpx;
-  margin-bottom: 24rpx;
-  border: 2rpx solid #FFC1E9;
+.category-section {
+  margin-bottom: 32rpx;
 }
 
-.video-preview {
-  position: relative;
-  height: 300rpx;
-  border-radius: 16rpx;
-}
-
-.video-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #FFC1E9 0%, #FFD4F0 100%);
-}
-
-.video-delete {
-  position: absolute;
-  top: 12rpx;
-  right: 12rpx;
-  width: 48rpx;
-  height: 48rpx;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E") no-repeat center;
-  background-size: 60%;
-}
-
-.type-select {
-  background: #FFFFFF;
-  border-radius: 24rpx;
-  padding: 24rpx;
-  margin-bottom: 24rpx;
-  border: 2rpx solid #FFC1E9;
-}
-
-.type-options {
+.section-header {
   display: flex;
-  gap: 24rpx;
-}
-
-.type-option {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8rpx;
-  padding: 24rpx;
-  border-radius: 16rpx;
-  border: 2rpx solid #E5E5E5;
-  
-  &.active {
-    border-color: #FFC1E9;
-    background: rgba(255, 193, 233, 0.1);
-    
-    .type-icon {
-      filter: none;
-    }
-    
-    .type-label {
-      color: #FFC1E9;
-      font-weight: 600;
-    }
-  }
+  gap: 12rpx;
+  margin-bottom: 20rpx;
 }
 
-.type-icon {
-  width: 48rpx;
-  height: 48rpx;
-  filter: grayscale(50%);
-  
-  &.icon-text {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z'/%3E%3C/svg%3E") no-repeat center;
-    background-size: 100%;
-  }
-  
-  &.icon-image {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E") no-repeat center;
-    background-size: 100%;
-  }
-  
-  &.icon-video {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E") no-repeat center;
-    background-size: 100%;
-  }
+.section-icon {
+  width: 36rpx;
+  height: 36rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
 }
 
-.type-label {
-  font-size: 24rpx;
-  color: #999999;
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #71585C;
 }
 
-.topic-area {
-  background: #FFFFFF;
-  border-radius: 24rpx;
-  padding: 24rpx;
-  border: 2rpx solid #FFC1E9;
-}
-
-.topic-list {
+.category-list {
   display: flex;
   flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.category-item {
+  padding: 20rpx 32rpx;
+  background: rgba(255, 221, 226, 0.6);
+  color: #71585C;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
+  border: 1rpx solid rgba(113, 88, 92, 0.1);
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  &.active {
+    background: #FFDDE2;
+    color: #795F64;
+    border-color: rgba(113, 88, 92, 0.1);
+  }
+  
+  &:nth-child(2) {
+    background: rgba(218, 234, 216, 0.6);
+    &.active {
+      background: #DAEAD8;
+      color: #5B6A5C;
+    }
+  }
+  
+  &:nth-child(3) {
+    background: rgba(234, 223, 189, 0.5);
+    &.active {
+      background: #EADFBD;
+      color: #6A6347;
+    }
+  }
+}
+
+.options-section {
+  background: #F9F2F2;
+  border-radius: 20rpx;
+  padding: 8rpx 0;
+  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 24rpx;
+}
+
+.option-left {
+  display: flex;
+  align-items: center;
   gap: 16rpx;
 }
 
-.topic-item {
-  padding: 12rpx 24rpx;
-  background: rgba(255, 193, 233, 0.1);
-  border-radius: 24rpx;
-  font-size: 24rpx;
-  color: #FFC1E9;
-  border: 2rpx solid transparent;
+.option-icon {
+  width: 40rpx;
+  height: 40rpx;
   
-  &.active {
-    background: #FFC1E9;
-    color: #FFFFFF;
+  &.icon-location {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
   }
+  
+  &.icon-visible {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z'/%3E%3C/svg%3E") no-repeat center;
+    background-size: 100%;
+  }
+}
+
+.option-text {
+  font-size: 26rpx;
+  color: #1E1B1B;
+}
+
+.option-right {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.option-value {
+  font-size: 24rpx;
+  color: rgba(30, 27, 27, 0.6);
+}
+
+.option-arrow {
+  width: 32rpx;
+  height: 32rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+  opacity: 0.4;
+}
+
+.option-divider {
+  height: 1rpx;
+  background: rgba(210, 195, 196, 0.3);
+  margin: 0 24rpx;
+}
+
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 32rpx;
+  padding-bottom: calc(32rpx + constant(safe-area-inset-bottom));
+  background: linear-gradient(to top, #FFF8F7 50%, transparent 100%);
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+.publish-btn {
+  width: 100%;
+  padding: 32rpx;
+  background: #FCDADF;
+  color: #29161A;
+  border-radius: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.publish-icon {
+  width: 36rpx;
+  height: 36rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2329161A'%3E%3Cpath d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100%;
+}
+
+.publish-text {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #29161A;
 }
 </style>
