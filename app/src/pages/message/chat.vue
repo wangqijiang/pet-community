@@ -104,9 +104,11 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .chat-container {
   min-height: 100vh;
-  background: #FFF9F9;
+  background: $color-bg-primary;
   display: flex;
   flex-direction: column;
 }
@@ -127,16 +129,20 @@ onMounted(() => {
     flex-direction: row-reverse;
     
     .bubble-content {
-      background: #FFC1E9;
-      border-radius: 24rpx 8rpx 24rpx 24rpx;
+      background: $color-primary;
+      border-radius: $border-radius-large $border-radius-small $border-radius-large $border-radius-large;
       
       .bubble-text {
-        color: #FFFFFF;
+        color: $color-bg-white;
       }
       
       .bubble-time {
         color: rgba(255, 255, 255, 0.8);
       }
+    }
+    
+    .bubble-avatar {
+      background: $color-primary-light;
     }
   }
 }
@@ -146,7 +152,7 @@ onMounted(() => {
   height: 72rpx;
   border-radius: 50%;
   padding: 4rpx;
-  background: #FFC1E9;
+  background: $color-primary-light;
   flex-shrink: 0;
 }
 
@@ -158,24 +164,24 @@ onMounted(() => {
 
 .bubble-content {
   max-width: 70%;
-  background: #FFFFFF;
-  border-radius: 8rpx 24rpx 24rpx 24rpx;
+  background: $color-bg-white;
+  border-radius: $border-radius-small $border-radius-large $border-radius-large $border-radius-large;
   padding: 20rpx;
   margin: 0 16rpx;
-  border: 2rpx solid #FFC1E9;
+  border: 2rpx solid rgba(113, 88, 92, 0.1);
 }
 
 .bubble-text {
-  font-size: 28rpx;
-  color: #333333;
+  font-size: $font-size-body;
+  color: $color-gray-dark;
   line-height: 1.5;
 }
 
 .bubble-time {
   display: block;
   text-align: right;
-  font-size: 20rpx;
-  color: #999999;
+  font-size: $font-size-helper;
+  color: $color-gray-medium;
   margin-top: 8rpx;
 }
 
@@ -184,10 +190,10 @@ onMounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #FFFFFF;
+  background: $color-bg-white;
   padding: 16rpx 32rpx;
   padding-bottom: calc(16rpx + constant(safe-area-inset-bottom));
-  border-top: 2rpx solid #FFC1E9;
+  border-top: 2rpx solid rgba(113, 88, 92, 0.1);
 }
 
 .input-tools {
@@ -210,12 +216,12 @@ onMounted(() => {
   height: 100%;
   
   &.icon-emoji {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E") no-repeat center;
     background-size: 100%;
   }
   
   &.icon-image {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E") no-repeat center;
     background-size: 100%;
   }
   
@@ -230,26 +236,26 @@ onMounted(() => {
 .input-field {
   flex: 1;
   height: 72rpx;
-  background: #FFF9F9;
+  background: $color-bg-primary;
   border-radius: 36rpx;
   padding: 0 24rpx;
-  font-size: 26rpx;
+  font-size: $font-size-body;
 }
 
 .input-placeholder {
-  color: #999999;
+  color: $color-gray-medium;
 }
 
 .send-btn {
   padding: 16rpx 32rpx;
-  background: #E5E5E5;
+  background: rgba(113, 88, 92, 0.1);
   border-radius: 36rpx;
   
   &.active {
-    background: #FFC1E9;
+    background: $color-primary;
     
     .send-text {
-      color: #FFFFFF;
+      color: $color-bg-white;
     }
   }
   

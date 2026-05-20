@@ -257,9 +257,11 @@ const goToPlaceList = () => {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .home-container {
   min-height: 100vh;
-  background: #FFFFFF;
+  background: $color-bg-primary;
 }
 
 .home-content {
@@ -273,10 +275,10 @@ const goToPlaceList = () => {
   justify-content: space-between;
   margin: 0 32rpx;
   padding: 20rpx 32rpx;
-  background: #FFFFFF;
-  border: 2rpx solid #FFC1E9;
+  background: $color-bg-white;
+  border: 2rpx solid $color-primary-light;
   border-radius: 40rpx;
-  box-shadow: 0 4rpx 20rpx rgba(255, 188, 198, 0.15);
+  box-shadow: 0 4rpx 20rpx rgba(168, 155, 157, 0.12);
 }
 
 .filter-tag {
@@ -287,17 +289,17 @@ const goToPlaceList = () => {
 
 .tag-badge {
   padding: 6rpx 16rpx;
-  background: #FFC1E9;
-  color: #FFFFFF;
+  background: rgba(113, 88, 92, 0.1);
+  color: $color-primary;
   font-size: 20rpx;
-  font-weight: 600;
+  font-weight: $font-weight-bold;
   border-radius: 8rpx;
 }
 
 .tag-text {
-  font-size: 28rpx;
-  color: #4A4A4A;
-  font-weight: 500;
+  font-size: $font-size-body;
+  color: $color-gray-dark;
+  font-weight: $font-weight-medium;
 }
 
 .filter-arrow {
@@ -305,21 +307,22 @@ const goToPlaceList = () => {
   height: 0;
   border-left: 10rpx solid transparent;
   border-right: 10rpx solid transparent;
-  border-top: 14rpx solid #FFC1E9;
+  border-top: 14rpx solid $color-gray-medium;
 }
 
 .map-container {
   position: relative;
   height: 600rpx;
   margin: 32rpx;
-  border-radius: 24rpx;
+  border-radius: $border-radius-large;
   overflow: hidden;
+  background: $color-bg-white;
 }
 
 .map-bg {
   width: 100%;
   height: 100%;
-  background: #E3F2FD;
+  background: linear-gradient(135deg, #e8f5f7 0%, #fef3f5 100%);
   position: relative;
 }
 
@@ -341,18 +344,18 @@ const goToPlaceList = () => {
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: #FFFFFF;
+  background: $color-bg-white;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 20rpx rgba(255, 188, 198, 0.2);
-  border: 4rpx solid #FFC1E9;
+  box-shadow: 0 4rpx 20rpx rgba(168, 155, 157, 0.12);
+  border: 4rpx solid $color-primary-light;
   
   &.place, &.store {
     width: 60rpx;
     height: 60rpx;
     border-width: 2rpx;
-    border-color: #FFDDE2;
+    border-color: rgba(113, 88, 92, 0.2);
   }
 }
 
@@ -381,12 +384,12 @@ const goToPlaceList = () => {
   height: 36rpx;
   
   &.icon-park {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z'/%3E%3C/svg%3E") no-repeat center;
     background-size: 100%;
   }
   
   &.icon-store {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E") no-repeat center;
     background-size: 100%;
   }
 }
@@ -395,11 +398,11 @@ const goToPlaceList = () => {
   margin-top: 12rpx;
   padding: 6rpx 16rpx;
   background: rgba(255, 255, 255, 0.95);
-  border: 1rpx solid #FFDDE2;
+  border: 1rpx solid rgba(113, 88, 92, 0.2);
   border-radius: 20rpx;
   font-size: 22rpx;
-  color: #FFC1E9;
-  font-weight: 600;
+  color: $color-primary;
+  font-weight: $font-weight-bold;
 }
 
 .center-marker {
@@ -412,7 +415,7 @@ const goToPlaceList = () => {
 .center-ring {
   width: 80rpx;
   height: 80rpx;
-  border: 4rpx solid #FF6B6B;
+  border: 4rpx solid $color-primary;
   border-radius: 50%;
   animation: pulse 2s ease-in-out infinite;
 }
@@ -429,7 +432,7 @@ const goToPlaceList = () => {
   transform: translate(-50%, -50%);
   width: 24rpx;
   height: 24rpx;
-  background: #FF6B6B;
+  background: $color-primary;
   border-radius: 50%;
 }
 
@@ -439,19 +442,23 @@ const goToPlaceList = () => {
   right: 32rpx;
   width: 80rpx;
   height: 80rpx;
-  background: #FFFFFF;
+  background: $color-bg-white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
-  border: 2rpx solid #FFDDE2;
+  box-shadow: 0 4rpx 20rpx rgba(168, 155, 157, 0.12);
+  border: 2rpx solid rgba(113, 88, 92, 0.2);
+  
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .location-icon {
   width: 40rpx;
   height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center;
   background-size: 100%;
 }
 
@@ -463,24 +470,25 @@ const goToPlaceList = () => {
 
 .quick-card {
   flex: 1;
-  background: #FFFFFF;
-  border-radius: 24rpx;
+  background: $color-bg-white;
+  border-radius: $border-radius-large;
   padding: 32rpx 24rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 2rpx solid #FFDDE2;
-  box-shadow: 0 4rpx 20rpx rgba(255, 188, 198, 0.1);
+  border: 2rpx solid rgba(113, 88, 92, 0.1);
+  box-shadow: 0 4rpx 20rpx rgba(168, 155, 157, 0.08);
   
   &:active {
     transform: scale(0.98);
+    box-shadow: 0 4rpx 20rpx rgba(168, 155, 157, 0.15);
   }
 }
 
 .card-icon {
   width: 72rpx;
   height: 72rpx;
-  background: rgba(255, 188, 198, 0.15);
+  background: rgba(113, 88, 92, 0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -488,22 +496,22 @@ const goToPlaceList = () => {
   margin-bottom: 16rpx;
   
   &.icon-friend {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E") no-repeat center;
     background-size: 100%;
-    background-color: rgba(255, 188, 198, 0.15);
+    background-color: rgba(113, 88, 92, 0.1);
   }
   
   &.icon-place {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center;
     background-size: 100%;
-    background-color: rgba(255, 188, 198, 0.15);
+    background-color: rgba(113, 88, 92, 0.1);
   }
 }
 
 .card-title {
   font-size: 26rpx;
-  font-weight: 600;
-  color: #FFC1E9;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
 }
 
 .filter-panel {
@@ -520,8 +528,8 @@ const goToPlaceList = () => {
 
 .panel-content {
   width: 100%;
-  background: #FFFFFF;
-  border-radius: 32rpx 32rpx 0 0;
+  background: $color-bg-white;
+  border-radius: $border-radius-xl $border-radius-xl 0 0;
   max-height: 80vh;
   overflow: hidden;
 }
@@ -534,9 +542,9 @@ const goToPlaceList = () => {
 }
 
 .panel-title {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #4A4A4A;
+  font-size: $font-size-title;
+  font-weight: $font-weight-bold;
+  color: $color-gray-dark;
 }
 
 .panel-close {
@@ -549,11 +557,15 @@ const goToPlaceList = () => {
 .panel-full-btn {
   margin: 0 32rpx 32rpx;
   padding: 24rpx;
-  background: rgba(255, 188, 198, 0.15);
-  color: #FFC1E9;
-  font-weight: 600;
+  background: rgba(113, 88, 92, 0.1);
+  color: $color-primary;
+  font-weight: $font-weight-bold;
   text-align: center;
-  border-radius: 24rpx;
+  border-radius: $border-radius-large;
+  
+  &:active {
+    background: rgba(113, 88, 92, 0.15);
+  }
 }
 
 .popular-section {
@@ -562,9 +574,9 @@ const goToPlaceList = () => {
 }
 
 .section-title {
-  font-size: 22rpx;
-  font-weight: 600;
-  color: #8A7A7C;
+  font-size: $font-size-helper;
+  font-weight: $font-weight-bold;
+  color: $color-gray-medium;
   text-transform: uppercase;
   letter-spacing: 2rpx;
   margin-bottom: 20rpx;
@@ -592,12 +604,12 @@ const goToPlaceList = () => {
   height: 80rpx;
   border-radius: 50%;
   margin-bottom: 12rpx;
-  border: 3rpx solid #FFC1E9;
+  border: 3rpx solid $color-primary-light;
 }
 
 .popular-name {
-  font-size: 22rpx;
-  color: #4A4A4A;
+  font-size: $font-size-helper;
+  color: $color-gray-dark;
 }
 
 .alphabet-section {
@@ -611,32 +623,36 @@ const goToPlaceList = () => {
 }
 
 .group-letter {
-  font-size: 20rpx;
-  font-weight: 600;
-  color: #FFC1E9;
+  font-size: $font-size-helper;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
   margin-bottom: 16rpx;
   display: block;
 }
 
 .breed-item {
-  font-size: 28rpx;
-  color: #4A4A4A;
+  font-size: $font-size-body;
+  color: $color-gray-dark;
   padding: 16rpx 20rpx;
-  border-radius: 16rpx;
+  border-radius: $border-radius-medium;
   
   &:active {
-    background: rgba(255, 188, 198, 0.1);
+    background: rgba(113, 88, 92, 0.08);
   }
 }
 
 .panel-confirm {
   margin: 32rpx;
   padding: 28rpx;
-  background: #FFC1E9;
-  color: #FFFFFF;
-  font-weight: 600;
+  background: $color-primary;
+  color: $color-bg-white;
+  font-weight: $font-weight-bold;
   text-align: center;
-  border-radius: 24rpx;
+  border-radius: $border-radius-large;
+  
+  &:active {
+    background: $color-primary-dark;
+  }
   box-shadow: 0 8rpx 24rpx rgba(255, 188, 198, 0.3);
 }
 </style>

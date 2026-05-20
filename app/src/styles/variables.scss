@@ -1,36 +1,45 @@
-// WaggleWorld 全局样式变量
+// WaggleWorld 全局样式变量 - 统一配色方案
 
 // ==================== 颜色变量 ====================
-// 主色调
-$color-bg-primary: #FFF9F9;        // 奶白色（页面底色、卡片底色）
-$color-bg-white: #FFFFFF;          // 纯白色
+// 主色调 - 参考 mine/index.vue 配色
+$color-bg-primary: #fff8f7;          // 浅粉色背景（页面底色）
+$color-bg-white: #FFFFFF;            // 纯白色（卡片底色）
 
-// 主功能色
-$color-primary: #FFC1E9;           // 淡粉色（按钮、选中状态、图标、标题）
+// 主功能色 - 深玫瑰棕色
+$color-primary: #71585c;             // 主色调（标题、按钮、图标）
+$color-primary-light: #ffdde2;       // 浅粉色（边框、高亮、装饰）
+$color-primary-dark: #4f4446;        // 深灰色（次要文字）
 
 // 辅助色
-$color-secondary: #FFF4D2;         // 浅奶黄（标签、部分按钮）
-$color-tertiary: #E0F7FF;          // 柔浅蓝（副标题、链接文字）
+$color-secondary: #ede2c0;           // 浅奶黄（标签、部分按钮）
+$color-tertiary: #d0e7e9;            // 柔浅蓝（副标题、链接文字）
 
 // 中性色
-$color-gray-light: #E5E5E5;        // 浅灰色（未选中图标、边框、次要文字）
-$color-gray-dark: #333333;         // 深灰色（核心内容文字）
-$color-gray-medium: #666666;       // 中灰色（次要文字）
-$color-gray-lighter: #999999;      // 更浅灰色（辅助文字）
+$color-gray-light: #d2c3c4;          // 浅灰色（未选中图标、边框、次要文字）
+$color-gray-dark: #1e1b1b;           // 深灰色（核心内容文字）
+$color-gray-medium: #807476;         // 中灰色（次要文字）
+$color-gray-lighter: #b5a8aa;        // 更浅灰色（辅助文字）
+
+// 状态色
+$color-success: #52c41a;             // 成功
+$color-warning: #faad14;             // 警告
+$color-error: #ba1a1a;               // 错误
+$color-info: #1890ff;                // 信息
 
 // ==================== 字体变量 ====================
 // 字体大小
-$font-size-title: 36rpx;           // 18px - 标题
-$font-size-button: 32rpx;          // 16px - 按钮
-$font-size-body: 28rpx;            // 14px - 正文
-$font-size-helper: 24rpx;          // 12px - 辅助文字
-$font-size-large: 40rpx;           // 20px - 大标题
-$font-size-small: 20rpx;           // 10px - 小文字
+$font-size-title: 36rpx;             // 18px - 标题
+$font-size-button: 32rpx;            // 16px - 按钮
+$font-size-body: 28rpx;              // 14px - 正文
+$font-size-helper: 24rpx;            // 12px - 辅助文字
+$font-size-large: 40rpx;             // 20px - 大标题
+$font-size-small: 20rpx;             // 10px - 小文字
 
 // 字体粗细
 $font-weight-normal: 400;
 $font-weight-medium: 500;
 $font-weight-bold: 600;
+$font-weight-heavy: 700;
 
 // 行高
 $line-height-base: 1.5;
@@ -39,46 +48,48 @@ $line-height-loose: 1.8;
 
 // ==================== 间距变量 ====================
 // 页面间距
-$spacing-page-horizontal: 32rpx;   // 16px - 页面左右边距
-$spacing-page-vertical: 40rpx;     // 20px - 页面上下间距
+$spacing-page-horizontal: 40rpx;     // 20px - 页面左右边距
+$spacing-page-vertical: 40rpx;       // 20px - 页面上下间距
 
 // 组件间距
-$spacing-section: 40rpx;           // 20px - 区块间距
-$spacing-component: 24rpx;         // 12px - 组件间距
-$spacing-item: 16rpx;              // 8px - 元素间距
-$spacing-small: 8rpx;              // 4px - 小间距
+$spacing-section: 48rpx;             // 24px - 区块间距
+$spacing-component: 24rpx;           // 12px - 组件间距
+$spacing-item: 16rpx;                // 8px - 元素间距
+$spacing-small: 8rpx;                // 4px - 小间距
 
 // ==================== 圆角变量 ====================
-$border-radius-base: 24rpx;        // 12px - 基础圆角
-$border-radius-large: 32rpx;       // 16px - 大圆角
-$border-radius-small: 16rpx;       // 8px - 小圆角
-$border-radius-circle: 50%;        // 圆形
+$border-radius-base: 24rpx;          // 12px - 基础圆角
+$border-radius-large: 32rpx;         // 16px - 大圆角
+$border-radius-medium: 24rpx;        // 12px - 中等圆角
+$border-radius-xl: 48rpx;            // 24px - 特大圆角（卡片）
+$border-radius-small: 16rpx;         // 8px - 小圆角
+$border-radius-circle: 50%;          // 圆形
 
 // ==================== 尺寸变量 ====================
 // 导航栏
-$nav-bar-height: 96rpx;            // 48px - 顶部导航栏高度
-$tab-bar-height: 112rpx;           // 56px - 底部Tab栏高度
+$nav-bar-height: 96rpx;              // 48px - 顶部导航栏高度
+$tab-bar-height: 112rpx;             // 56px - 底部Tab栏高度
 
 // 按钮
-$button-height-large: 88rpx;       // 44px - 大按钮高度
-$button-height-medium: 72rpx;      // 36px - 中按钮高度
-$button-height-small: 56rpx;       // 28px - 小按钮高度
+$button-height-large: 96rpx;         // 48px - 大按钮高度
+$button-height-medium: 72rpx;        // 36px - 中按钮高度
+$button-height-small: 56rpx;         // 28px - 小按钮高度
 
 // 图标
-$icon-size-large: 48rpx;           // 24px - 大图标
-$icon-size-medium: 40rpx;          // 20px - 中图标
-$icon-size-small: 32rpx;           // 16px - 小图标
+$icon-size-large: 48rpx;             // 24px - 大图标
+$icon-size-medium: 40rpx;            // 20px - 中图标
+$icon-size-small: 32rpx;             // 16px - 小图标
 
 // 头像
-$avatar-size-large: 120rpx;        // 60px - 大头像
-$avatar-size-medium: 80rpx;        // 40px - 中头像
-$avatar-size-small: 60rpx;         // 30px - 小头像
+$avatar-size-large: 136rpx;          // 68px - 大头像
+$avatar-size-medium: 100rpx;         // 50px - 中头像
+$avatar-size-small: 64rpx;           // 32px - 小头像
 
 // ==================== 阴影变量 ====================
-$shadow-light: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
-$shadow-medium: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
-$shadow-heavy: 0 12rpx 32rpx rgba(0, 0, 0, 0.12);
-$shadow-pink: 0 8rpx 24rpx rgba(255, 193, 233, 0.4);
+$shadow-light: 0 4rpx 16rpx rgba(168, 155, 157, 0.08);
+$shadow-medium: 0 8rpx 24rpx rgba(168, 155, 157, 0.12);
+$shadow-heavy: 0 12rpx 32rpx rgba(168, 155, 157, 0.15);
+$shadow-pink: 0 8rpx 24rpx rgba(113, 88, 92, 0.2);
 
 // ==================== 动画变量 ====================
 $transition-fast: 0.2s;
@@ -87,6 +98,7 @@ $transition-slow: 0.5s;
 
 // 缩放比例
 $scale-press: 0.98;
+$scale-press-card: 0.95;
 
 // ==================== Z-index 层级 ====================
 $z-index-nav: 1000;
@@ -96,6 +108,6 @@ $z-index-dialog: 999;
 $z-index-toast: 1001;
 
 // ==================== 边框变量 ====================
-$border-width: 2rpx;               // 1px - 边框宽度
-$border-color: $color-gray-light;  // 边框颜色
-$border-color-primary: $color-primary; // 主色边框
+$border-width: 2rpx;                 // 1px - 边框宽度
+$border-color: rgba(210, 195, 196, 0.3); // 边框颜色
+$border-color-primary: $color-primary-light; // 主色边框

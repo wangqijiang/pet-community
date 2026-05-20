@@ -55,9 +55,11 @@ const handleLogin = () => {
 </script>
 
 <style lang="scss">
+@import '@/styles/variables.scss';
+
 .login-page {
   min-height: 100vh;
-  background-color: #FFF9F9;
+  background-color: $color-bg-primary;
 }
 
 .main-container {
@@ -136,12 +138,12 @@ const handleLogin = () => {
 .login-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #FFC1E9 0%, #FFB3DF 100%);
+  background: $color-primary;
   border-radius: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(255, 193, 233, 0.4);
+  box-shadow: 0 4rpx 12rpx rgba(113, 88, 92, 0.3);
   transition: all 0.2s ease;
 
   &:active {

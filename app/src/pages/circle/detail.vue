@@ -201,9 +201,11 @@ const sendComment = () => {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .detail-container {
   min-height: 100vh;
-  background: #fff8f7;
+  background: $color-bg-primary;
   padding-bottom: 120rpx;
 }
 
@@ -215,11 +217,11 @@ const sendComment = () => {
 }
 
 .feed-card {
-  background: #ffffff;
-  border-radius: 24rpx;
+  background: $color-bg-white;
+  border-radius: $border-radius-large;
   padding: 32rpx;
   margin-bottom: 32rpx;
-  border: 1rpx solid rgba(255, 221, 226, 0.4);
+  border: 1rpx solid rgba(113, 88, 92, 0.1);
   box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.08);
 }
 
@@ -234,7 +236,7 @@ const sendComment = () => {
   height: 80rpx;
   border-radius: 50%;
   padding: 4rpx;
-  border: 4rpx solid #ffdde2;
+  border: 4rpx solid $color-primary-light;
   margin-right: 20rpx;
 }
 
@@ -252,9 +254,9 @@ const sendComment = () => {
 }
 
 .user-name {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #1e1b1b;
+  font-size: $font-size-body;
+  font-weight: $font-weight-bold;
+  color: $color-gray-dark;
 }
 
 .user-tags {
@@ -264,11 +266,11 @@ const sendComment = () => {
 
 .tag {
   padding: 6rpx 16rpx;
-  background: rgba(234, 223, 189, 0.3);
-  color: #6a6347;
-  font-size: 20rpx;
-  font-weight: 600;
-  border-radius: 16rpx;
+  background: rgba(113, 88, 92, 0.08);
+  color: $color-primary;
+  font-size: $font-size-helper;
+  font-weight: $font-weight-bold;
+  border-radius: $border-radius-small;
 }
 
 .more-btn {
@@ -284,8 +286,8 @@ const sendComment = () => {
 }
 
 .card-content {
-  font-size: 28rpx;
-  color: #4f4446;
+  font-size: $font-size-body;
+  color: $color-gray-dark;
   line-height: 1.6;
   margin-bottom: 24rpx;
 }
@@ -299,14 +301,14 @@ const sendComment = () => {
 
 .image-item {
   aspect-ratio: 1;
-  border-radius: 16rpx;
+  border-radius: $border-radius-medium;
 }
 
 .card-footer {
   display: flex;
   gap: 48rpx;
   padding-top: 24rpx;
-  border-top: 1rpx solid #f3ecec;
+  border-top: 1rpx solid rgba(113, 88, 92, 0.1);
 }
 
 .footer-item {
@@ -351,17 +353,17 @@ const sendComment = () => {
 }
 
 .comment-section {
-  background: #ffffff;
-  border-radius: 24rpx;
+  background: $color-bg-white;
+  border-radius: $border-radius-large;
   padding: 32rpx;
-  border: 1rpx solid rgba(255, 221, 226, 0.4);
+  border: 1rpx solid rgba(113, 88, 92, 0.1);
   box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.08);
 }
 
 .section-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #71585c;
+  font-size: $font-size-body;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
   margin-bottom: 24rpx;
   display: block;
 }
@@ -382,7 +384,7 @@ const sendComment = () => {
   height: 64rpx;
   border-radius: 50%;
   padding: 3rpx;
-  background: #ffdde2;
+  background: $color-primary-light;
 }
 
 .comment-content {
@@ -397,19 +399,19 @@ const sendComment = () => {
 }
 
 .comment-name {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #1e1b1b;
+  font-size: $font-size-body;
+  font-weight: $font-weight-bold;
+  color: $color-gray-dark;
 }
 
 .comment-time {
-  font-size: 22rpx;
-  color: #807476;
+  font-size: $font-size-helper;
+  color: $color-gray-medium;
 }
 
 .comment-text {
-  font-size: 26rpx;
-  color: #4f4446;
+  font-size: $font-size-body;
+  color: $color-gray-dark;
   line-height: 1.5;
   margin-bottom: 12rpx;
   display: block;
@@ -441,8 +443,8 @@ const sendComment = () => {
 }
 
 .action-text {
-  font-size: 22rpx;
-  color: #807476;
+  font-size: $font-size-helper;
+  color: $color-gray-medium;
 }
 
 .input-bar {
@@ -455,15 +457,15 @@ const sendComment = () => {
   gap: 20rpx;
   padding: 16rpx 32rpx;
   padding-bottom: calc(16rpx + constant(safe-area-inset-bottom));
-  background: #ffffff;
-  border-top: 1rpx solid rgba(255, 221, 226, 0.4);
+  background: $color-bg-white;
+  border-top: 1rpx solid rgba(113, 88, 92, 0.1);
   box-shadow: 0 -4rpx 16rpx rgba(168, 155, 157, 0.08);
 }
 
 .input-field {
   flex: 1;
   height: 72rpx;
-  background: #fff8f7;
+  background: $color-bg-primary;
   border-radius: 36rpx;
   padding: 0 24rpx;
   font-size: 26rpx;
@@ -471,12 +473,12 @@ const sendComment = () => {
 }
 
 .input-placeholder {
-  color: #807476;
+  color: $color-gray-medium;
 }
 
 .send-btn {
   padding: 16rpx 32rpx;
-  background: #ffdde2;
+  background: $color-primary;
   border-radius: 36rpx;
 
   &:active {
@@ -485,8 +487,8 @@ const sendComment = () => {
 }
 
 .send-text {
-  font-size: 26rpx;
-  color: #71585c;
-  font-weight: 600;
+  font-size: $font-size-body;
+  color: $color-bg-white;
+  font-weight: $font-weight-bold;
 }
 </style>

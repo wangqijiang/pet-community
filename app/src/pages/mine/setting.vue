@@ -145,9 +145,11 @@ const saveProfile = () => {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .profile-page {
   min-height: 100vh;
-  background: #fff8f7;
+  background: $color-bg-primary;
   display: flex;
   flex-direction: column;
 }
@@ -167,7 +169,7 @@ const saveProfile = () => {
   justify-content: space-between;
   padding: var(--status-bar-height, 44px) 40rpx 0;
   box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  z-index: 100;
+  z-index: $z-index-nav;
 }
 
 .nav-left {
@@ -200,9 +202,9 @@ const saveProfile = () => {
 }
 
 .nav-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #71585c;
+  font-size: $font-size-title;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
 }
 
 .nav-right {

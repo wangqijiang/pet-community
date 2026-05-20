@@ -119,9 +119,11 @@ const handlePublish = () => {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .publish-container {
   min-height: 100vh;
-  background: #fff8f7;
+  background: $color-bg-primary;
   padding-bottom: 140rpx;
 }
 
@@ -132,26 +134,26 @@ const handlePublish = () => {
 }
 
 .text-area {
-  background: #ffffff;
-  border-radius: 32rpx;
+  background: $color-bg-white;
+  border-radius: $border-radius-large;
   padding: 32rpx;
   margin-bottom: 32rpx;
   box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  border: 1rpx solid rgba(210, 195, 196, 0.2);
+  border: 1rpx solid rgba(113, 88, 92, 0.1);
 }
 
 .content-input {
   width: 100%;
   min-height: 300rpx;
-  font-size: 28rpx;
-  color: #1e1b1b;
+  font-size: $font-size-body;
+  color: $color-gray-dark;
   line-height: 1.6;
   background: transparent;
   border: none;
 }
 
 .input-placeholder {
-  color: rgba(30, 27, 27, 0.5);
+  color: $color-gray-medium;
 }
 
 .image-section {
@@ -172,7 +174,7 @@ const handlePublish = () => {
 .image-preview {
   width: 100%;
   height: 100%;
-  border-radius: 20rpx;
+  border-radius: $border-radius-medium;
   box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
 }
 
@@ -200,9 +202,9 @@ const handlePublish = () => {
 
 .upload-btn {
   aspect-ratio: 1;
-  background: rgba(234, 223, 189, 0.3);
-  border: 4rpx dashed #eadfbd;
-  border-radius: 20rpx;
+  background: rgba(113, 88, 92, 0.05);
+  border: 4rpx dashed rgba(113, 88, 92, 0.2);
+  border-radius: $border-radius-medium;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -217,15 +219,15 @@ const handlePublish = () => {
 .upload-icon {
   width: 64rpx;
   height: 64rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23655E43'%3E%3Cpath d='M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm6 9l-4 5h12l-3-4-2.03 2.71L10 13l-4-5H4l2 3-2 2 3 3H18l-4-5-2.5 3.33L12 19l-3-6z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm6 9l-4 5h12l-3-4-2.03 2.71L10 13l-4-5H4l2 3-2 2 3 3H18l-4-5-2.5 3.33L12 19l-3-6z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }
 
 .upload-count {
-  font-size: 22rpx;
-  font-weight: 600;
-  color: #655e43;
+  font-size: $font-size-helper;
+  font-weight: $font-weight-bold;
+  color: $color-gray-medium;
 }
 
 .category-section {
@@ -248,9 +250,9 @@ const handlePublish = () => {
 }
 
 .section-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #71585c;
+  font-size: $font-size-body;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
 }
 
 .category-list {
@@ -318,7 +320,7 @@ const handlePublish = () => {
   right: 0;
   padding: 32rpx;
   padding-bottom: calc(32rpx + constant(safe-area-inset-bottom));
-  background: linear-gradient(to top, #fff8f7 50%, transparent 100%);
+  background: linear-gradient(to top, $color-bg-primary 50%, transparent 100%);
   z-index: 100;
   box-sizing: border-box;
 }
@@ -326,9 +328,8 @@ const handlePublish = () => {
 .publish-btn {
   width: 100%;
   padding: 32rpx 0;
-  background: #fcdadf;
-  color: #29161a;
-  border-radius: 32rpx;
+  background: $color-primary;
+  border-radius: $border-radius-large;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -343,14 +344,14 @@ const handlePublish = () => {
 .publish-icon {
   width: 36rpx;
   height: 36rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2329161A'%3E%3Cpath d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }
 
 .publish-text {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #29161a;
+  font-size: $font-size-title;
+  font-weight: $font-weight-bold;
+  color: $color-bg-white;
 }
 </style>

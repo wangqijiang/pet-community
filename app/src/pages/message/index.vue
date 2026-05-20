@@ -117,9 +117,11 @@ const goToChat = (item: any) => {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .message-container {
   min-height: 100vh;
-  background: #FFF9F9;
+  background: $color-bg-primary;
 }
 
 .message-tabs {
@@ -136,38 +138,38 @@ const goToChat = (item: any) => {
   justify-content: center;
   gap: 8rpx;
   padding: 20rpx;
-  background: #FFFFFF;
-  border-radius: 24rpx;
-  border: 2rpx solid #E5E5E5;
+  background: $color-bg-white;
+  border-radius: $border-radius-large;
+  border: 2rpx solid rgba(113, 88, 92, 0.1);
   
   &.active {
-    background: #FFC1E9;
-    border-color: #FFC1E9;
+    background: $color-primary;
+    border-color: $color-primary;
     
     .tab-text {
-      color: #FFFFFF;
+      color: $color-bg-white;
     }
     
     .tab-badge {
-      background: #FFFFFF;
-      color: #FFC1E9;
+      background: $color-bg-white;
+      color: $color-primary;
     }
   }
 }
 
 .tab-text {
-  font-size: 28rpx;
-  color: #999999;
+  font-size: $font-size-body;
+  color: $color-gray-medium;
 }
 
 .tab-badge {
   min-width: 32rpx;
   height: 32rpx;
   padding: 0 8rpx;
-  background: #FF6B6B;
+  background: $color-error;
   border-radius: 16rpx;
-  font-size: 20rpx;
-  color: #FFFFFF;
+  font-size: $font-size-helper;
+  color: $color-bg-white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,14 +185,18 @@ const goToChat = (item: any) => {
 .message-item {
   display: flex;
   align-items: center;
-  background: #FFFFFF;
-  border-radius: 24rpx;
+  background: $color-bg-white;
+  border-radius: $border-radius-large;
   padding: 24rpx;
   margin-bottom: 16rpx;
-  border: 2rpx solid #FFC1E9;
+  border: 2rpx solid rgba(113, 88, 92, 0.1);
   
   &.unread {
-    background: rgba(255, 193, 233, 0.05);
+    background: rgba(113, 88, 92, 0.03);
+  }
+  
+  &:active {
+    background: rgba(113, 88, 92, 0.05);
   }
 }
 
@@ -204,12 +210,12 @@ const goToChat = (item: any) => {
   margin-right: 20rpx;
   
   &.system-icon {
-    background: rgba(255, 193, 233, 0.1);
+    background: rgba(113, 88, 92, 0.08);
   }
   
   &.chat-icon {
     padding: 4rpx;
-    background: #FFC1E9;
+    background: $color-primary-light;
   }
 }
 
@@ -218,22 +224,22 @@ const goToChat = (item: any) => {
   height: 100%;
   
   &.like {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center;
     background-size: 60%;
   }
   
   &.comment {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
     background-size: 60%;
   }
   
   &.follow {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E") no-repeat center;
     background-size: 60%;
   }
   
   &.system {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E") no-repeat center;
     background-size: 60%;
   }
 }
@@ -250,25 +256,25 @@ const goToChat = (item: any) => {
 }
 
 .message-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #333333;
+  font-size: $font-size-body;
+  font-weight: $font-weight-bold;
+  color: $color-gray-dark;
 }
 
 .message-time {
-  font-size: 22rpx;
-  color: #999999;
+  font-size: $font-size-helper;
+  color: $color-gray-medium;
 }
 
 .message-desc {
-  font-size: 26rpx;
-  color: #999999;
+  font-size: $font-size-body;
+  color: $color-gray-medium;
 }
 
 .message-indicator {
   width: 12rpx;
   height: 12rpx;
-  background: #FF6B6B;
+  background: $color-primary;
   border-radius: 50%;
 }
 
@@ -276,10 +282,10 @@ const goToChat = (item: any) => {
   min-width: 36rpx;
   height: 36rpx;
   padding: 0 10rpx;
-  background: #FF6B6B;
+  background: $color-error;
   border-radius: 18rpx;
-  font-size: 22rpx;
-  color: #FFFFFF;
+  font-size: $font-size-helper;
+  color: $color-bg-white;
   display: flex;
   align-items: center;
   justify-content: center;

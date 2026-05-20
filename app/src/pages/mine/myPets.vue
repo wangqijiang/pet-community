@@ -127,9 +127,11 @@ const editPet = (pet) => {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .my-pets-page {
   min-height: 100vh;
-  background: #fff8f7;
+  background: $color-bg-primary;
 }
 
 /* Navigation Bar */
@@ -147,7 +149,7 @@ const editPet = (pet) => {
   justify-content: space-between;
   padding: var(--status-bar-height, 44px) 40rpx 0;
   box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  z-index: 100;
+  z-index: $z-index-nav;
 }
 
 .nav-left {
@@ -179,9 +181,9 @@ const editPet = (pet) => {
 }
 
 .nav-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #71585c;
+  font-size: $font-size-title;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
 }
 
 .add-btn {
@@ -189,7 +191,7 @@ const editPet = (pet) => {
   align-items: center;
   gap: 8rpx;
   padding: 16rpx 28rpx;
-  background: rgba(255, 221, 226, 0.5);
+  background: rgba(113, 88, 92, 0.08);
   border-radius: 100rpx;
   transition: transform 0.2s ease;
 
@@ -226,15 +228,15 @@ const editPet = (pet) => {
 
 .welcome-title {
   display: block;
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #1e1b1b;
+  font-size: $font-size-title;
+  font-weight: $font-weight-bold;
+  color: $color-gray-dark;
   margin-bottom: 8rpx;
 }
 
 .welcome-desc {
-  font-size: 28rpx;
-  color: #4f4446;
+  font-size: $font-size-body;
+  color: $color-gray-medium;
   opacity: 0.7;
 }
 
@@ -250,10 +252,10 @@ const editPet = (pet) => {
   align-items: center;
   gap: 24rpx;
   padding: 32rpx;
-  background: #ffffff;
-  border-radius: 32rpx;
+  background: $color-bg-white;
+  border-radius: $border-radius-large;
   box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  border: 2rpx solid rgba(210, 195, 196, 0.1);
+  border: 2rpx solid rgba(113, 88, 92, 0.1);
   transition: transform 0.2s ease;
 
   &:active {
@@ -275,8 +277,8 @@ const editPet = (pet) => {
 .pet-avatar-placeholder {
   width: 160rpx;
   height: 160rpx;
-  border-radius: 32rpx;
-  background: rgba(255, 221, 226, 0.3);
+  border-radius: $border-radius-large;
+  background: rgba(113, 88, 92, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -337,9 +339,9 @@ const editPet = (pet) => {
 }
 
 .pet-name {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #71585c;
+  font-size: $font-size-title;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
 }
 
 .edit-btn {
@@ -371,19 +373,19 @@ const editPet = (pet) => {
 
 .tag {
   padding: 8rpx 20rpx;
-  border-radius: 16rpx;
-  font-size: 20rpx;
-  font-weight: 700;
+  border-radius: $border-radius-small;
+  font-size: $font-size-helper;
+  font-weight: $font-weight-bold;
   letter-spacing: 0.05em;
 
   &.breed-tag {
-    background: rgba(234, 223, 189, 0.5);
-    color: #6a6347;
+    background: rgba(113, 88, 92, 0.08);
+    color: $color-primary;
   }
 
   &.age-tag {
-    background: rgba(238, 230, 230, 0.8);
-    color: #4f4446;
+    background: rgba(113, 88, 92, 0.05);
+    color: $color-gray-medium;
     opacity: 0.7;
   }
 }
@@ -406,8 +408,8 @@ const editPet = (pet) => {
 }
 
 .empty-text {
-  font-size: 28rpx;
-  color: #4f4446;
+  font-size: $font-size-body;
+  color: $color-gray-medium;
 }
 
 /* Floating Action Button */

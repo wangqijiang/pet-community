@@ -157,9 +157,11 @@ const handleShare = () => {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .circle-container {
   min-height: 100vh;
-  background: #fff8f7;
+  background: $color-bg-primary;
 }
 
 .category-tabs {
@@ -179,18 +181,18 @@ const handleShare = () => {
 .tab-item {
   flex-shrink: 0;
   padding: 16rpx 32rpx;
-  background: #ffffff;
-  border: 2rpx solid #e1f5fe;
+  background: $color-bg-white;
+  border: 2rpx solid rgba(113, 88, 92, 0.1);
   border-radius: 32rpx;
-  font-size: 26rpx;
-  color: #4a90e2;
-  transition: all 0.3s;
+  font-size: $font-size-body;
+  color: $color-gray-medium;
+  transition: all $transition-base;
   box-shadow: 0 4rpx 12rpx rgba(168, 155, 157, 0.08);
 
   &.active {
-    background: #ffdde2;
-    color: #71585c;
-    border-color: #ffc1e9;
+    background: rgba(113, 88, 92, 0.1);
+    color: $color-primary;
+    border-color: $color-primary-light;
   }
 }
 
@@ -202,16 +204,17 @@ const handleShare = () => {
 }
 
 .feed-card {
-  background: #ffffff;
-  border-radius: 24rpx;
+  background: $color-bg-white;
+  border-radius: $border-radius-large;
   padding: 32rpx;
   margin-bottom: 32rpx;
-  border: 1rpx solid rgba(255, 221, 226, 0.4);
+  border: 1rpx solid rgba(113, 88, 92, 0.1);
   box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.08);
-  transition: transform 0.3s;
+  transition: transform $transition-base;
 
   &:active {
     transform: scale(0.98);
+    box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.12);
   }
 }
 
@@ -226,7 +229,7 @@ const handleShare = () => {
   height: 80rpx;
   border-radius: 50%;
   padding: 4rpx;
-  border: 4rpx solid #ffdde2;
+  border: 4rpx solid $color-primary-light;
   margin-right: 20rpx;
 }
 
@@ -244,9 +247,9 @@ const handleShare = () => {
 }
 
 .user-name {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #1e1b1b;
+  font-size: $font-size-body;
+  font-weight: $font-weight-bold;
+  color: $color-gray-dark;
 }
 
 .user-tags {
@@ -256,11 +259,11 @@ const handleShare = () => {
 
 .tag {
   padding: 6rpx 16rpx;
-  background: rgba(234, 223, 189, 0.3);
-  color: #6a6347;
-  font-size: 20rpx;
-  font-weight: 600;
-  border-radius: 16rpx;
+  background: rgba(113, 88, 92, 0.08);
+  color: $color-primary;
+  font-size: $font-size-helper;
+  font-weight: $font-weight-bold;
+  border-radius: $border-radius-small;
 }
 .more-icon {
   width: 36rpx;
@@ -271,8 +274,8 @@ const handleShare = () => {
 }
 
 .card-content {
-  font-size: 28rpx;
-  color: #4f4446;
+  font-size: $font-size-body;
+  color: $color-gray-dark;
   line-height: 1.6;
   margin-bottom: 24rpx;
 }
@@ -286,7 +289,7 @@ const handleShare = () => {
 
 .image-item {
   aspect-ratio: 1;
-  border-radius: 16rpx;
+  border-radius: $border-radius-medium;
 }
 
 .card-footer {
@@ -294,7 +297,7 @@ const handleShare = () => {
   justify-content: space-between;
   align-items: center;
   padding-top: 24rpx;
-  border-top: 1rpx solid #f3ecec;
+  border-top: 1rpx solid rgba(113, 88, 92, 0.1);
 }
 
 .footer-left {
@@ -346,9 +349,9 @@ const handleShare = () => {
 }
 
 .footer-count {
-  font-size: 22rpx;
-  font-weight: 600;
-  color: #807476;
+  font-size: $font-size-helper;
+  font-weight: $font-weight-bold;
+  color: $color-gray-medium;
 }
 
 .fab {
@@ -357,23 +360,24 @@ const handleShare = () => {
   right: 32rpx;
   width: 100rpx;
   height: 100rpx;
-  background: #ede2c0;
+  background: $color-primary;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(234, 223, 189, 0.5);
+  box-shadow: 0 8rpx 24rpx rgba(113, 88, 92, 0.3);
   z-index: 40;
 
   &:active {
     transform: scale(0.9);
+    background: $color-primary-dark;
   }
 }
 
 .fab-icon {
   width: 48rpx;
   height: 48rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23201B06'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }
