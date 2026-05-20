@@ -211,8 +211,7 @@ const sendComment = () => {
 
 .detail-content {
   padding: 24rpx 32rpx;
-  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
-  height: calc(100vh - var(--status-bar-height, 44px) - 120rpx);
+  min-height: calc(100vh - 120rpx);
   box-sizing: border-box;
 }
 
@@ -482,7 +481,7 @@ const sendComment = () => {
   border-radius: 36rpx;
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
   }
 }
 

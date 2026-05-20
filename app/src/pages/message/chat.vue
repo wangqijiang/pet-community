@@ -117,7 +117,6 @@ onMounted(() => {
   flex: 1;
   box-sizing: border-box;
   padding: 24rpx 32rpx;
-  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
   padding-bottom: 200rpx;
 }
 
@@ -260,7 +259,7 @@ onMounted(() => {
   }
   
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
   }
 }
 

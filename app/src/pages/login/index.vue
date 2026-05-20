@@ -5,9 +5,9 @@
       <!-- 插画区域 -->
       <view class="illustration-area">
         <view class="mascot-wrapper">
-          <image 
-            class="mascot" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8JgpHQAmP9OCn4WDQmV7sHMV9DqTCdkLEB_g-8yUMppPn3hACdkAj2F3XioEuVxSk61S_sLRszkFe3HotbOJdWlaRoMfvimnzih0T7OjP6ahQuwFClON9UVbIxRMa8ZgUtR9KGO1XVHhIvQMrBqCwzqQaWH6nlmw4n_-Nv9HXVFLS6GnEDTvYDvperQkw5miFzvuWWrXXfw4dRnXl04FF1xwtCYBoz6IqCuIDIVCYpElzZwW91911akVhYGbnrBd4NvpBGpAm3Efg" 
+          <image
+            class="mascot"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8JgpHQAmP9OCn4WDQmV7sHMV9DqTCdkLEB_g-8yUMppPn3hACdkAj2F3XioEuVxSk61S_sLRszkFe3HotbOJdWlaRoMfvimnzih0T7OjP6ahQuwFClON9UVbIxRMa8ZgUtR9KGO1XVHhIvQMrBqCwzqQaWH6nlmw4n_-Nv9HXVFLS6GnEDTvYDvperQkw5miFzvuWWrXXfw4dRnXl04FF1xwtCYBoz6IqCuIDIVCYpElzZwW91911akVhYGbnrBd4NvpBGpAm3Efg"
             mode="aspectFit"
           />
         </view>
@@ -43,19 +43,19 @@
 <script setup lang="ts">
 const handleLogin = () => {
   uni.showToast({
-    title: '登录成功',
-    icon: 'success'
-  })
+    title: "登录成功",
+    icon: "success",
+  });
   setTimeout(() => {
-    uni.switchTab({
-      url: '/pages/home/index'
-    })
-  }, 1500)
-}
+    uni.reLaunch({
+      url: "/pages/home/index",
+    });
+  }, 1500);
+};
 </script>
 
 <style lang="scss">
-@import '@/styles/variables.scss';
+@import "@/styles/variables.scss";
 
 .login-page {
   min-height: 100vh;
@@ -119,11 +119,8 @@ const handleLogin = () => {
 .login-container {
   width: 100%;
   max-width: 560rpx;
-  background-color: #ffffff;
   padding: 32rpx;
   border-radius: 48rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
-  border: 1rpx solid rgba(210, 195, 196, 0.3);
   z-index: 10;
   margin: 32rpx 0;
 }
@@ -147,7 +144,7 @@ const handleLogin = () => {
   transition: all 0.2s ease;
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
     opacity: 0.9;
   }
 }

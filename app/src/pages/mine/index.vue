@@ -264,7 +264,7 @@ const handleLogout = () => {
 }
 
 .settings-btn:active {
-  transform: scale(0.95);
+  transform: scale(1);
 }
 
 .settings-icon {
@@ -298,7 +298,7 @@ const handleLogout = () => {
 }
 
 .stat-item:active {
-  transform: scale(0.95);
+  transform: scale(1);
 }
 
 .stat-number {
@@ -372,7 +372,7 @@ const handleLogout = () => {
 }
 
 .pet-card:active {
-  transform: scale(0.95);
+  transform: scale(1);
 }
 
 .pet-avatar-wrapper {
@@ -419,7 +419,7 @@ const handleLogout = () => {
 }
 
 .add-pet-card:active {
-  transform: scale(0.95);
+  transform: scale(1);
 }
 
 .add-icon-wrapper {
@@ -528,7 +528,7 @@ const handleLogout = () => {
 }
 
 .ai-tips-card:active {
-  transform: scale(0.95);
+  transform: scale(1);
 }
 
 .ai-tips-content {
@@ -610,7 +610,7 @@ const handleLogout = () => {
   transition: transform 0.2s ease;
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
   }
 }
 

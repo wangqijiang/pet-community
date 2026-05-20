@@ -134,7 +134,6 @@ const goToDetail = (place: any) => {
   display: flex;
   padding: 24rpx 32rpx;
   gap: 24rpx;
-  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
 }
 
 .tab-item {
@@ -164,7 +163,7 @@ const goToDetail = (place: any) => {
   border: 2rpx solid #FFC1E9;
   
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
   }
 }
 

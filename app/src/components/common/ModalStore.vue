@@ -98,7 +98,7 @@ const handleNavigate = () => {
 }
 
 @keyframes fadeIn {
-  0% { opacity: 0; transform: scale(0.95); }
+  0% { opacity: 0; transform: scale(1); }
   100% { opacity: 1; transform: scale(1); }
 }
 
@@ -117,7 +117,7 @@ const handleNavigate = () => {
   backdrop-filter: blur(4px);
   
   &:active {
-    transform: scale(0.9);
+    transform: scale(1);
   }
 }
 
@@ -232,7 +232,7 @@ const handleNavigate = () => {
   transition: all 0.2s;
   
   &:active {
-    transform: scale(0.95);
+    transform: scale(1);
   }
   
   &.btn-secondary {

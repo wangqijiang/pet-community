@@ -96,9 +96,9 @@ $transition-fast: 0.2s;
 $transition-base: 0.3s;
 $transition-slow: 0.5s;
 
-// 缩放比例
-$scale-press: 0.98;
-$scale-press-card: 0.95;
+// 缩放比例 - 去除点击抖动效果
+$scale-press: 1;
+$scale-press-card: 1;
 
 // ==================== Z-index 层级 ====================
 $z-index-nav: 1000;

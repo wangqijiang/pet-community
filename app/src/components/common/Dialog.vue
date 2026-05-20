@@ -163,7 +163,7 @@ const handleCancel = () => {
   transition: all 0.3s ease;
   
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
   }
 }
 

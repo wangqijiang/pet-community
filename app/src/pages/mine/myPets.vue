@@ -134,91 +134,11 @@ const editPet = (pet) => {
   background: $color-bg-primary;
 }
 
-/* Navigation Bar */
-.nav-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: calc(var(--status-bar-height, 44px) + 96rpx);
-  padding-top: var(--status-bar-height, 44px);
-  background: rgba(255, 248, 247, 0.8);
-  backdrop-filter: blur(20px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--status-bar-height, 44px) 40rpx 0;
-  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  z-index: $z-index-nav;
-}
-
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-}
-
-.back-btn {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease;
-
-  &:active {
-    transform: scale(0.9);
-  }
-}
-
-.back-icon {
-  width: 40rpx;
-  height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z'/%3E%3C/svg%3E") no-repeat center;
-  background-size: 100%;
-}
-
-.nav-title {
-  font-size: $font-size-title;
-  font-weight: $font-weight-bold;
-  color: $color-primary;
-}
-
-.add-btn {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  padding: 16rpx 28rpx;
-  background: rgba(113, 88, 92, 0.08);
-  border-radius: 100rpx;
-  transition: transform 0.2s ease;
-
-  &:active {
-    transform: scale(0.9);
-  }
-}
-
-.add-icon {
-  width: 32rpx;
-  height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E") no-repeat center;
-  background-size: 100%;
-}
-
-.add-text {
-  font-size: 24rpx;
-  font-weight: 700;
-  color: #71585c;
-  letter-spacing: 0.05em;
-}
-
 /* Page Content */
 .page-content {
   height: 100vh;
   box-sizing: border-box;
-  padding: calc(var(--status-bar-height, 44px) + 120rpx) 40rpx 200rpx;
+  padding: 40rpx 40rpx 200rpx;
 }
 
 /* Welcome Section */
@@ -259,7 +179,7 @@ const editPet = (pet) => {
   transition: transform 0.2s ease;
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
   }
 }
 
@@ -432,7 +352,7 @@ const editPet = (pet) => {
   transition: transform 0.2s ease;
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(1);
   }
 }
 

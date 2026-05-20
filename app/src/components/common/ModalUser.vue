@@ -202,7 +202,7 @@ const handleSendMessage = () => {
   transition: all 0.2s;
   
   &:active {
-    transform: scale(0.95);
+    transform: scale(1);
   }
   
   &.btn-secondary {

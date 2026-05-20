@@ -59,7 +59,7 @@ $border-radius: 24rpx;
     transition: transform 0.3s ease;
 
     &.nav-back-pressed {
-      transform: scale(0.98);
+      transform: scale(1);
     }
 
     .back-icon {
@@ -172,7 +172,7 @@ $border-radius: 24rpx;
     transition: transform 0.3s ease;
 
     &.button-pressed {
-      transform: scale(0.98);
+      transform: scale(1);
     }
 
     .button-text {

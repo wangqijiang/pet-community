@@ -230,7 +230,7 @@ const goToUserProfile = (userId) => {
   transition: transform 0.2s ease;
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
   }
 }
 
@@ -313,7 +313,7 @@ const goToUserProfile = (userId) => {
   transition: transform 0.2s ease;
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(1);
   }
 
   &.unfollow {

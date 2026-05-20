@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宠物社区地图标记图标预览</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        .icons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .icon-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .icon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .icon-preview {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .icon-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .icon-name {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .icon-desc {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .icon-size {
+            color: #888;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .map-preview {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .map-preview h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .map-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .map-marker {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .map-marker:hover {
+            transform: scale(1.1);
+        }
+
+        .map-marker img {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        .marker-user {
+            width: 48px;
+            height: 48px;
+            top: 35%;
+            left: 45%;
+        }
+
+        .marker-place {
+            width: 40px;
+            height: 40px;
+            top: 50%;
+            left: 55%;
+        }
+
+        .marker-store {
+            width: 40px;
+            height: 40px;
+            top: 40%;
+            left: 60%;
+        }
+
+        .marker-label {
+            position: absolute;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+        }
+
+        .marker-user .marker-label {
+            border: 2px solid #FFC1E9;
+            color: #d63384;
+        }
+
+        .marker-place .marker-label {
+            border: 2px solid #52c41a;
+            color: #389e0d;
+        }
+
+        .marker-store .marker-label {
+            border: 2px solid #1890ff;
+            color: #096dd9;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .info-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+
+        .info-item.user {
+            border-color: #FFC1E9;
+        }
+
+        .info-item.place {
+            border-color: #52c41a;
+        }
+
+        .info-item.store {
+            border-color: #1890ff;
+        }
+
+        .info-item h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .info-item p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .usage-code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .usage-code .comment {
+            color: #6a9955;
+        }
+
+        .usage-code .keyword {
+            color: #569cd6;
+        }
+
+        .usage-code .string {
+            color: #ce9178;
+        }
+
+        .usage-code .property {
+            color: #9cdcfe;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .bounce {
+            animation: bounce 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>宠物社区地图标记图标</h1>
+
+        <div class="icons-grid">
+            <div class="icon-card">
+                <div class="icon-preview">
+                    <img src="app/src/static/images/marker-user.png" alt="用户标记">
+                </div>
+                <div class="icon-name">糯米</div>
+                <div class="icon-desc">宠物用户标记</div>
+                <div class="icon-size">48 x 48 像素</div>
+            </div>
+
+            <div class="icon-card">
+                <div class="icon-preview">
+                    <img src="app/src/static/images/marker-place.png" alt="场所标记">
+                </div>
+                <div class="icon-name">宠物草坪</div>
+                <div class="icon-desc">遛狗活动场所</div>
+                <div class="icon-size">40 x 40 像素</div>
+            </div>
+
+            <div class="icon-card">
+                <div class="icon-preview">
+                    <img src="app/src/static/images/marker-store.png" alt="商店标记">
+                </div>
+                <div class="icon-name">汪汪门店</div>
+                <div class="icon-desc">宠物用品商店</div>
+                <div class="icon-size">40 x 40 像素</div>
+            </div>
+        </div>
+
+        <div class="map-preview">
+            <h2>地图预览效果</h2>
+            <div class="map-container">
+                <div class="map-grid"></div>
+                
+                <div class="map-marker marker-user bounce">
+                    <img src="app/src/static/images/marker-user.png" alt="糯米">
+                    <div class="marker-label">糯米</div>
+                </div>
+
+                <div class="map-marker marker-place bounce" style="animation-delay: 0.5s;">
+                    <img src="app/src/static/images/marker-place.png" alt="宠物草坪">
+                    <div class="marker-label">宠物草坪</div>
+                </div>
+
+                <div class="map-marker marker-store bounce" style="animation-delay: 1s;">
+                    <img src="app/src/static/images/marker-store.png" alt="汪汪门店">
+                    <div class="marker-label">汪汪门店</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>使用说明</h2>
+            
+            <div class="info-item user">
+                <h3>1. marker-user.png - 用户标记</h3>
+                <p>用于标记宠物主人的位置。设计为可爱的狗狗头像，配合粉色边框，适合展示"糯米"等宠物用户的当前位置。</p>
+            </div>
+
+            <div class="info-item place">
+                <h3>2. marker-place.png - 场所标记</h3>
+                <p>用于标记宠物活动场所，如公园、草坪等。设计为草地和爪印，配合绿色边框，适合展示"宠物草坪"等场所。</p>
+            </div>
+
+            <div class="info-item store">
+                <h3>3. marker-store.png - 商店标记</h3>
+                <p>用于标记宠物用品店和服务场所。设计为骨头形状，配合蓝色边框，适合展示"汪汪门店"等商家位置。</p>
+            </div>
+
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">代码示例</h3>
+            <div class="usage-code">
+<span class="comment">// 地图标记点配置</span>
+<span class="keyword">const</span> markers = [
+  {
+    id: <span class="string">1</span>,
+    iconPath: <span class="string">"/static/images/marker-user.png"</span>,
+    <span class="property">width</span>: <span class="string">48</span>,
+    <span class="property">height</span>: <span class="string">48</span>,
+    <span class="property">callout</span>: {
+      <span class="property">content</span>: <span class="string">"糯米"</span>,
+      <span class="property">borderColor</span>: <span class="string">"#FFC1E9"</span>
+    }
+  },
+  {
+    id: <span class="string">2</span>,
+    iconPath: <span class="string">"/static/images/marker-place.png"</span>,
+    <span class="property">width</span>: <span class="string">40</span>,
+    <span class="property">height</span>: <span class="string">40</span>,
+    <span class="property">callout</span>: {
+      <span class="property">content</span>: <span class="string">"宠物草坪"</span>,
+      <span class="property">borderColor</span>: <span class="string">"#52c41a"</span>
+    }
+  },
+  {
+    id: <span class="string">3</span>,
+    iconPath: <span class="string">"/static/images/marker-store.png"</span>,
+    <span class="property">width</span>: <span class="string">40</span>,
+    <span class="property">height</span>: <span class="string">40</span>,
+    <span class="property">callout</span>: {
+      <span class="property">content</span>: <span class="string">"汪汪门店"</span>,
+      <span class="property">borderColor</span>: <span class="string">"#1890ff"</span>
+    }
+  }
+];
+            </div>
+        </div>
+    </div>
+</body>
+</html>

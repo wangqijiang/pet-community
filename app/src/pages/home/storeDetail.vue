@@ -134,7 +134,6 @@ const handleCollect = () => {
 }
 
 .store-header {
-  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
 }
 
 .header-image {

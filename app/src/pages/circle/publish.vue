@@ -129,7 +129,6 @@ const handlePublish = () => {
 
 .publish-content {
   padding: 24rpx 32rpx;
-  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
   box-sizing: border-box;
 }
 
@@ -212,7 +211,7 @@ const handlePublish = () => {
   gap: 8rpx;
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(1);
   }
 }
 
@@ -271,7 +270,7 @@ const handlePublish = () => {
   border: 1rpx solid rgba(113, 88, 92, 0.1);
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(1);
   }
 
   &.active {
@@ -337,7 +336,7 @@ const handlePublish = () => {
   box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
   }
 }
 

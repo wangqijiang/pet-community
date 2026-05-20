@@ -145,7 +145,7 @@ const handleLike = (item: any) => {
   if (!item.liked) {
     item.liked = true;
     item.likes += 1;
-    uni.vibrateShort({ type: 'light' });
+    uni.vibrateShort({ type: "light" });
   }
 };
 
@@ -157,7 +157,7 @@ const handleShare = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
+@import "@/styles/variables.scss";
 
 .circle-container {
   min-height: 100vh;
@@ -166,7 +166,6 @@ const handleShare = () => {
 
 .category-tabs {
   padding: 0 32rpx;
-  padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
 }
 
 .tab-scroll {
@@ -199,7 +198,7 @@ const handleShare = () => {
 .feed-list {
   padding: 32rpx;
   padding-bottom: calc(140rpx + constant(safe-area-inset-bottom));
-  height: calc(100vh - var(--status-bar-height, 44px) - 300rpx);
+  height: calc(100vh - 340rpx);
   box-sizing: border-box;
 }
 
@@ -213,7 +212,7 @@ const handleShare = () => {
   transition: transform $transition-base;
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
     box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.12);
   }
 }
@@ -369,7 +368,7 @@ const handleShare = () => {
   z-index: 40;
 
   &:active {
-    transform: scale(0.9);
+    transform: scale(1);
     background: $color-primary-dark;
   }
 }

@@ -92,7 +92,7 @@ const handleClick = () => {
   font-weight: 600;
   
   &:active {
-    transform: scale(0.98);
+    transform: scale(1);
   }
 }
 </style>
