@@ -38,9 +38,6 @@
               <text class="tag">{{ item.userTag }}</text>
             </view>
           </view>
-          <view class="more-btn">
-            <view class="more-icon"></view>
-          </view>
         </view>
 
         <text class="card-content">{{ item.content }}</text>
@@ -93,9 +90,11 @@ const currentTab = ref(0);
 
 const tabs = [
   { label: "全部动态" },
-  { label: "日常萌照" },
-  { label: "训练日常" },
-  { label: "寻狗求助" },
+  { label: "修勾日常" },
+  { label: "技能秀场" },
+  { label: "寻宠启事" },
+  { label: "遛狗搭子" },
+  { label: "养宠种草" },
 ];
 
 const feedList = ref([
@@ -143,8 +142,11 @@ const goToDetail = (item: any) => {
 };
 
 const handleLike = (item: any) => {
-  item.liked = !item.liked;
-  item.likes += item.liked ? 1 : -1;
+  if (!item.liked) {
+    item.liked = true;
+    item.likes += 1;
+    uni.vibrateShort({ type: 'light' });
+  }
 };
 
 const handleShare = () => {
@@ -260,11 +262,6 @@ const handleShare = () => {
   font-weight: 600;
   border-radius: 16rpx;
 }
-
-.more-btn {
-  padding: 8rpx;
-}
-
 .more-icon {
   width: 36rpx;
   height: 36rpx;

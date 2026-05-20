@@ -174,6 +174,7 @@ const goToChat = (item: any) => {
 }
 
 .message-list {
+  box-sizing: border-box;
   padding: 0 32rpx;
   padding-bottom: calc(112rpx + constant(safe-area-inset-bottom));
   height: calc(100vh - var(--status-bar-height, 44px) - 240rpx);

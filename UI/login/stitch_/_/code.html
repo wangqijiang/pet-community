@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&amp;family=Nunito+Sans:wght@400;600&amp;family=Plus+Jakarta+Sans:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "outline-variant": "#d2c3c4",
+                "on-tertiary": "#ffffff",
+                "surface-dim": "#dfd8d8",
+                "secondary": "#655e43",
+                "on-secondary-container": "#6a6347",
+                "surface-container-high": "#eee6e6",
+                "on-primary": "#ffffff",
+                "surface": "#fff8f7",
+                "on-surface": "#1e1b1b",
+                "surface-tint": "#71585c",
+                "inverse-surface": "#333030",
+                "inverse-on-surface": "#f6efef",
+                "surface-container-lowest": "#ffffff",
+                "on-secondary-fixed-variant": "#4d472e",
+                "outline": "#807476",
+                "on-surface-variant": "#4f4446",
+                "inverse-primary": "#dfbfc3",
+                "primary-fixed": "#fcdadf",
+                "surface-container": "#f3ecec",
+                "primary-container": "#ffdde2",
+                "surface-bright": "#fff8f7",
+                "secondary-fixed-dim": "#d0c6a5",
+                "on-error": "#ffffff",
+                "on-tertiary-fixed": "#121e14",
+                "surface-container-low": "#f9f2f2",
+                "on-error-container": "#93000a",
+                "tertiary": "#546254",
+                "on-primary-container": "#795f64",
+                "on-primary-fixed-variant": "#584145",
+                "on-secondary": "#ffffff",
+                "surface-variant": "#e8e1e1",
+                "secondary-fixed": "#ede2c0",
+                "error-container": "#ffdad6",
+                "error": "#ba1a1a",
+                "secondary-container": "#eadfbd",
+                "tertiary-container": "#daead8",
+                "on-tertiary-fixed-variant": "#3c4a3d",
+                "tertiary-fixed": "#d7e7d5",
+                "on-tertiary-container": "#5b6a5c",
+                "primary": "#71585c",
+                "on-primary-fixed": "#29161a",
+                "primary-fixed-dim": "#dfbfc3",
+                "on-background": "#1e1b1b",
+                "surface-container-highest": "#e8e1e1",
+                "background": "#fff8f7",
+                "tertiary-fixed-dim": "#bbcbba",
+                "on-secondary-fixed": "#201b06",
+                "soft-pink": "#FFC1E9",
+                "milk-white": "#FFF9F9"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px",
+                "3xl": "24px",
+                "4xl": "32px"
+        },
+        "spacing": {
+                "gutter-card": "12px",
+                "padding-container": "16px",
+                "stack-gap": "8px",
+                "unit": "4px",
+                "margin-page": "20px"
+        },
+        "fontFamily": {
+                "headline-md": [
+                        "Quicksand"
+                ],
+                "label-caps": [
+                        "Plus Jakarta Sans"
+                ],
+                "body-lg": [
+                        "Nunito Sans"
+                ],
+                "body-md": [
+                        "Nunito Sans"
+                ],
+                "display-title": [
+                        "Quicksand"
+                ]
+        },
+        "fontSize": {
+                "headline-md": [
+                        "18px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-caps": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "display-title": [
+                        "20px",
+                        {
+                                "lineHeight": "28px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "700"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        .paw-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 25c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-5-3c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm10 0c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-5-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z' fill='%23FFC1E9' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-tab {
+            background-color: #FFC1E9;
+            color: white;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .inactive-tab {
+            background-color: #FFF9F9;
+            color: #FFC1E9;
+        }
+    </style>
+</head>
+<body class="bg-milk-white font-body-md text-primary overflow-hidden">
+<!-- Main Background Canvas -->
+<div class="relative min-h-screen w-full flex flex-col items-center justify-between py-12 px-margin-page paw-pattern overflow-y-auto">
+<!-- Illustration Area -->
+<div class="flex flex-col items-center mt-8 z-10 w-full max-w-sm">
+<div class="w-56 h-56 relative mb-4">
+<img alt="Cute Bichon Frise Mascot" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8JgpHQAmP9OCn4WDQmV7sHMV9DqTCdkLEB_g-8yUMppPn3hACdkAj2F3XioEuVxSk61S_sLRszkFe3HotbOJdWlaRoMfvimnzih0T7OjP6ahQuwFClON9UVbIxRMa8ZgUtR9KGO1XVHhIvQMrBqCwzqQaWH6nlmw4n_-Nv9HXVFLS6GnEDTvYDvperQkw5miFzvuWWrXXfw4dRnXl04FF1xwtCYBoz6IqCuIDIVCYpElzZwW91911akVhYGbnrBd4NvpBGpAm3Efg"/>
+</div>
+<div class="text-center">
+<h1 class="font-display-title text-3xl text-primary font-bold tracking-tight mb-2">WaggleWorld</h1>
+<p class="text-primary text-[15px] font-medium">狗狗的治愈星球 · 遇见温暖</p>
+</div>
+</div>
+<!-- Login Container -->
+<div class="w-full max-w-sm bg-white p-8 shadow-sm border border-outline-variant/30 z-10 my-8 rounded-4xl"><div class="flex flex-col items-center py-2">
+<button class="w-full h-14 bg-soft-pink text-white font-bold text-[16px] rounded-full shadow-sm active:scale-95 transition-transform duration-200 flex items-center justify-center space-x-2">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span>微信一键登录</span>
+</button>
+</div></div>
+<!-- Bottom Terms Area -->
+<div class="mb-8 w-full text-center z-10">
+<p class="font-body-md text-outline text-[12px] leading-relaxed font-medium">
+                登录即代表同意
+                <a class="text-primary hover:underline" href="#">《用户协议》</a>
+                和
+                <a class="text-primary hover:underline" href="#">《隐私政策》</a>
+</p>
+</div>
+</div>
+</body></html>

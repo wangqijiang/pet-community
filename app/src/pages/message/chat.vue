@@ -1,6 +1,6 @@
 <template>
   <view class="chat-container">
-    <TopNavBar :title="friendName" />
+    <TopNavBar class="chat-nav" showBack :title="friendName" />
     
     <scroll-view 
       scroll-y 
@@ -32,9 +32,6 @@
         </view>
         <view class="tool-item">
           <view class="tool-icon icon-image"></view>
-        </view>
-        <view class="tool-item">
-          <view class="tool-icon icon-camera"></view>
         </view>
       </view>
       <view class="input-area">
@@ -116,6 +113,7 @@ onMounted(() => {
 
 .chat-content {
   flex: 1;
+  box-sizing: border-box;
   padding: 24rpx 32rpx;
   padding-top: calc(var(--status-bar-height, 44px) + 120rpx);
   padding-bottom: 200rpx;
@@ -221,10 +219,6 @@ onMounted(() => {
     background-size: 100%;
   }
   
-  &.icon-camera {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z'/%3E%3C/svg%3E") no-repeat center;
-    background-size: 100%;
-  }
 }
 
 .input-area {

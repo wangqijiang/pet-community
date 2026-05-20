@@ -174,6 +174,7 @@ const handleSave = () => {
 
 .form-scroll {
   flex: 1;
+  box-sizing: border-box;
   padding: $spacing-page-horizontal;
 }
 

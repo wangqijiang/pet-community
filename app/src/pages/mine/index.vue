@@ -16,30 +16,11 @@
             </view>
             <view class="user-info">
               <text class="user-name">Summer Lin</text>
-              <view class="user-id">
-                <text class="id-text">ID: 8820412</text>
-                <view class="edit-icon"></view>
-              </view>
             </view>
           </view>
           <view class="settings-btn" @tap="goToSetting">
             <view class="settings-icon"></view>
           </view>
-        </view>
-
-        <!-- AI养宠助手卡片 -->
-        <view class="ai-card" @tap="goToAIAssistant">
-          <view class="ai-card-left">
-            <view class="ai-icon-wrapper">
-              <view class="ai-icon"></view>
-            </view>
-            <view class="ai-card-info">
-              <text class="ai-card-title">AI养宠助手</text>
-              <text class="ai-card-subtitle">懂你宠物的每一刻情绪</text>
-            </view>
-          </view>
-          <view class="ai-card-arrow"></view>
-          <view class="ai-card-bg-decoration"></view>
         </view>
 
         <!-- 数据统计 -->
@@ -100,44 +81,6 @@
           </scroll-view>
         </view>
 
-        <!-- 功能菜单 -->
-        <view class="menu-card">
-          <view class="menu-item" @tap="goToEditInfo">
-            <view class="menu-left">
-              <view class="menu-icon-wrapper">
-                <view class="menu-icon icon-profile"></view>
-              </view>
-              <text class="menu-text">个人资料编辑</text>
-            </view>
-            <view class="menu-arrow"></view>
-          </view>
-          <view class="menu-divider"></view>
-          <view class="menu-item" @tap="goToMyDynamic">
-            <view class="menu-left">
-              <view class="menu-icon-wrapper">
-                <view class="menu-icon icon-dynamic"></view>
-              </view>
-              <text class="menu-text">我的动态回放</text>
-            </view>
-            <view class="menu-arrow"></view>
-          </view>
-          <view class="menu-divider"></view>
-          <view class="menu-item">
-            <view class="menu-left">
-              <view class="menu-icon-wrapper">
-                <view class="menu-icon icon-visibility"></view>
-              </view>
-              <text class="menu-text">隐私可见模式</text>
-            </view>
-            <view class="toggle-switch" @tap="togglePrivacy">
-              <view
-                class="toggle-dot"
-                :class="{ active: privacyVisible }"
-              ></view>
-            </view>
-          </view>
-        </view>
-
         <!-- AI一键生成攻略卡片 -->
         <view class="ai-tips-card" @tap="handleGenerateTips">
           <view class="ai-tips-content">
@@ -149,6 +92,13 @@
             </view>
           </view>
           <view class="ai-tips-bg-decoration"></view>
+        </view>
+
+        <!-- 退出登录按钮 -->
+        <view class="logout-section">
+          <view class="logout-btn" @tap="handleLogout">
+            <text class="logout-text">退出登录</text>
+          </view>
         </view>
       </scroll-view>
     </view>
@@ -165,7 +115,6 @@ import TabBar from "@/components/common/TabBar.vue";
 import Loading from "@/components/common/Loading.vue";
 
 const loading = ref(false);
-const privacyVisible = ref(true);
 
 onMounted(() => {
   loadUserInfo();
@@ -178,11 +127,6 @@ const loadUserInfo = () => {
   }, 1000);
 };
 
-const togglePrivacy = () => {
-  uni.vibrateShort({ type: "light" });
-  privacyVisible.value = !privacyVisible.value;
-};
-
 const goToSetting = () => {
   uni.vibrateShort({ type: "light" });
   uni.navigateTo({
@@ -190,17 +134,10 @@ const goToSetting = () => {
   });
 };
 
-const goToEditInfo = () => {
-  uni.vibrateShort({ type: "light" });
-  uni.navigateTo({
-    url: "/pages/mine/editInfo",
-  });
-};
-
 const goToPetInfo = () => {
   uni.vibrateShort({ type: "light" });
   uni.navigateTo({
-    url: "/pages/mine/petInfo",
+    url: "/pages/mine/myPets",
   });
 };
 
@@ -218,33 +155,32 @@ const goToFans = () => {
   });
 };
 
-const goToMyDynamic = () => {
-  uni.vibrateShort({ type: "light" });
-  uni.navigateTo({
-    url: "/pages/mine/myDynamic",
-  });
-};
-
-const goToCollection = () => {
-  uni.vibrateShort({ type: "light" });
-  uni.navigateTo({
-    url: "/pages/mine/collection",
-  });
-};
-
-const goToAIAssistant = () => {
-  uni.vibrateShort({ type: "medium" });
-  uni.showToast({
-    title: "AI助手功能开发中",
-    icon: "none",
-  });
-};
-
 const handleGenerateTips = () => {
   uni.vibrateShort({ type: "medium" });
   uni.showToast({
     title: "正在生成攻略...",
     icon: "loading",
+  });
+};
+
+const handleLogout = () => {
+  uni.vibrateShort({ type: "medium" });
+  uni.showModal({
+    title: "提示",
+    content: "确定要退出登录吗？",
+    success: (res) => {
+      if (res.confirm) {
+        uni.showToast({
+          title: "已退出登录",
+          icon: "success",
+        });
+        setTimeout(() => {
+          uni.reLaunch({
+            url: "/pages/login/index",
+          });
+        }, 1500);
+      }
+    },
   });
 };
 </script>
@@ -316,27 +252,6 @@ const handleGenerateTips = () => {
   letter-spacing: -0.01em;
 }
 
-.user-id {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.id-text {
-  font-size: 28rpx;
-  color: #4f4446;
-  opacity: 0.6;
-}
-
-.edit-icon {
-  width: 28rpx;
-  height: 28rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-  opacity: 0.5;
-}
-
 .settings-btn {
   width: 88rpx;
   height: 88rpx;
@@ -360,103 +275,15 @@ const handleGenerateTips = () => {
   background-size: 100%;
 }
 
-/* AI养宠助手卡片 */
-.ai-card {
-  background: rgba(255, 221, 226, 0.3);
-  border-radius: 56rpx;
-  padding: 40rpx;
-  margin-bottom: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 4rpx 16rpx rgba(168, 155, 157, 0.06);
-  border: 2rpx solid rgba(255, 221, 226, 0.2);
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.2s ease;
-}
-
-.ai-card:active {
-  transform: scale(0.95);
-}
-
-.ai-card-left {
-  display: flex;
-  align-items: center;
-  gap: 32rpx;
-  position: relative;
-  z-index: 1;
-}
-
-.ai-icon-wrapper {
-  width: 112rpx;
-  height: 112rpx;
-  background: #ffffff;
-  border-radius: 32rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(168, 155, 157, 0.08);
-}
-
-.ai-icon {
-  width: 64rpx;
-  height: 64rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M9.5 3h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 19h8v1H8v-1z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-}
-
-.ai-card-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-}
-
-.ai-card-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #795f64;
-}
-
-.ai-card-subtitle {
-  font-size: 28rpx;
-  color: #584145;
-  opacity: 0.8;
-}
-
-.ai-card-arrow {
-  width: 32rpx;
-  height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-  opacity: 0.6;
-  position: relative;
-  z-index: 1;
-}
-
-.ai-card-bg-decoration {
-  position: absolute;
-  right: -48rpx;
-  bottom: -48rpx;
-  width: 240rpx;
-  height: 240rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-  opacity: 0.05;
-  transform: rotate(12deg);
-}
-
 /* 数据统计 */
 .stats-card {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 48rpx;
   padding: 40rpx;
   margin-bottom: 24rpx;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
   box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
   border: 2rpx solid #ffffff;
   backdrop-filter: blur(10rpx);
@@ -489,8 +316,8 @@ const handleGenerateTips = () => {
 
 .stat-divider {
   width: 2rpx;
+  height: 80rpx;
   background: rgba(210, 195, 196, 0.3);
-  margin: 0 auto;
 }
 
 /* 我的宠物 */
@@ -667,16 +494,8 @@ const handleGenerateTips = () => {
   background-repeat: no-repeat;
 }
 
-.menu-icon.icon-profile {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E");
-}
-
 .menu-icon.icon-dynamic {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z'/%3E%3C/svg%3E");
-}
-
-.menu-icon.icon-visibility {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z'/%3E%3C/svg%3E");
 }
 
 .menu-text {
@@ -692,42 +511,6 @@ const handleGenerateTips = () => {
     no-repeat center;
   background-size: 100%;
   opacity: 0.4;
-}
-
-.menu-divider {
-  height: 2rpx;
-  background: rgba(255, 221, 226, 0.1);
-  margin: 0 40rpx;
-}
-
-/* Toggle开关 */
-.toggle-switch {
-  width: 88rpx;
-  height: 48rpx;
-  background: #f3ecec;
-  border-radius: 48rpx;
-  position: relative;
-  transition: background-color 0.2s ease;
-}
-
-.toggle-switch.active {
-  background: #ffdde2;
-}
-
-.toggle-dot {
-  width: 40rpx;
-  height: 40rpx;
-  background: #ffffff;
-  border-radius: 50%;
-  position: absolute;
-  top: 4rpx;
-  left: 4rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
-}
-
-.toggle-dot.active {
-  transform: translateX(40rpx);
 }
 
 /* AI一键生成攻略卡片 */
@@ -809,5 +592,31 @@ const handleGenerateTips = () => {
     no-repeat center;
   background-size: 100%;
   opacity: 0.1;
+}
+
+/* 退出登录按钮 */
+.logout-section {
+  padding: 20rpx 0 60rpx;
+}
+
+.logout-btn {
+  height: 96rpx;
+  background: #ffffff;
+  border-radius: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.logout-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #ba1a1a;
 }
 </style>

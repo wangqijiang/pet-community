@@ -43,32 +43,9 @@
             :key="index"
             class="category-item"
             :class="{ active: selectedCategory === index }"
-            @click="selectedCategory = index"
+            @click="selectedCategory = selectedCategory === index ? -1 : index"
           >
             {{ cat }}
-          </view>
-        </view>
-      </view>
-
-      <view class="options-section">
-        <view class="option-item" @click="showLocationPicker">
-          <view class="option-left">
-            <view class="option-icon icon-location"></view>
-            <text class="option-text">{{ location || "你在哪里？" }}</text>
-          </view>
-          <view class="option-arrow"></view>
-        </view>
-
-        <view class="option-divider"></view>
-
-        <view class="option-item" @click="showPrivacyPicker">
-          <view class="option-left">
-            <view class="option-icon icon-visible"></view>
-            <text class="option-text">公开范围</text>
-          </view>
-          <view class="option-right">
-            <text class="option-value">{{ privacyText }}</text>
-            <view class="option-arrow"></view>
           </view>
         </view>
       </view>
@@ -89,14 +66,9 @@ import { ref } from "vue";
 
 const content = ref("");
 const images = ref<string[]>([]);
-const selectedCategory = ref(0);
-const location = ref("");
-const privacy = ref(0);
+const selectedCategory = ref(-1);
 
-const categories = ["日常萌照", "训练日常", "寻狗求助"];
-const privacyOptions = ["所有人可见", "仅好友可见", "仅自己可见"];
-
-const privacyText = privacyOptions[privacy.value];
+const categories = ["修勾日常", "技能秀场", "寻宠启事", "遛狗搭子", "养宠种草"];
 
 const chooseImage = () => {
   const colors = [
@@ -118,22 +90,6 @@ const chooseImage = () => {
 
 const deleteImage = (index: number) => {
   images.value.splice(index, 1);
-};
-
-const showLocationPicker = () => {
-  uni.showToast({
-    title: "选择位置",
-    icon: "none",
-  });
-};
-
-const showPrivacyPicker = () => {
-  uni.showActionSheet({
-    itemList: privacyOptions,
-    success: (res) => {
-      privacy.value = res.tapIndex;
-    },
-  });
 };
 
 const handlePublish = () => {
@@ -337,74 +293,22 @@ const handlePublish = () => {
       color: #6a6347;
     }
   }
-}
 
-.options-section {
-  background: #f9f2f2;
-  border-radius: 20rpx;
-  padding: 8rpx 0;
-  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-}
-
-.option-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24rpx 24rpx;
-}
-
-.option-left {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.option-icon {
-  width: 40rpx;
-  height: 40rpx;
-
-  &.icon-location {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
+  &:nth-child(4) {
+    background: rgba(224, 247, 255, 0.6);
+    &.active {
+      background: #e0f7ff;
+      color: #01579b;
+    }
   }
 
-  &.icon-visible {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
+  &:nth-child(5) {
+    background: rgba(255, 235, 205, 0.6);
+    &.active {
+      background: #ffe0b2;
+      color: #bf360c;
+    }
   }
-}
-
-.option-text {
-  font-size: 26rpx;
-  color: #1e1b1b;
-}
-
-.option-right {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.option-value {
-  font-size: 24rpx;
-  color: rgba(30, 27, 27, 0.6);
-}
-
-.option-arrow {
-  width: 32rpx;
-  height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-  opacity: 0.4;
-}
-
-.option-divider {
-  height: 1rpx;
-  background: rgba(210, 195, 196, 0.3);
-  margin: 0 24rpx;
 }
 
 .action-bar {

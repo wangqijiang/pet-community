@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&amp;family=Nunito+Sans:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e8e1e1",
+                        "on-tertiary-fixed": "#121e14",
+                        "inverse-surface": "#333030",
+                        "secondary-fixed": "#ede2c0",
+                        "outline-variant": "#d2c3c4",
+                        "background": "#fff8f7",
+                        "primary": "#71585c",
+                        "tertiary-fixed": "#d7e7d5",
+                        "on-secondary-fixed": "#201b06",
+                        "inverse-primary": "#dfbfc3",
+                        "on-tertiary-fixed-variant": "#3c4a3d",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#fff8f7",
+                        "inverse-on-surface": "#f6efef",
+                        "on-background": "#1e1b1b",
+                        "primary-fixed-dim": "#dfbfc3",
+                        "primary-fixed": "#fcdadf",
+                        "on-surface-variant": "#4f4446",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#795f64",
+                        "surface-dim": "#dfd8d8",
+                        "on-surface": "#1e1b1b",
+                        "on-tertiary-container": "#5b6a5c",
+                        "tertiary-fixed-dim": "#bbcbba",
+                        "on-secondary-fixed-variant": "#4d472e",
+                        "secondary-container": "#eadfbd",
+                        "surface": "#fff8f7",
+                        "on-primary-fixed-variant": "#584145",
+                        "surface-variant": "#e8e1e1",
+                        "primary-container": "#ffdde2",
+                        "surface-container": "#f3ecec",
+                        "surface-container-low": "#f9f2f2",
+                        "secondary": "#655e43",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#6a6347",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#71585c",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#daead8",
+                        "secondary-fixed-dim": "#d0c6a5",
+                        "on-primary-fixed": "#29161a",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#546254",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#eee6e6",
+                        "outline": "#807476"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-gap": "8px",
+                        "gutter-card": "12px",
+                        "margin-page": "20px",
+                        "unit": "4px",
+                        "padding-container": "16px"
+                    },
+                    "fontFamily": {
+                        "display-title": ["Quicksand"],
+                        "body-md": ["Nunito Sans"],
+                        "body-lg": ["Nunito Sans"],
+                        "label-caps": ["Plus Jakarta Sans"],
+                        "headline-md": ["Quicksand"]
+                    },
+                    "fontSize": {
+                        "display-title": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fff8f7; /* Milky background base */
+        }
+        .healing-shadow {
+            box-shadow: 0 8px 32px rgba(168, 155, 157, 0.12);
+        }
+        .bounce-hover:active {
+            transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-background selection:bg-primary-container">
+<!-- Top Navigation Shell -->
+<header class="sticky top-0 z-50 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-[0_8px_32px_rgba(168,155,157,0.12)]">
+<div class="flex justify-between items-center w-full px-5 py-4 max-w-md mx-auto">
+<button class="text-primary hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<h1 class="font-display-title text-display-title text-primary">我的宠物</h1>
+<button class="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-full font-label-caps text-label-caps flex items-center gap-1 hover:scale-105 transition-transform active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                添加
+            </button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="max-w-md mx-auto px-margin-page py-6 space-y-6">
+<!-- Welcome Section -->
+<section class="flex flex-col gap-1">
+<h2 class="font-headline-md text-headline-md text-on-surface">宠爱乐园</h2>
+<p class="font-body-md text-on-surface-variant">在这里记录宝贝们成长的每一个瞬间</p>
+</section>
+<!-- Pet List Grid -->
+<div class="grid grid-cols-1 gap-4">
+<!-- Pet Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-padding-container healing-shadow flex items-center gap-4 border border-outline-variant/10 hover:scale-[1.02] transition-transform cursor-pointer group">
+<div class="relative">
+<img alt="Cute Corgi Pet" class="w-20 h-20 rounded-xl object-cover" data-alt="A portrait of a fluffy, smiling Corgi dog with large expressive eyes and perky ears. The dog is positioned in a bright, airy living room with soft pastel-colored pillows in the background. The lighting is warm and golden, evoking a cozy 'healing' atmosphere. The image style is soft-focus with a clean, high-key aesthetic that matches the creamy pink UI palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMmXcenD7Vy5QjV1G_Xfi06jc81Yj88lORiEZbjjGYJpxAvIDZsNW6yqbtuORO1WkdL7Su7uobXV36nRKLAStG4Ml5z-LtZydoX6eRrV0LcTbxh3abh4oaJ88f-c78qkSB5pPbpp9hhDXOBHdCXiYr2gH96E6Hlk-PlzDv10lu3eAjH4NTqwsUN5CA7Xsf3kJw-g5mZW62CP2uF0ACl0weoZfPfUY_j3eo0S07Ajnb4nWbfxy_9_dFiwqtcTP1sj9CfZ5ZEDdJXxmR"/>
+<div class="absolute -bottom-1 -right-1 bg-tertiary-container text-on-tertiary-container rounded-full p-1 border-2 border-surface-container-lowest">
+<span class="material-symbols-outlined text-[14px]" data-icon="male" style="font-variation-settings: 'FILL' 1;">male</span>
+</div>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-headline-md text-primary">糯米 (Nuomi)</h3>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors" data-icon="edit">edit</span>
+</div>
+<div class="flex gap-2">
+<span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-lg font-label-caps text-[10px]">柯基</span>
+<span class="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">2岁</span>
+</div>
+</div>
+</div>
+<!-- Pet Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-padding-container healing-shadow flex items-center gap-4 border border-outline-variant/10 hover:scale-[1.02] transition-transform cursor-pointer group">
+<div class="relative">
+<img alt="Elegant White Cat" class="w-20 h-20 rounded-xl object-cover" data-alt="A close-up shot of a elegant white Persian cat sitting gracefully on a soft, knitted blanket. The scene is illuminated by gentle, diffused sunlight streaming through a window. The overall mood is peaceful and serene, emphasizing the 'healing' soft-ui theme. The background features subtle peach and cream tones that perfectly align with the brand's marshmallow aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDneJ5mqf9sduF26KfmBBTFnkg1XZoVEZwlUCqoWXsFn70dCuRmk0qEi03LWyqVA1PjrIYmb1LPLQEizRWDCspGqCHlmpiTewZQSNRz07XEXKZG2PZw68kWWsq9kfCR5FjpA5om26l1eRxh0hT2q8ylq6USyz_dV3m665vHCHADPSng-NFwk3HLWUx3qNV4Hgaq4GvXLz4OLolOpTzMHMyvO591eRYXkr87ikyAXLDkntBu4KNQbzHVtPSI9BauMMSPg3TnROk4m_GD"/>
+<div class="absolute -bottom-1 -right-1 bg-primary-fixed text-on-primary-fixed-variant rounded-full p-1 border-2 border-surface-container-lowest">
+<span class="material-symbols-outlined text-[14px]" data-icon="female" style="font-variation-settings: 'FILL' 1;">female</span>
+</div>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-headline-md text-primary">棉花糖 (Mallow)</h3>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors" data-icon="edit">edit</span>
+</div>
+<div class="flex gap-2">
+<span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-lg font-label-caps text-[10px]">波斯猫</span>
+<span class="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">1.5岁</span>
+</div>
+</div>
+</div>
+<!-- Pet Card 3 (Golden Retriever) -->
+<div class="bg-surface-container-lowest rounded-xl p-padding-container healing-shadow flex items-center gap-4 border border-outline-variant/10 hover:scale-[1.02] transition-transform cursor-pointer group">
+<div class="relative">
+<div class="w-20 h-20 rounded-xl bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container text-4xl" data-icon="paws">pets</span>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-tertiary-container text-on-tertiary-container rounded-full p-1 border-2 border-surface-container-lowest">
+<span class="material-symbols-outlined text-[14px]" data-icon="male" style="font-variation-settings: 'FILL' 1;">male</span>
+</div>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-headline-md text-primary">大金 (Golden)</h3>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors" data-icon="edit">edit</span>
+</div>
+<div class="flex gap-2">
+<span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-lg font-label-caps text-[10px]">金毛寻回犬</span>
+<span class="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded-lg font-label-caps text-[10px]">3岁</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State Hint -->
+<div class="py-10 flex flex-col items-center justify-center text-center opacity-40">
+<span class="material-symbols-outlined text-5xl mb-2 text-primary" data-icon="pets">pets</span>
+<p class="font-body-md">共有 3 位毛孩子</p>
+</div>
+</main>
+<!-- Floating Action for New Pet (Contextual FAB) -->
+<div class="fixed bottom-10 left-1/2 -translate-x-1/2 z-40">
+<button class="bg-primary text-on-primary px-8 py-3 rounded-full flex items-center gap-2 shadow-[0_12px_24px_rgba(113,88,92,0.3)] hover:scale-105 active:scale-95 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="add_circle" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="font-headline-md">新增爱宠</span>
+</button>
+</div>
+<!-- Heart Micro-interaction Ornament -->
+<div class="fixed top-24 right-4 pointer-events-none opacity-20">
+<span class="material-symbols-outlined text-primary text-xl animate-bounce" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</body></html>
