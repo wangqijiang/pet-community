@@ -1,6 +1,6 @@
 <template>
   <view class="profile-page">
-    <TopNavBar class="chat-nav" showBack title="个人资料编辑" />
+    <TopNavBar class="chat-nav" :showBack="true" title="个人资料编辑" />
     <!-- Main Content -->
     <scroll-view class="page-content" scroll-y>
       <!-- Avatar Upload Section -->
@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import TopNavBar from '@/components/common/TopNavBar.vue'
+import TopNavBar from "@/components/common/TopNavBar.vue";
 import { ref } from "vue";
 import Loading from "@/components/common/Loading.vue";
 
@@ -145,7 +145,7 @@ const saveProfile = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
+@import "@/styles/variables.scss";
 
 .profile-page {
   min-height: 100vh;

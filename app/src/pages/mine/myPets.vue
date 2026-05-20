@@ -1,6 +1,6 @@
 <template>
   <view class="my-pets-page">
-    <TopNavBar class="chat-nav" showBack title="我的宠物" />
+    <TopNavBar class="chat-nav" :showBack="true" title="我的宠物" />
     <!-- Main Content -->
     <scroll-view class="page-content" scroll-y>
       <!-- Welcome Section -->
@@ -11,17 +11,17 @@
 
       <!-- Pet List -->
       <view class="pet-list">
-        <view 
-          v-for="(pet, index) in pets" 
-          :key="index" 
+        <view
+          v-for="(pet, index) in pets"
+          :key="index"
           class="pet-card"
           @tap="goToPetDetail(pet)"
         >
           <view class="pet-avatar-wrapper">
-            <image 
-              v-if="pet.avatar" 
-              class="pet-avatar" 
-              :src="pet.avatar" 
+            <image
+              v-if="pet.avatar"
+              class="pet-avatar"
+              :src="pet.avatar"
               mode="aspectFill"
             />
             <view v-else class="pet-avatar-placeholder">
@@ -66,68 +66,70 @@
 </template>
 
 <script setup lang="ts">
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import { ref } from 'vue'
-import Loading from '@/components/common/Loading.vue'
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import { ref } from "vue";
+import Loading from "@/components/common/Loading.vue";
 
-const loading = ref(false)
+const loading = ref(false);
 
 const pets = ref([
   {
     id: 1,
-    name: '糯米 (Nuomi)',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDMmXcenD7Vy5QjV1G_Xfi06jc81Yj88lORiEZbjjGYJpxAvIDZsNW6yqbtuORO1WkdL7Su7uobXV36nRKLAStG4Ml5z-LtZydoX6eRrV0LcTbxh3abh4oaJ88f-c78qkSB5pPbpp9hhDXOBHdCXiYr2gH96E6Hlk-PlzDv10lu3eAjH4NTqwsUN5CA7Xsf3kJw-g5mZW62CP2uF0ACl0weoZfPfUY_j3eo0S07Ajnb4nWbfxy_9_dFiwqtcTP1sj9CfZ5ZEDdJXxmR',
-    breed: '柯基',
-    age: '2岁',
-    gender: 'male'
+    name: "糯米 (Nuomi)",
+    avatar:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuDMmXcenD7Vy5QjV1G_Xfi06jc81Yj88lORiEZbjjGYJpxAvIDZsNW6yqbtuORO1WkdL7Su7uobXV36nRKLAStG4Ml5z-LtZydoX6eRrV0LcTbxh3abh4oaJ88f-c78qkSB5pPbpp9hhDXOBHdCXiYr2gH96E6Hlk-PlzDv10lu3eAjH4NTqwsUN5CA7Xsf3kJw-g5mZW62CP2uF0ACl0weoZfPfUY_j3eo0S07Ajnb4nWbfxy_9_dFiwqtcTP1sj9CfZ5ZEDdJXxmR",
+    breed: "柯基",
+    age: "2岁",
+    gender: "male",
   },
   {
     id: 2,
-    name: '棉花糖 (Mallow)',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDneJ5mqf9sduF26KfmBBTFnkg1XZoVEZwlUCqoWXsFn70dCuRmk0qEi03LWyqVA1PjrIYmb1LPLQEizRWDCspGqCHlmpiTewZQSNRz07XEXKZG2PZw68kWWsq9kfCR5FjpA5om26l1eRxh0hT2q8ylq6USyz_dV3m665vHCHADPSng-NFwk3HLWUx3qNV4Hgaq4GvXLz4OLolOpTzMHMyvO591eRYXkr87ikyAXLDkntBu4KNQbzHVtPSI9BauMMSPg3TnROk4m_GD',
-    breed: '波斯猫',
-    age: '1.5岁',
-    gender: 'female'
+    name: "棉花糖 (Mallow)",
+    avatar:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuDneJ5mqf9sduF26KfmBBTFnkg1XZoVEZwlUCqoWXsFn70dCuRmk0qEi03LWyqVA1PjrIYmb1LPLQEizRWDCspGqCHlmpiTewZQSNRz07XEXKZG2PZw68kWWsq9kfCR5FjpA5om26l1eRxh0hT2q8ylq6USyz_dV3m665vHCHADPSng-NFwk3HLWUx3qNV4Hgaq4GvXLz4OLolOpTzMHMyvO591eRYXkr87ikyAXLDkntBu4KNQbzHVtPSI9BauMMSPg3TnROk4m_GD",
+    breed: "波斯猫",
+    age: "1.5岁",
+    gender: "female",
   },
   {
     id: 3,
-    name: '大金 (Golden)',
-    avatar: '',
-    breed: '金毛寻回犬',
-    age: '3岁',
-    gender: 'male'
-  }
-])
+    name: "大金 (Golden)",
+    avatar: "",
+    breed: "金毛寻回犬",
+    age: "3岁",
+    gender: "male",
+  },
+]);
 
 const goBack = () => {
-  uni.vibrateShort({ type: 'light' })
-  uni.navigateBack()
-}
+  uni.vibrateShort({ type: "light" });
+  uni.navigateBack();
+};
 
 const goToAddPet = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.navigateTo({
-    url: '/pages/mine/addPet'
-  })
-}
+    url: "/pages/mine/addPet",
+  });
+};
 
 const goToPetDetail = (pet) => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.navigateTo({
-    url: `/pages/mine/addPet?id=${pet.id}`
-  })
-}
+    url: `/pages/mine/addPet?id=${pet.id}`,
+  });
+};
 
 const editPet = (pet) => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.navigateTo({
-    url: `/pages/mine/addPet?id=${pet.id}`
-  })
-}
+    url: `/pages/mine/addPet?id=${pet.id}`,
+  });
+};
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
+@import "@/styles/variables.scss";
 
 .my-pets-page {
   min-height: 100vh;
@@ -207,7 +209,8 @@ const editPet = (pet) => {
 .placeholder-icon {
   width: 80rpx;
   height: 80rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.81-1.6 4.6-1.88 5.12-1.89.11 0 .37.03.53.18.14.12.18.28.2.45-.01.06.01.24 0 .38z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.81-1.6 4.6-1.88 5.12-1.89.11 0 .37.03.53.18.14.12.18.28.2.45-.01.06.01.24 0 .38z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 
@@ -237,12 +240,14 @@ const editPet = (pet) => {
   height: 28rpx;
 
   &.male {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23546254'%3E%3Cpath d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23546254'%3E%3Cpath d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E")
+      no-repeat center;
     background-size: 100%;
   }
 
   &.female {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm3-7a1 1 0 11-2 0 1 1 0 012 0zm-3 3a1 1 0 01-1-1v-3a1 1 0 012 0v3a1 1 0 01-1 1z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm3-7a1 1 0 11-2 0 1 1 0 012 0zm-3 3a1 1 0 01-1-1v-3a1 1 0 012 0v3a1 1 0 01-1 1z'/%3E%3C/svg%3E")
+      no-repeat center;
     background-size: 100%;
   }
 }
@@ -282,7 +287,8 @@ const editPet = (pet) => {
 .edit-icon {
   width: 32rpx;
   height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 
@@ -322,7 +328,8 @@ const editPet = (pet) => {
 .empty-icon {
   width: 120rpx;
   height: 120rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.81-1.6 4.6-1.88 5.12-1.89.11 0 .37.03.53.18.14.12.18.28.2.45-.01.06.01.24 0 .38z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.81-1.6 4.6-1.88 5.12-1.89.11 0 .37.03.53.18.14.12.18.28.2.45-.01.06.01.24 0 .38z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
   margin-bottom: 16rpx;
 }
@@ -359,7 +366,8 @@ const editPet = (pet) => {
 .fab-icon {
   width: 40rpx;
   height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 

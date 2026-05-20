@@ -1,6 +1,6 @@
 <template>
   <view class="user-profile-page">
-    <TopNavBar title="用户主页" showBack />
+    <TopNavBar title="用户主页" :showBack="true" />
 
     <view class="page-content">
       <scroll-view class="content-scroll" scroll-y>
@@ -101,7 +101,9 @@
                 mode="aspectFill"
               ></image>
               <view class="feed-info">
-                <text class="feed-content">今天也是被小家伙治愈的一天呢，哪怕是拆家也舍不得骂它...</text>
+                <text class="feed-content"
+                  >今天也是被小家伙治愈的一天呢，哪怕是拆家也舍不得骂它...</text
+                >
                 <view class="feed-stats">
                   <view class="feed-stat">
                     <view class="like-icon filled"></view>
@@ -121,7 +123,9 @@
                 mode="aspectFill"
               ></image>
               <view class="feed-info">
-                <text class="feed-content">带柯基去草地撒欢，这小短腿跑起来太带感了！</text>
+                <text class="feed-content"
+                  >带柯基去草地撒欢，这小短腿跑起来太带感了！</text
+                >
                 <view class="feed-stats">
                   <view class="feed-stat">
                     <view class="like-icon"></view>
@@ -145,39 +149,39 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import TabBar from '@/components/common/TabBar.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref, onMounted } from "vue";
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import TabBar from "@/components/common/TabBar.vue";
+import Loading from "@/components/common/Loading.vue";
 
-const loading = ref(false)
+const loading = ref(false);
 
 onMounted(() => {
-  loadUserProfile()
-})
+  loadUserProfile();
+});
 
 const loadUserProfile = () => {
-  loading.value = true
+  loading.value = true;
   setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
+    loading.value = false;
+  }, 1000);
+};
 
 const handleFollow = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.showToast({
-    title: '已取消关注',
-    icon: 'success'
-  })
-}
+    title: "已取消关注",
+    icon: "success",
+  });
+};
 
 const sendMessage = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.showToast({
-    title: '私信功能开发中',
-    icon: 'none'
-  })
-}
+    title: "私信功能开发中",
+    icon: "none",
+  });
+};
 </script>
 
 <style lang="scss" scoped>
@@ -239,7 +243,8 @@ const sendMessage = () => {
 .pet-icon {
   width: 32rpx;
   height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 
@@ -308,14 +313,16 @@ const sendMessage = () => {
 .check-icon {
   width: 32rpx;
   height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 
 .message-icon {
   width: 32rpx;
   height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236a6347'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236a6347'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 
@@ -515,11 +522,13 @@ const sendMessage = () => {
 .like-icon {
   width: 32rpx;
   height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 
   &.filled {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B8A'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B8A'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
+      no-repeat center;
     background-size: 100%;
   }
 }
@@ -527,7 +536,8 @@ const sendMessage = () => {
 .comment-icon {
   width: 32rpx;
   height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 

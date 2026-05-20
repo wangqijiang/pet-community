@@ -365,7 +365,7 @@ const handleShare = () => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 8rpx 24rpx rgba(113, 88, 92, 0.3);
-  z-index: 40;
+  z-index: 9999;
 
   &:active {
     transform: scale(1);

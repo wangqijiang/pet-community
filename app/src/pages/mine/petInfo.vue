@@ -1,12 +1,17 @@
 <template>
   <view class="pet-info-page">
-    <TopNavBar title="宠物信息" />
+    <TopNavBar title="宠物信息" :showBack="true" />
 
     <view class="page-content">
       <scroll-view class="form-scroll" scroll-y>
         <!-- 宠物头像 -->
         <view class="avatar-section">
-          <image class="pet-avatar" :src="formData.avatar" mode="aspectFill" @tap="chooseAvatar"></image>
+          <image
+            class="pet-avatar"
+            :src="formData.avatar"
+            mode="aspectFill"
+            @tap="chooseAvatar"
+          ></image>
           <text class="avatar-tip">点击更换头像</text>
         </view>
 
@@ -25,8 +30,12 @@
         <view class="form-item" @tap="showBreedPicker">
           <text class="item-label">品种</text>
           <view class="item-value">
-            <text class="value-text">{{ formData.breed || '请选择' }}</text>
-            <image class="arrow-icon" src="/static/images/icon-arrow-right.png" mode="aspectFit"></image>
+            <text class="value-text">{{ formData.breed || "请选择" }}</text>
+            <image
+              class="arrow-icon"
+              src="/static/images/icon-arrow-right.png"
+              mode="aspectFit"
+            ></image>
           </view>
         </view>
 
@@ -34,8 +43,12 @@
         <view class="form-item" @tap="showGenderPicker">
           <text class="item-label">性别</text>
           <view class="item-value">
-            <text class="value-text">{{ formData.gender || '请选择' }}</text>
-            <image class="arrow-icon" src="/static/images/icon-arrow-right.png" mode="aspectFit"></image>
+            <text class="value-text">{{ formData.gender || "请选择" }}</text>
+            <image
+              class="arrow-icon"
+              src="/static/images/icon-arrow-right.png"
+              mode="aspectFit"
+            ></image>
           </view>
         </view>
 
@@ -43,8 +56,12 @@
         <view class="form-item" @tap="showDatePicker">
           <text class="item-label">生日</text>
           <view class="item-value">
-            <text class="value-text">{{ formData.birthday || '请选择' }}</text>
-            <image class="arrow-icon" src="/static/images/icon-arrow-right.png" mode="aspectFit"></image>
+            <text class="value-text">{{ formData.birthday || "请选择" }}</text>
+            <image
+              class="arrow-icon"
+              src="/static/images/icon-arrow-right.png"
+              mode="aspectFit"
+            ></image>
           </view>
         </view>
 
@@ -67,7 +84,7 @@
               v-for="tag in characterTags"
               :key="tag"
               class="tag-item"
-              :class="{ 'active': formData.character.includes(tag) }"
+              :class="{ active: formData.character.includes(tag) }"
               @tap="toggleTag(tag)"
             >
               <text class="tag-text">{{ tag }}</text>
@@ -104,131 +121,158 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref } from "vue";
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import Loading from "@/components/common/Loading.vue";
 
-const loading = ref(false)
-const isEdit = ref(true)
+const loading = ref(false);
+const isEdit = ref(true);
 
-const characterTags = ['活泼', '温顺', '粘人', '独立', '聪明', '调皮', '安静', '友好']
+const characterTags = [
+  "活泼",
+  "温顺",
+  "粘人",
+  "独立",
+  "聪明",
+  "调皮",
+  "安静",
+  "友好",
+];
 
 const formData = ref({
-  avatar: '/static/images/avatar-default.png',
-  name: '旺财',
-  breed: '金毛',
-  gender: '公',
-  birthday: '2020-01-01',
-  weight: '30',
-  character: ['活泼', '聪明', '友好'],
-  bio: '一只可爱的金毛'
-})
+  avatar: "/static/images/avatar-default.png",
+  name: "旺财",
+  breed: "金毛",
+  gender: "公",
+  birthday: "2020-01-01",
+  weight: "30",
+  character: ["活泼", "聪明", "友好"],
+  bio: "一只可爱的金毛",
+});
 
 const chooseAvatar = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.chooseImage({
     count: 1,
-    sizeType: ['compressed'],
-    sourceType: ['album', 'camera'],
+    sizeType: ["compressed"],
+    sourceType: ["album", "camera"],
     success: (res) => {
-      formData.value.avatar = res.tempFilePaths[0]
-    }
-  })
-}
+      formData.value.avatar = res.tempFilePaths[0];
+    },
+  });
+};
 
 const showBreedPicker = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.showActionSheet({
-    itemList: ['金毛', '哈士奇', '泰迪', '柯基', '萨摩耶', '边牧', '拉布拉多', '其他'],
+    itemList: [
+      "金毛",
+      "哈士奇",
+      "泰迪",
+      "柯基",
+      "萨摩耶",
+      "边牧",
+      "拉布拉多",
+      "其他",
+    ],
     success: (res) => {
-      const breeds = ['金毛', '哈士奇', '泰迪', '柯基', '萨摩耶', '边牧', '拉布拉多', '其他']
-      formData.value.breed = breeds[res.tapIndex]
-    }
-  })
-}
+      const breeds = [
+        "金毛",
+        "哈士奇",
+        "泰迪",
+        "柯基",
+        "萨摩耶",
+        "边牧",
+        "拉布拉多",
+        "其他",
+      ];
+      formData.value.breed = breeds[res.tapIndex];
+    },
+  });
+};
 
 const showGenderPicker = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.showActionSheet({
-    itemList: ['公', '母'],
+    itemList: ["公", "母"],
     success: (res) => {
-      const genders = ['公', '母']
-      formData.value.gender = genders[res.tapIndex]
-    }
-  })
-}
+      const genders = ["公", "母"];
+      formData.value.gender = genders[res.tapIndex];
+    },
+  });
+};
 
 const showDatePicker = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.showToast({
-    title: '日期选择功能开发中',
-    icon: 'none'
-  })
-}
+    title: "日期选择功能开发中",
+    icon: "none",
+  });
+};
 
 const toggleTag = (tag) => {
-  uni.vibrateShort({ type: 'light' })
-  const index = formData.value.character.indexOf(tag)
+  uni.vibrateShort({ type: "light" });
+  const index = formData.value.character.indexOf(tag);
   if (index > -1) {
-    formData.value.character.splice(index, 1)
+    formData.value.character.splice(index, 1);
   } else {
     if (formData.value.character.length < 5) {
-      formData.value.character.push(tag)
+      formData.value.character.push(tag);
     } else {
       uni.showToast({
-        title: '最多选择5个标签',
-        icon: 'none'
-      })
+        title: "最多选择5个标签",
+        icon: "none",
+      });
     }
   }
-}
+};
 
 const handleSave = () => {
   if (!formData.value.name.trim()) {
     uni.showToast({
-      title: '请输入宠物名字',
-      icon: 'none'
-    })
-    return
+      title: "请输入宠物名字",
+      icon: "none",
+    });
+    return;
   }
 
-  uni.vibrateShort({ type: 'medium' })
-  loading.value = true
+  uni.vibrateShort({ type: "medium" });
+  loading.value = true;
 
   setTimeout(() => {
-    loading.value = false
+    loading.value = false;
     uni.showToast({
-      title: '保存成功',
-      icon: 'success'
-    })
+      title: "保存成功",
+      icon: "success",
+    });
     setTimeout(() => {
-      uni.navigateBack()
-    }, 1500)
-  }, 1500)
-}
+      uni.navigateBack();
+    }, 1500);
+  }, 1500);
+};
 
 const handleDelete = () => {
-  uni.vibrateShort({ type: 'medium' })
+  uni.vibrateShort({ type: "medium" });
   uni.showModal({
-    title: '提示',
-    content: '确定要删除这个宠物信息吗？',
+    title: "提示",
+    content: "确定要删除这个宠物信息吗？",
     success: (res) => {
       if (res.confirm) {
         uni.showToast({
-          title: '删除成功',
-          icon: 'success'
-        })
+          title: "删除成功",
+          icon: "success",
+        });
         setTimeout(() => {
-          uni.navigateBack()
-        }, 1500)
+          uni.navigateBack();
+        }, 1500);
       }
-    }
-  })
-}
+    },
+  });
+};
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
+@import "@/styles/variables.scss";
 
 .pet-info-page {
   width: 100%;
@@ -330,7 +374,7 @@ const handleDelete = () => {
       transition: all $transition-base ease;
 
       &.active {
-        background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
+        background: linear-gradient(135deg, $color-primary 0%, #ffd4f0 100%);
         border-color: $color-primary;
 
         .tag-text {
@@ -370,7 +414,7 @@ const handleDelete = () => {
   margin-top: $spacing-component;
   height: $button-height-large;
   background: $color-bg-white;
-  border: $border-width solid #FF4D4F;
+  border: $border-width solid #ff4d4f;
   border-radius: $border-radius-base;
   display: flex;
   align-items: center;
@@ -384,14 +428,14 @@ const handleDelete = () => {
   .btn-text {
     font-size: $font-size-button;
     font-weight: $font-weight-bold;
-    color: #FF4D4F;
+    color: #ff4d4f;
   }
 }
 
 .save-btn {
   margin: $spacing-page-horizontal;
   height: $button-height-large;
-  background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
+  background: linear-gradient(135deg, $color-primary 0%, #ffd4f0 100%);
   border-radius: $border-radius-base;
   display: flex;
   align-items: center;

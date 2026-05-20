@@ -1,22 +1,25 @@
 <template>
   <view class="chat-container">
-    <TopNavBar class="chat-nav" showBack :title="friendName" />
-    
-    <scroll-view 
-      scroll-y 
+    <TopNavBar class="chat-nav" :showBack="true" :title="friendName" />
+
+    <scroll-view
+      scroll-y
       class="chat-content"
       :scroll-into-view="scrollToId"
       scroll-with-animation
     >
-      <view 
-        v-for="(msg, index) in messages" 
+      <view
+        v-for="(msg, index) in messages"
         :key="index"
         :id="'msg-' + index"
         class="message-bubble"
         :class="{ 'is-me': msg.isMe }"
       >
         <view class="bubble-avatar">
-          <view class="avatar-bg" :style="{ background: msg.isMe ? '#FFC1E9' : msg.avatarColor }"></view>
+          <view
+            class="avatar-bg"
+            :style="{ background: msg.isMe ? '#FFC1E9' : msg.avatarColor }"
+          ></view>
         </view>
         <view class="bubble-content">
           <text class="bubble-text">{{ msg.content }}</text>
@@ -24,7 +27,7 @@
         </view>
       </view>
     </scroll-view>
-    
+
     <view class="chat-input">
       <view class="input-tools">
         <view class="tool-item">
@@ -35,13 +38,17 @@
         </view>
       </view>
       <view class="input-area">
-        <input 
+        <input
           v-model="inputText"
           class="input-field"
           placeholder="输入消息..."
           placeholder-class="input-placeholder"
         />
-        <view class="send-btn" :class="{ active: inputText.trim() }" @click="sendMessage">
+        <view
+          class="send-btn"
+          :class="{ active: inputText.trim() }"
+          @click="sendMessage"
+        >
           <text class="send-text">发送</text>
         </view>
       </view>
@@ -50,61 +57,119 @@
 </template>
 
 <script setup lang="ts">
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import { ref, watch, onMounted } from 'vue'
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import { ref, watch, onMounted } from "vue";
 
-const friendName = ref('小明')
-const inputText = ref('')
-const scrollToId = ref('')
+const friendName = ref("小明");
+const inputText = ref("");
+const scrollToId = ref("");
 
 const messages = ref([
-  { id: 1, content: '你好！', time: '10:00', isMe: false, avatarColor: '#FFC1E9' },
-  { id: 2, content: '你好呀！', time: '10:01', isMe: true, avatarColor: '#FFC1E9' },
-  { id: 3, content: '今天天气不错，要不要一起遛狗？', time: '10:02', isMe: false, avatarColor: '#FFC1E9' },
-  { id: 4, content: '好呀！去哪里呢？', time: '10:03', isMe: true, avatarColor: '#FFC1E9' },
-  { id: 5, content: '中央公园吧，那边草坪大', time: '10:05', isMe: false, avatarColor: '#FFC1E9' },
-  { id: 6, content: '可以，几点？', time: '10:06', isMe: true, avatarColor: '#FFC1E9' },
-  { id: 7, content: '下午3点怎么样？', time: '10:08', isMe: false, avatarColor: '#FFC1E9' },
-  { id: 8, content: '没问题，到时见！', time: '10:10', isMe: true, avatarColor: '#FFC1E9' }
-])
+  {
+    id: 1,
+    content: "你好！",
+    time: "10:00",
+    isMe: false,
+    avatarColor: "#FFC1E9",
+  },
+  {
+    id: 2,
+    content: "你好呀！",
+    time: "10:01",
+    isMe: true,
+    avatarColor: "#FFC1E9",
+  },
+  {
+    id: 3,
+    content: "今天天气不错，要不要一起遛狗？",
+    time: "10:02",
+    isMe: false,
+    avatarColor: "#FFC1E9",
+  },
+  {
+    id: 4,
+    content: "好呀！去哪里呢？",
+    time: "10:03",
+    isMe: true,
+    avatarColor: "#FFC1E9",
+  },
+  {
+    id: 5,
+    content: "中央公园吧，那边草坪大",
+    time: "10:05",
+    isMe: false,
+    avatarColor: "#FFC1E9",
+  },
+  {
+    id: 6,
+    content: "可以，几点？",
+    time: "10:06",
+    isMe: true,
+    avatarColor: "#FFC1E9",
+  },
+  {
+    id: 7,
+    content: "下午3点怎么样？",
+    time: "10:08",
+    isMe: false,
+    avatarColor: "#FFC1E9",
+  },
+  {
+    id: 8,
+    content: "没问题，到时见！",
+    time: "10:10",
+    isMe: true,
+    avatarColor: "#FFC1E9",
+  },
+]);
 
 const sendMessage = () => {
-  if (!inputText.value.trim()) return
-  
+  if (!inputText.value.trim()) return;
+
   messages.value.push({
     id: messages.value.length + 1,
     content: inputText.value,
-    time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+    time: new Date().toLocaleTimeString("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     isMe: true,
-    avatarColor: '#FFC1E9'
-  })
-  
-  inputText.value = ''
-  
+    avatarColor: "#FFC1E9",
+  });
+
+  inputText.value = "";
+
   setTimeout(() => {
     messages.value.push({
       id: messages.value.length + 1,
-      content: '好的，不见不散！',
-      time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      content: "好的，不见不散！",
+      time: new Date().toLocaleTimeString("zh-CN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       isMe: false,
-      avatarColor: '#FFC1E9'
-    })
-  }, 1000)
-}
+      avatarColor: "#FFC1E9",
+    });
+  }, 1000);
+};
 
-watch(messages, () => {
-  setTimeout(() => {
-    scrollToId.value = 'msg-' + (messages.value.length - 1)
-  }, 100)
-}, { deep: true })
+watch(
+  messages,
+  () => {
+    setTimeout(() => {
+      scrollToId.value = "msg-" + (messages.value.length - 1);
+    }, 100);
+  },
+  { deep: true },
+);
 
 onMounted(() => {
-  scrollToId.value = 'msg-' + (messages.value.length - 1)
-})
+  scrollToId.value = "msg-" + (messages.value.length - 1);
+});
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
+@import "@/styles/variables.scss";
 
 .chat-container {
   min-height: 100vh;
@@ -123,23 +188,24 @@ onMounted(() => {
 .message-bubble {
   display: flex;
   margin-bottom: 24rpx;
-  
+
   &.is-me {
     flex-direction: row-reverse;
-    
+
     .bubble-content {
       background: $color-primary;
-      border-radius: $border-radius-large $border-radius-small $border-radius-large $border-radius-large;
-      
+      border-radius: $border-radius-large $border-radius-small
+        $border-radius-large $border-radius-large;
+
       .bubble-text {
         color: $color-bg-white;
       }
-      
+
       .bubble-time {
         color: rgba(255, 255, 255, 0.8);
       }
     }
-    
+
     .bubble-avatar {
       background: $color-primary-light;
     }
@@ -164,7 +230,8 @@ onMounted(() => {
 .bubble-content {
   max-width: 70%;
   background: $color-bg-white;
-  border-radius: $border-radius-small $border-radius-large $border-radius-large $border-radius-large;
+  border-radius: $border-radius-small $border-radius-large $border-radius-large
+    $border-radius-large;
   padding: 20rpx;
   margin: 0 16rpx;
   border: 2rpx solid rgba(113, 88, 92, 0.1);
@@ -204,7 +271,7 @@ onMounted(() => {
 .tool-item {
   width: 56rpx;
   height: 56rpx;
-  
+
   &:active {
     opacity: 0.7;
   }
@@ -213,17 +280,18 @@ onMounted(() => {
 .tool-icon {
   width: 100%;
   height: 100%;
-  
+
   &.icon-emoji {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E")
+      no-repeat center;
     background-size: 100%;
   }
-  
+
   &.icon-image {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E")
+      no-repeat center;
     background-size: 100%;
   }
-  
 }
 
 .input-area {
@@ -249,15 +317,15 @@ onMounted(() => {
   padding: 16rpx 32rpx;
   background: rgba(113, 88, 92, 0.1);
   border-radius: 36rpx;
-  
+
   &.active {
     background: $color-primary;
-    
+
     .send-text {
       color: $color-bg-white;
     }
   }
-  
+
   &:active {
     transform: scale(1);
   }

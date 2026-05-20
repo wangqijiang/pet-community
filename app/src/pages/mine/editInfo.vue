@@ -1,6 +1,6 @@
 <template>
   <view class="edit-info-page">
-    <TopNavBar title="编辑资料" />
+    <TopNavBar title="编辑资料" :showBack="true" />
 
     <view class="page-content">
       <scroll-view class="form-scroll" scroll-y>
@@ -8,8 +8,16 @@
         <view class="form-item" @tap="chooseAvatar">
           <text class="item-label">头像</text>
           <view class="item-value">
-            <image class="avatar-preview" :src="formData.avatar" mode="aspectFill"></image>
-            <image class="arrow-icon" src="/static/images/icon-arrow-right.png" mode="aspectFit"></image>
+            <image
+              class="avatar-preview"
+              :src="formData.avatar"
+              mode="aspectFill"
+            ></image>
+            <image
+              class="arrow-icon"
+              src="/static/images/icon-arrow-right.png"
+              mode="aspectFit"
+            ></image>
           </view>
         </view>
 
@@ -28,8 +36,12 @@
         <view class="form-item" @tap="showGenderPicker">
           <text class="item-label">性别</text>
           <view class="item-value">
-            <text class="value-text">{{ formData.gender || '请选择' }}</text>
-            <image class="arrow-icon" src="/static/images/icon-arrow-right.png" mode="aspectFit"></image>
+            <text class="value-text">{{ formData.gender || "请选择" }}</text>
+            <image
+              class="arrow-icon"
+              src="/static/images/icon-arrow-right.png"
+              mode="aspectFit"
+            ></image>
           </view>
         </view>
 
@@ -37,8 +49,12 @@
         <view class="form-item" @tap="showDatePicker">
           <text class="item-label">生日</text>
           <view class="item-value">
-            <text class="value-text">{{ formData.birthday || '请选择' }}</text>
-            <image class="arrow-icon" src="/static/images/icon-arrow-right.png" mode="aspectFit"></image>
+            <text class="value-text">{{ formData.birthday || "请选择" }}</text>
+            <image
+              class="arrow-icon"
+              src="/static/images/icon-arrow-right.png"
+              mode="aspectFit"
+            ></image>
           </view>
         </view>
 
@@ -46,8 +62,12 @@
         <view class="form-item" @tap="showRegionPicker">
           <text class="item-label">地区</text>
           <view class="item-value">
-            <text class="value-text">{{ formData.region || '请选择' }}</text>
-            <image class="arrow-icon" src="/static/images/icon-arrow-right.png" mode="aspectFit"></image>
+            <text class="value-text">{{ formData.region || "请选择" }}</text>
+            <image
+              class="arrow-icon"
+              src="/static/images/icon-arrow-right.png"
+              mode="aspectFit"
+            ></image>
           </view>
         </view>
 
@@ -75,89 +95,89 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref } from "vue";
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import Loading from "@/components/common/Loading.vue";
 
-const loading = ref(false)
+const loading = ref(false);
 
 const formData = ref({
-  avatar: '/static/images/avatar-default.png',
-  nickname: '我的昵称',
-  gender: '男',
-  birthday: '1990-01-01',
-  region: '北京市 朝阳区',
-  bio: '这是一段个人简介'
-})
+  avatar: "/static/images/avatar-default.png",
+  nickname: "我的昵称",
+  gender: "男",
+  birthday: "1990-01-01",
+  region: "北京市 朝阳区",
+  bio: "这是一段个人简介",
+});
 
 const chooseAvatar = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.chooseImage({
     count: 1,
-    sizeType: ['compressed'],
-    sourceType: ['album', 'camera'],
+    sizeType: ["compressed"],
+    sourceType: ["album", "camera"],
     success: (res) => {
-      formData.value.avatar = res.tempFilePaths[0]
-    }
-  })
-}
+      formData.value.avatar = res.tempFilePaths[0];
+    },
+  });
+};
 
 const showGenderPicker = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.showActionSheet({
-    itemList: ['男', '女', '保密'],
+    itemList: ["男", "女", "保密"],
     success: (res) => {
-      const genders = ['男', '女', '保密']
-      formData.value.gender = genders[res.tapIndex]
-    }
-  })
-}
+      const genders = ["男", "女", "保密"];
+      formData.value.gender = genders[res.tapIndex];
+    },
+  });
+};
 
 const showDatePicker = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   // 实际项目中应使用日期选择器组件
   uni.showToast({
-    title: '日期选择功能开发中',
-    icon: 'none'
-  })
-}
+    title: "日期选择功能开发中",
+    icon: "none",
+  });
+};
 
 const showRegionPicker = () => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   // 实际项目中应使用地区选择器组件
   uni.showToast({
-    title: '地区选择功能开发中',
-    icon: 'none'
-  })
-}
+    title: "地区选择功能开发中",
+    icon: "none",
+  });
+};
 
 const handleSave = () => {
   if (!formData.value.nickname.trim()) {
     uni.showToast({
-      title: '请输入昵称',
-      icon: 'none'
-    })
-    return
+      title: "请输入昵称",
+      icon: "none",
+    });
+    return;
   }
 
-  uni.vibrateShort({ type: 'medium' })
-  loading.value = true
+  uni.vibrateShort({ type: "medium" });
+  loading.value = true;
 
   setTimeout(() => {
-    loading.value = false
+    loading.value = false;
     uni.showToast({
-      title: '保存成功',
-      icon: 'success'
-    })
+      title: "保存成功",
+      icon: "success",
+    });
     setTimeout(() => {
-      uni.navigateBack()
-    }, 1500)
-  }, 1500)
-}
+      uni.navigateBack();
+    }, 1500);
+  }, 1500);
+};
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
+@import "@/styles/variables.scss";
 
 .edit-info-page {
   width: 100%;
@@ -252,7 +272,7 @@ const handleSave = () => {
 .save-btn {
   margin: $spacing-page-horizontal;
   height: $button-height-large;
-  background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
+  background: linear-gradient(135deg, $color-primary 0%, #ffd4f0 100%);
   border-radius: $border-radius-base;
   display: flex;
   align-items: center;

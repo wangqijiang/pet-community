@@ -1,6 +1,6 @@
 <template>
   <view class="follow-page">
-    <TopNavBar title="关注列表" />
+    <TopNavBar title="关注列表" :showBack="true" />
 
     <view class="page-content">
       <scroll-view
@@ -13,9 +13,9 @@
         <!-- 搜索框 -->
         <view class="search-bar">
           <view class="search-icon"></view>
-          <input 
-            class="search-input" 
-            placeholder="搜索关注的人..." 
+          <input
+            class="search-input"
+            placeholder="搜索关注的人..."
             placeholder-class="search-placeholder"
             v-model="searchText"
           />
@@ -31,7 +31,11 @@
           >
             <view class="user-left">
               <view class="avatar-wrapper">
-                <image class="user-avatar" :src="user.avatar" mode="aspectFill"></image>
+                <image
+                  class="user-avatar"
+                  :src="user.avatar"
+                  mode="aspectFill"
+                ></image>
               </view>
               <view class="user-info">
                 <view class="user-name-row">
@@ -43,12 +47,14 @@
                 <text class="user-desc">{{ user.desc }}</text>
               </view>
             </view>
-            <view 
-              class="action-btn" 
-              :class="{ 'unfollow': user.isFollowed }"
+            <view
+              class="action-btn"
+              :class="{ unfollow: user.isFollowed }"
               @tap.stop="handleUnfollow(user)"
             >
-              <text class="btn-text">{{ user.isFollowed ? '已关注' : '关注' }}</text>
+              <text class="btn-text">{{
+                user.isFollowed ? "已关注" : "关注"
+              }}</text>
             </view>
           </view>
         </view>
@@ -67,97 +73,97 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import TabBar from '@/components/common/TabBar.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref, onMounted } from "vue";
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import TabBar from "@/components/common/TabBar.vue";
+import Loading from "@/components/common/Loading.vue";
 
-const loading = ref(false)
-const searchText = ref('')
+const loading = ref(false);
+const searchText = ref("");
 
 const userList = ref([
   {
     id: 1,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '豆包妈',
+    avatar: "/static/images/avatar-default.png",
+    nickname: "豆包妈",
     level: 8,
-    levelClass: 'level-tertiary',
-    desc: '家里有三只可爱的小柴~',
-    isFollowed: true
+    levelClass: "level-tertiary",
+    desc: "家里有三只可爱的小柴~",
+    isFollowed: true,
   },
   {
     id: 2,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '汪汪特工队',
+    avatar: "/static/images/avatar-default.png",
+    nickname: "汪汪特工队",
     level: 5,
-    levelClass: 'level-secondary',
-    desc: '专业训犬日常分享',
-    isFollowed: true
+    levelClass: "level-secondary",
+    desc: "专业训犬日常分享",
+    isFollowed: true,
   },
   {
     id: 3,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '大金毛嘟嘟',
+    avatar: "/static/images/avatar-default.png",
+    nickname: "大金毛嘟嘟",
     level: 12,
-    levelClass: 'level-primary',
-    desc: '一个温暖的大个子~',
-    isFollowed: true
+    levelClass: "level-primary",
+    desc: "一个温暖的大个子~",
+    isFollowed: true,
   },
   {
     id: 4,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '法斗皮皮',
+    avatar: "/static/images/avatar-default.png",
+    nickname: "法斗皮皮",
     level: 3,
-    levelClass: 'level-tertiary',
-    desc: '丑萌天花板代言人',
-    isFollowed: true
-  }
-])
+    levelClass: "level-tertiary",
+    desc: "丑萌天花板代言人",
+    isFollowed: true,
+  },
+]);
 
 onMounted(() => {
-  loadFollowList()
-})
+  loadFollowList();
+});
 
 const loadFollowList = () => {
-  loading.value = true
+  loading.value = true;
   setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
+    loading.value = false;
+  }, 1000);
+};
 
 const onRefresh = () => {
-  loadFollowList()
-}
+  loadFollowList();
+};
 
 const loadMore = () => {
-  console.log('Load more')
-}
+  console.log("Load more");
+};
 
 const handleUnfollow = (user) => {
-  uni.vibrateShort({ type: 'medium' })
+  uni.vibrateShort({ type: "medium" });
   uni.showModal({
-    title: '提示',
+    title: "提示",
     content: `确定取消关注 ${user.nickname} 吗？`,
     success: (res) => {
       if (res.confirm) {
-        const index = userList.value.findIndex(u => u.id === user.id)
+        const index = userList.value.findIndex((u) => u.id === user.id);
         if (index > -1) {
-          userList.value.splice(index, 1)
+          userList.value.splice(index, 1);
         }
         uni.showToast({
-          title: '已取消关注',
-          icon: 'success'
-        })
+          title: "已取消关注",
+          icon: "success",
+        });
       }
-    }
-  })
-}
+    },
+  });
+};
 
 const goToUserProfile = (userId) => {
   uni.navigateTo({
-    url: `/pages/mine/userProfile?id=${userId}`
-  })
-}
+    url: `/pages/mine/userProfile?id=${userId}`,
+  });
+};
 </script>
 
 <style lang="scss" scoped>
@@ -194,7 +200,8 @@ const goToUserProfile = (userId) => {
 .search-icon {
   width: 40rpx;
   height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
   opacity: 0.6;
 }
@@ -209,6 +216,7 @@ const goToUserProfile = (userId) => {
 .search-placeholder {
   color: #807476;
   opacity: 0.5;
+  width: 100%;
 }
 
 /* 用户列表 */
@@ -280,17 +288,23 @@ const goToUserProfile = (userId) => {
 
   &.level-primary {
     background: #ffdde2;
-    .level-text { color: #795f64; }
+    .level-text {
+      color: #795f64;
+    }
   }
 
   &.level-secondary {
     background: #eadfbd;
-    .level-text { color: #6a6347; }
+    .level-text {
+      color: #6a6347;
+    }
   }
 
   &.level-tertiary {
     background: #daead8;
-    .level-text { color: #5b6a5c; }
+    .level-text {
+      color: #5b6a5c;
+    }
   }
 }
 
@@ -345,7 +359,8 @@ const goToUserProfile = (userId) => {
 .hint-icon {
   width: 64rpx;
   height: 64rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 

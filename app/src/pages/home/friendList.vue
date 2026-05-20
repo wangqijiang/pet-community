@@ -1,6 +1,6 @@
 <template>
   <view class="friend-list-container">
-    <TopNavBar title="附近狗友" showBack="true" />
+    <TopNavBar title="附近狗友" :showBack="true" />
 
     <view class="search-bar">
       <view class="search-input">

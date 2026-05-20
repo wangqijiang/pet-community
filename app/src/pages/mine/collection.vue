@@ -1,6 +1,6 @@
 <template>
   <view class="collection-page">
-    <TopNavBar title="我的收藏" />
+    <TopNavBar title="我的收藏" :showBack="true" />
 
     <view class="page-content">
       <scroll-view
@@ -17,24 +17,35 @@
           @tap="goToDetail(item.id)"
         >
           <view class="card-header">
-            <image class="user-avatar" :src="item.avatar" mode="aspectFill"></image>
+            <image
+              class="user-avatar"
+              :src="item.avatar"
+              mode="aspectFill"
+            ></image>
             <view class="user-info">
               <text class="user-name">{{ item.nickname }}</text>
               <text class="post-time">{{ item.time }}</text>
             </view>
             <view class="uncollect-btn" @tap.stop="handleUncollect(item)">
-              <image class="star-icon" src="/static/images/icon-star-filled.png" mode="aspectFit"></image>
+              <image
+                class="star-icon"
+                src="/static/images/icon-star-filled.png"
+                mode="aspectFit"
+              ></image>
             </view>
           </view>
 
           <text class="post-content">{{ item.content }}</text>
 
-          <view v-if="item.images && item.images.length > 0" class="post-images">
+          <view
+            v-if="item.images && item.images.length > 0"
+            class="post-images"
+          >
             <image
               v-for="(img, index) in item.images"
               :key="index"
               class="post-image"
-              :class="{ 'single': item.images.length === 1 }"
+              :class="{ single: item.images.length === 1 }"
               :src="img"
               mode="aspectFill"
             ></image>
@@ -42,17 +53,29 @@
 
           <view class="card-footer">
             <view class="stat-item">
-              <image class="stat-icon" src="/static/images/icon-like.png" mode="aspectFit"></image>
+              <image
+                class="stat-icon"
+                src="/static/images/icon-like.png"
+                mode="aspectFit"
+              ></image>
               <text class="stat-text">{{ item.likeCount }}</text>
             </view>
             <view class="stat-item">
-              <image class="stat-icon" src="/static/images/icon-comment.png" mode="aspectFit"></image>
+              <image
+                class="stat-icon"
+                src="/static/images/icon-comment.png"
+                mode="aspectFit"
+              ></image>
               <text class="stat-text">{{ item.commentCount }}</text>
             </view>
           </view>
         </view>
 
-        <Empty v-if="collectionList.length === 0 && !loading" type="noData" text="暂无收藏" />
+        <Empty
+          v-if="collectionList.length === 0 && !loading"
+          type="noData"
+          text="暂无收藏"
+        />
       </scroll-view>
     </view>
 
@@ -61,89 +84,87 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import Empty from '@/components/common/Empty.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref, onMounted } from "vue";
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import Empty from "@/components/common/Empty.vue";
+import Loading from "@/components/common/Loading.vue";
 
-const loading = ref(false)
+const loading = ref(false);
 
 const collectionList = ref([
   {
     id: 1,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '铲屎官小王',
-    time: '2小时前',
-    content: '今天带旺财去公园玩，遇到了好多小伙伴！',
+    avatar: "/static/images/avatar-default.png",
+    nickname: "铲屎官小王",
+    time: "2小时前",
+    content: "今天带旺财去公园玩，遇到了好多小伙伴！",
     images: [
-      '/static/images/post-default.png',
-      '/static/images/post-default.png'
+      "/static/images/post-default.png",
+      "/static/images/post-default.png",
     ],
     likeCount: 128,
-    commentCount: 32
+    commentCount: 32,
   },
   {
     id: 2,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '爱狗人士',
-    time: '昨天',
-    content: '分享一下我家狗狗的日常～',
-    images: [
-      '/static/images/post-default.png'
-    ],
+    avatar: "/static/images/avatar-default.png",
+    nickname: "爱狗人士",
+    time: "昨天",
+    content: "分享一下我家狗狗的日常～",
+    images: ["/static/images/post-default.png"],
     likeCount: 256,
-    commentCount: 48
-  }
-])
+    commentCount: 48,
+  },
+]);
 
 onMounted(() => {
-  loadCollectionList()
-})
+  loadCollectionList();
+});
 
 const loadCollectionList = () => {
-  loading.value = true
+  loading.value = true;
   setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
+    loading.value = false;
+  }, 1000);
+};
 
 const onRefresh = () => {
-  loadCollectionList()
-}
+  loadCollectionList();
+};
 
 const loadMore = () => {
-  console.log('Load more')
-}
+  console.log("Load more");
+};
 
 const goToDetail = (id) => {
   uni.navigateTo({
-    url: `/pages/circle/detail?id=${id}`
-  })
-}
+    url: `/pages/circle/detail?id=${id}`,
+  });
+};
 
 const handleUncollect = (item) => {
-  uni.vibrateShort({ type: 'medium' })
+  uni.vibrateShort({ type: "medium" });
   uni.showModal({
-    title: '提示',
-    content: '确定取消收藏吗？',
+    title: "提示",
+    content: "确定取消收藏吗？",
     success: (res) => {
       if (res.confirm) {
-        const index = collectionList.value.findIndex(c => c.id === item.id)
+        const index = collectionList.value.findIndex((c) => c.id === item.id);
         if (index > -1) {
-          collectionList.value.splice(index, 1)
+          collectionList.value.splice(index, 1);
         }
         uni.showToast({
-          title: '取消收藏',
-          icon: 'success'
-        })
+          title: "取消收藏",
+          icon: "success",
+        });
       }
-    }
-  })
-}
+    },
+  });
+};
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
+@import "@/styles/variables.scss";
 
 .collection-page {
   width: 100%;

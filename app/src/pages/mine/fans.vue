@@ -1,6 +1,6 @@
 <template>
   <view class="fans-page">
-    <TopNavBar title="我的粉丝" />
+    <TopNavBar title="我的粉丝" :showBack="true" />
 
     <view class="page-content">
       <scroll-view
@@ -20,7 +20,11 @@
           >
             <view class="user-left">
               <view class="avatar-wrapper">
-                <image class="user-avatar" :src="user.avatar" mode="aspectFill"></image>
+                <image
+                  class="user-avatar"
+                  :src="user.avatar"
+                  mode="aspectFill"
+                ></image>
                 <view v-if="user.isPetLover" class="pet-badge">
                   <view class="pet-icon"></view>
                 </view>
@@ -48,82 +52,82 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import TabBar from '@/components/common/TabBar.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref, onMounted } from "vue";
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import TabBar from "@/components/common/TabBar.vue";
+import Loading from "@/components/common/Loading.vue";
 
-const loading = ref(false)
+const loading = ref(false);
 
 const userList = ref([
   {
     id: 1,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '可爱的肉垫子',
-    desc: '超级金毛守护者 🐾',
-    isPetLover: true
+    avatar: "/static/images/avatar-default.png",
+    nickname: "可爱的肉垫子",
+    desc: "超级金毛守护者 🐾",
+    isPetLover: true,
   },
   {
     id: 2,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '布丁的麻麻',
-    desc: '家有法斗小霸王',
-    isPetLover: false
+    avatar: "/static/images/avatar-default.png",
+    nickname: "布丁的麻麻",
+    desc: "家有法斗小霸王",
+    isPetLover: false,
   },
   {
     id: 3,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '汪汪队长',
-    desc: '每天带狗跑5公里',
-    isPetLover: true
+    avatar: "/static/images/avatar-default.png",
+    nickname: "汪汪队长",
+    desc: "每天带狗跑5公里",
+    isPetLover: true,
   },
   {
     id: 4,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '小柯基爱吃草',
-    desc: '收集全世界的小狗瞬间',
-    isPetLover: true
+    avatar: "/static/images/avatar-default.png",
+    nickname: "小柯基爱吃草",
+    desc: "收集全世界的小狗瞬间",
+    isPetLover: true,
   },
   {
     id: 5,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '哈士奇观察员',
-    desc: '记录拆家日常中...',
-    isPetLover: false
+    avatar: "/static/images/avatar-default.png",
+    nickname: "哈士奇观察员",
+    desc: "记录拆家日常中...",
+    isPetLover: false,
   },
   {
     id: 6,
-    avatar: '/static/images/avatar-default.png',
-    nickname: '毛茸茸控',
-    desc: '云吸狗深度患者',
-    isPetLover: true
-  }
-])
+    avatar: "/static/images/avatar-default.png",
+    nickname: "毛茸茸控",
+    desc: "云吸狗深度患者",
+    isPetLover: true,
+  },
+]);
 
 onMounted(() => {
-  loadFansList()
-})
+  loadFansList();
+});
 
 const loadFansList = () => {
-  loading.value = true
+  loading.value = true;
   setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
+    loading.value = false;
+  }, 1000);
+};
 
 const onRefresh = () => {
-  loadFansList()
-}
+  loadFansList();
+};
 
 const loadMore = () => {
-  console.log('Load more')
-}
+  console.log("Load more");
+};
 
 const goToUserProfile = (userId) => {
   uni.navigateTo({
-    url: `/pages/mine/userProfile?id=${userId}`
-  })
-}
+    url: `/pages/mine/userProfile?id=${userId}`,
+  });
+};
 </script>
 
 <style lang="scss" scoped>
@@ -209,7 +213,8 @@ const goToUserProfile = (userId) => {
 .pet-icon {
   width: 24rpx;
   height: 24rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 

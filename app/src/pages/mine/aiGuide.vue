@@ -1,6 +1,6 @@
 <template>
   <view class="ai-guide-page">
-    <TopNavBar title="专属养宠攻略" showBack />
+    <TopNavBar title="专属养宠攻略" :showBack="true" />
 
     <view class="page-content">
       <scroll-view class="content-scroll" scroll-y>

@@ -1,6 +1,6 @@
 <template>
   <view class="my-dynamic-page">
-    <TopNavBar title="我的动态" />
+    <TopNavBar title="我的动态" :showBack="true" />
 
     <view class="page-content">
       <scroll-view
@@ -40,7 +40,11 @@
           >
             <view class="card-header">
               <view class="author-info">
-                <image class="author-avatar" :src="item.avatar" mode="aspectFill"></image>
+                <image
+                  class="author-avatar"
+                  :src="item.avatar"
+                  mode="aspectFill"
+                ></image>
                 <view class="author-text">
                   <text class="author-name">{{ item.author }}</text>
                   <text class="post-time">{{ item.time }}</text>
@@ -53,12 +57,15 @@
 
             <text class="post-content">{{ item.content }}</text>
 
-            <view v-if="item.images && item.images.length > 0" class="post-images">
+            <view
+              v-if="item.images && item.images.length > 0"
+              class="post-images"
+            >
               <image
                 v-for="(img, index) in item.images"
                 :key="index"
                 class="post-image"
-                :class="{ 'single': item.images.length === 1 }"
+                :class="{ single: item.images.length === 1 }"
                 :src="img"
                 mode="aspectFill"
               ></image>
@@ -66,7 +73,7 @@
 
             <view class="card-footer">
               <view class="stat-item" @tap.stop="handleLike(item)">
-                <view class="stat-icon" :class="{ 'liked': item.isLiked }"></view>
+                <view class="stat-icon" :class="{ liked: item.isLiked }"></view>
                 <text class="stat-text">{{ item.likeCount }}</text>
               </view>
               <view class="stat-item">
@@ -90,105 +97,104 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import TabBar from '@/components/common/TabBar.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref, onMounted } from "vue";
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import TabBar from "@/components/common/TabBar.vue";
+import Loading from "@/components/common/Loading.vue";
 
-const loading = ref(false)
+const loading = ref(false);
 
 const dynamicList = ref([
   {
     id: 1,
-    author: '豆豆爸爸',
-    avatar: '/static/images/avatar-default.png',
-    time: '2小时前',
-    content: '今天带豆豆去公园玩了，它看到蝴蝶的时候简直开心疯了！满草坪乱跑，真是个治愈系小天使呀~ ☀️🌸',
+    author: "豆豆爸爸",
+    avatar: "/static/images/avatar-default.png",
+    time: "2小时前",
+    content:
+      "今天带豆豆去公园玩了，它看到蝴蝶的时候简直开心疯了！满草坪乱跑，真是个治愈系小天使呀~ ☀️🌸",
     images: [
-      '/static/images/post-default.png',
-      '/static/images/post-default.png',
-      '/static/images/post-default.png'
+      "/static/images/post-default.png",
+      "/static/images/post-default.png",
+      "/static/images/post-default.png",
     ],
     likeCount: 128,
     commentCount: 24,
-    isLiked: false
+    isLiked: false,
   },
   {
     id: 2,
-    author: '豆豆爸爸',
-    avatar: '/static/images/avatar-default.png',
-    time: '昨天 18:30',
-    content: '午后的小憩时光，它睡得像个小猪哼唧哼唧的。安静的日子，真好。💤',
-    images: [
-      '/static/images/post-default.png'
-    ],
+    author: "豆豆爸爸",
+    avatar: "/static/images/avatar-default.png",
+    time: "昨天 18:30",
+    content: "午后的小憩时光，它睡得像个小猪哼唧哼唧的。安静的日子，真好。💤",
+    images: ["/static/images/post-default.png"],
     likeCount: 85,
     commentCount: 12,
-    isLiked: true
-  }
-])
+    isLiked: true,
+  },
+]);
 
 onMounted(() => {
-  loadDynamicList()
-})
+  loadDynamicList();
+});
 
 const loadDynamicList = () => {
-  loading.value = true
+  loading.value = true;
   setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
+    loading.value = false;
+  }, 1000);
+};
 
 const onRefresh = () => {
-  loadDynamicList()
-}
+  loadDynamicList();
+};
 
 const loadMore = () => {
-  console.log('Load more')
-}
+  console.log("Load more");
+};
 
 const goToDetail = (id) => {
   uni.navigateTo({
-    url: `/pages/circle/detail?id=${id}`
-  })
-}
+    url: `/pages/circle/detail?id=${id}`,
+  });
+};
 
 const handleLike = (item) => {
-  item.isLiked = !item.isLiked
-  item.likeCount += item.isLiked ? 1 : -1
-  uni.vibrateShort({ type: 'light' })
-}
+  item.isLiked = !item.isLiked;
+  item.likeCount += item.isLiked ? 1 : -1;
+  uni.vibrateShort({ type: "light" });
+};
 
 const showMoreActions = (item) => {
-  uni.vibrateShort({ type: 'light' })
+  uni.vibrateShort({ type: "light" });
   uni.showActionSheet({
-    itemList: ['删除'],
+    itemList: ["删除"],
     success: (res) => {
       if (res.tapIndex === 0) {
-        handleDelete(item)
+        handleDelete(item);
       }
-    }
-  })
-}
+    },
+  });
+};
 
 const handleDelete = (item) => {
   uni.showModal({
-    title: '提示',
-    content: '确定要删除这条动态吗？',
+    title: "提示",
+    content: "确定要删除这条动态吗？",
     success: (res) => {
       if (res.confirm) {
-        const index = dynamicList.value.findIndex(d => d.id === item.id)
+        const index = dynamicList.value.findIndex((d) => d.id === item.id);
         if (index > -1) {
-          dynamicList.value.splice(index, 1)
+          dynamicList.value.splice(index, 1);
         }
         uni.showToast({
-          title: '删除成功',
-          icon: 'success'
-        })
+          title: "删除成功",
+          icon: "success",
+        });
       }
-    }
-  })
-}
+    },
+  });
+};
 </script>
 
 <style lang="scss" scoped>
@@ -254,7 +260,8 @@ const handleDelete = (item) => {
 .edit-icon {
   width: 24rpx;
   height: 24rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 }
 
@@ -344,7 +351,8 @@ const handleDelete = (item) => {
 .more-icon {
   width: 40rpx;
   height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f4446'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f4446'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
   opacity: 0.5;
 }
@@ -396,16 +404,19 @@ const handleDelete = (item) => {
 .stat-icon {
   width: 40rpx;
   height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E") no-repeat center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
+    no-repeat center;
   background-size: 100%;
 
   &.liked {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B8A'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B8A'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
+      no-repeat center;
     background-size: 100%;
   }
 
   &.comment {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E") no-repeat center;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E")
+      no-repeat center;
     background-size: 100%;
     opacity: 0.6;
   }

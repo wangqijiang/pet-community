@@ -1,11 +1,15 @@
 <template>
   <view class="system-detail-page">
-    <TopNavBar title="系统通知" />
+    <TopNavBar title="系统通知" :showBack="true" />
 
     <view class="page-content">
       <view class="notice-card">
         <view class="notice-icon-wrapper">
-          <image class="notice-icon" src="/static/images/icon-like-filled.png" mode="aspectFit"></image>
+          <image
+            class="notice-icon"
+            src="/static/images/icon-like-filled.png"
+            mode="aspectFit"
+          ></image>
         </view>
         <text class="notice-title">点赞通知</text>
         <text class="notice-time">2小时前</text>
@@ -23,40 +27,40 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import TopNavBar from '@/components/common/TopNavBar.vue'
-import Loading from '@/components/common/Loading.vue'
+import { ref, onMounted } from "vue";
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import Loading from "@/components/common/Loading.vue";
 
-const loading = ref(false)
+const loading = ref(false);
 const noticeDetail = ref({
   id: 1,
-  icon: '/static/images/icon-like-filled.png',
-  title: '点赞通知',
-  time: '2小时前',
-  content: '铲屎官小王 赞了你的动态'
-})
+  icon: "/static/images/icon-like-filled.png",
+  title: "点赞通知",
+  time: "2小时前",
+  content: "铲屎官小王 赞了你的动态",
+});
 
 onMounted(() => {
-  loadNoticeDetail()
-})
+  loadNoticeDetail();
+});
 
 const loadNoticeDetail = () => {
-  loading.value = true
+  loading.value = true;
   setTimeout(() => {
-    loading.value = false
-  }, 1000)
-}
+    loading.value = false;
+  }, 1000);
+};
 
 const goToRelated = () => {
-  uni.vibrateShort({ type: 'medium' })
+  uni.vibrateShort({ type: "medium" });
   uni.navigateTo({
-    url: '/pages/circle/detail?id=1'
-  })
-}
+    url: "/pages/circle/detail?id=1",
+  });
+};
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
+@import "@/styles/variables.scss";
 
 .system-detail-page {
   min-height: 100vh;
@@ -81,7 +85,7 @@ const goToRelated = () => {
   .notice-icon-wrapper {
     width: 120rpx;
     height: 120rpx;
-    background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
+    background: linear-gradient(135deg, $color-primary 0%, #ffd4f0 100%);
     border-radius: $border-radius-circle;
     display: flex;
     align-items: center;
@@ -114,13 +118,14 @@ const goToRelated = () => {
     .content-text {
       font-size: $font-size-body;
       color: $color-gray-dark;
-      line-height: 1.6;}
+      line-height: 1.6;
+    }
   }
 
   .action-btn {
     width: 100%;
     height: $button-height-large;
-    background: linear-gradient(135deg, $color-primary 0%, #FFD4F0 100%);
+    background: linear-gradient(135deg, $color-primary 0%, #ffd4f0 100%);
     border-radius: $border-radius-base;
     display: flex;
     align-items: center;
