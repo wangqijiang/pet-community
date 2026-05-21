@@ -46,14 +46,7 @@
 				"navigationBarBackgroundColor": "#ffffff"
 			}
 		},
-		{
-			"path": "pages/circle/preview",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "预览",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
+		
 		{
 			"path": "pages/message/chat",
 			"style": {

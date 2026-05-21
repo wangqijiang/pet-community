@@ -20,7 +20,7 @@
 
     <scroll-view scroll-y class="feed-list">
       <view
-        v-for="(item, index) in feedList"
+        v-for="(item, index) in filteredList"
         :key="index"
         class="feed-card"
         @click="goToDetail(item)"
@@ -48,6 +48,7 @@
             :key="imgIndex"
             class="image-item"
             :style="{ background: img.color }"
+            @click.stop="previewImage(item, imgIndex)"
           ></view>
         </view>
 
@@ -84,17 +85,17 @@
 <script setup lang="ts">
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 const currentTab = ref(0);
 
 const tabs = [
-  { label: "全部动态" },
-  { label: "修勾日常" },
-  { label: "技能秀场" },
-  { label: "寻宠启事" },
-  { label: "遛狗搭子" },
-  { label: "养宠种草" },
+  { label: "全部动态", key: "all" },
+  { label: "修勾日常", key: "daily" },
+  { label: "技能秀场", key: "skill" },
+  { label: "寻宠启事", key: "lost" },
+  { label: "遛狗搭子", key: "walk" },
+  { label: "养宠种草", key: "share" },
 ];
 
 const feedList = ref([
@@ -111,6 +112,7 @@ const feedList = ref([
       { color: "#FFC1E9" },
       { color: "#FFB6C1" },
     ],
+    category: "daily",
     likes: 128,
     comments: 32,
     liked: false,
@@ -123,11 +125,57 @@ const feedList = ref([
     content:
       "新来的小橘太粘人啦！一进门就开始蹭腿，求一个有缘的家庭带它回家～ 坐标上海。🍊",
     images: [{ color: "#FFF4D2" }],
+    category: "lost",
     likes: 456,
     comments: 89,
     liked: true,
   },
+  {
+    id: 3,
+    userName: "金毛铲屎官",
+    avatarColor: "#FFD4F0",
+    userTag: "金毛 · 3岁",
+    content:
+      "今天训练了新技能！握手、趴下、打滚一气呵成，奖励了超多零食～🐾",
+    images: [{ color: "#FFE4E1" }, { color: "#FFC1E9" }],
+    category: "skill",
+    likes: 234,
+    comments: 45,
+    liked: false,
+  },
+  {
+    id: 4,
+    userName: "遛狗达人",
+    avatarColor: "#FFB6C1",
+    userTag: "哈士奇 · 1岁",
+    content:
+      "有没有住在朝阳区的小伙伴？每天晚上7点左右在望京公园遛狗，想找个搭子一起～",
+    images: [{ color: "#FFD4F0" }],
+    category: "walk",
+    likes: 89,
+    comments: 23,
+    liked: false,
+  },
+  {
+    id: 5,
+    userName: "养宠新手",
+    avatarColor: "#FFC0CB",
+    userTag: "泰迪 · 6个月",
+    content:
+      "推荐这款狗粮！我家宝贝吃了三个月，毛发明显变亮了，而且消化也很好～",
+    images: [{ color: "#E8F5E9" }, { color: "#FFF4D2" }, { color: "#FFE4E1" }],
+    category: "share",
+    likes: 156,
+    comments: 38,
+    liked: true,
+  },
 ]);
+
+const filteredList = computed(() => {
+  if (currentTab.value === 0) return feedList.value;
+  const categoryKey = tabs[currentTab.value].key;
+  return feedList.value.filter((item) => item.category === categoryKey);
+});
 
 const goToPublish = () => {
   uni.navigateTo({
@@ -152,6 +200,16 @@ const handleLike = (item: any) => {
 const handleShare = () => {
   uni.showShareMenu({
     withShareTicket: true,
+  });
+};
+
+const previewImage = (item: any, index: number) => {
+  const imageUrls = item.images.map((img: any) => {
+    return `https://via.placeholder.com/400x400/${img.color.replace("#", "")}`;
+  });
+  uni.previewImage({
+    urls: imageUrls,
+    current: index,
   });
 };
 </script>
