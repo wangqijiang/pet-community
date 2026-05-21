@@ -67,7 +67,6 @@
       </scroll-view>
     </view>
 
-    <TabBar :current="3" />
     <Loading :visible="loading" />
   </view>
 </template>
@@ -75,7 +74,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
-import TabBar from "@/components/common/TabBar.vue";
 import Loading from "@/components/common/Loading.vue";
 
 const loading = ref(false);

@@ -1,305 +1,331 @@
 <template>
-  <view class="my-dynamic-page">
+  <view class="page-container">
+    <view class="header-safe"></view>
     <TopNavBar title="我的动态" :showBack="true" />
 
-    <view class="page-content">
-      <scroll-view
-        class="content-scroll"
-        scroll-y
-        @scrolltolower="loadMore"
-        refresher-enabled
-        @refresherrefresh="onRefresh"
-      >
-        <!-- 个人资料迷你卡片 -->
-        <view class="profile-mini-card">
-          <view class="profile-left">
-            <view class="avatar-wrapper">
-              <image
-                class="avatar"
-                src="/static/images/avatar-default.png"
-                mode="aspectFill"
-              ></image>
-              <view class="edit-badge">
-                <view class="edit-icon"></view>
-              </view>
-            </view>
-            <view class="profile-info">
-              <text class="profile-name">豆豆爸爸</text>
-              <text class="profile-desc">记录豆豆的成长每一刻 🐾</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 动态列表 -->
-        <view class="dynamic-list">
-          <view
-            v-for="item in dynamicList"
-            :key="item.id"
-            class="dynamic-card"
-            @tap="goToDetail(item.id)"
-          >
-            <view class="card-header">
-              <view class="author-info">
-                <image
-                  class="author-avatar"
-                  :src="item.avatar"
-                  mode="aspectFill"
-                ></image>
-                <view class="author-text">
-                  <text class="author-name">{{ item.author }}</text>
-                  <text class="post-time">{{ item.time }}</text>
-                </view>
-              </view>
-              <view class="more-btn" @tap.stop="showMoreActions(item)">
-                <view class="more-icon"></view>
-              </view>
-            </view>
-
-            <text class="post-content">{{ item.content }}</text>
-
-            <view
-              v-if="item.images && item.images.length > 0"
-              class="post-images"
-            >
-              <image
-                v-for="(img, index) in item.images"
-                :key="index"
-                class="post-image"
-                :class="{ single: item.images.length === 1 }"
-                :src="img"
-                mode="aspectFill"
-              ></image>
-            </view>
-
-            <view class="card-footer">
-              <view class="stat-item" @tap.stop="handleLike(item)">
-                <view class="stat-icon" :class="{ liked: item.isLiked }"></view>
-                <text class="stat-text">{{ item.likeCount }}</text>
-              </view>
-              <view class="stat-item">
-                <view class="stat-icon comment"></view>
-                <text class="stat-text">{{ item.commentCount }}</text>
-              </view>
-            </view>
-          </view>
-        </view>
-
-        <!-- 底部提示 -->
-        <view class="bottom-hint">
-          <text class="hint-text">到底啦，去发现更多可爱的TA吧</text>
-        </view>
-      </scroll-view>
+    <view class="stats-bar">
+      <view class="stat-item">
+        <text class="stat-number">{{ dynamicList.length }}</text>
+        <text class="stat-label">全部动态</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-number">{{ totalLikes }}</text>
+        <text class="stat-label">获赞总数</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-number">{{ totalComments }}</text>
+        <text class="stat-label">评论总数</text>
+      </view>
     </view>
 
-    <TabBar :current="3" />
+    <scroll-view
+      class="feed-list"
+      scroll-y
+      @scrolltolower="loadMore"
+      refresher-enabled
+      :refresher-triggered="isRefreshing"
+      @refresherrefresh="onRefresh"
+    >
+      <view
+        v-for="item in dynamicList"
+        :key="item.id"
+        class="feed-card"
+        @click="goToDetail(item)"
+      >
+        <view class="card-header">
+          <view class="user-info">
+            <view class="user-avatar">
+              <view
+                class="avatar-bg"
+                :style="{ background: item.avatarColor }"
+              ></view>
+            </view>
+            <view class="user-text">
+              <text class="user-name">{{ item.userName }}</text>
+              <text class="post-time">{{ item.time }}</text>
+            </view>
+          </view>
+          <view class="action-btn" @click.stop="showMoreActions(item)">
+            <view class="more-icon"></view>
+          </view>
+        </view>
+
+        <text class="card-content">{{ item.content }}</text>
+
+        <view class="card-images" v-if="item.images.length > 0">
+          <view
+            v-for="(img, imgIndex) in item.images"
+            :key="imgIndex"
+            class="image-item"
+            :style="{ background: img.color }"
+            @click.stop="previewImage(item, imgIndex)"
+          ></view>
+        </view>
+
+        <view class="card-footer">
+          <view class="footer-left">
+            <view class="footer-item" @click.stop="handleLike(item)">
+              <view class="footer-icon" :class="{ liked: item.liked }">
+                <view class="like-icon"></view>
+              </view>
+              <text class="footer-count">{{ item.likes }}</text>
+            </view>
+            <view class="footer-item">
+              <view class="footer-icon">
+                <view class="comment-icon"></view>
+              </view>
+              <text class="footer-count">{{ item.comments }}</text>
+            </view>
+          </view>
+          <view class="footer-right">
+            <view class="footer-item" @click.stop="handleEdit(item)">
+              <view class="edit-icon"></view>
+              <text class="footer-text">编辑</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view v-if="dynamicList.length === 0 && !loading" class="empty-state">
+        <view class="empty-icon"></view>
+        <text class="empty-text">还没有发布过动态哦</text>
+        <view class="empty-btn" @click="goToPublish">
+          <text class="btn-text">去发布</text>
+        </view>
+      </view>
+
+      <view v-if="dynamicList.length > 0" class="bottom-hint">
+        <text class="hint-text">已经到底啦～</text>
+      </view>
+    </scroll-view>
+
+    <view class="fab" @click="goToPublish">
+      <view class="fab-icon"></view>
+    </view>
+
     <Loading :visible="loading" />
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
+<script setup lang="ts">
+import { ref, computed } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
-import TabBar from "@/components/common/TabBar.vue";
 import Loading from "@/components/common/Loading.vue";
 
 const loading = ref(false);
+const isRefreshing = ref(false);
 
 const dynamicList = ref([
   {
     id: 1,
-    author: "豆豆爸爸",
-    avatar: "/static/images/avatar-default.png",
+    userName: "Summer Lin",
+    avatarColor: "#FFC1E9",
     time: "2小时前",
     content:
-      "今天带豆豆去公园玩了，它看到蝴蝶的时候简直开心疯了！满草坪乱跑，真是个治愈系小天使呀~ ☀️🌸",
-    images: [
-      "/static/images/post-default.png",
-      "/static/images/post-default.png",
-      "/static/images/post-default.png",
-    ],
-    likeCount: 128,
-    commentCount: 24,
-    isLiked: false,
+      "今天带布丁去公园草坪打滚啦！阳光超级好，它开心得像个200斤的孩子哈哈。这就是简单的幸福吧～✨",
+    images: [{ color: "#FFE4E1" }, { color: "#FFD4F0" }, { color: "#FFC1E9" }],
+    likes: 128,
+    comments: 32,
+    liked: false,
   },
   {
     id: 2,
-    author: "豆豆爸爸",
-    avatar: "/static/images/avatar-default.png",
+    userName: "Summer Lin",
+    avatarColor: "#E8F5E9",
     time: "昨天 18:30",
     content: "午后的小憩时光，它睡得像个小猪哼唧哼唧的。安静的日子，真好。💤",
-    images: ["/static/images/post-default.png"],
-    likeCount: 85,
-    commentCount: 12,
-    isLiked: true,
+    images: [{ color: "#FFF4D2" }],
+    likes: 85,
+    comments: 12,
+    liked: true,
+  },
+  {
+    id: 3,
+    userName: "Summer Lin",
+    avatarColor: "#FFD4F0",
+    time: "3天前",
+    content: "今天训练了新技能！握手、趴下、打滚一气呵成，奖励了超多零食～🐾",
+    images: [{ color: "#FFE4E1" }, { color: "#FFC1E9" }],
+    likes: 234,
+    comments: 45,
+    liked: false,
   },
 ]);
 
-onMounted(() => {
-  loadDynamicList();
+const totalLikes = computed(() => {
+  return dynamicList.value.reduce((sum, item) => sum + item.likes, 0);
 });
 
-const loadDynamicList = () => {
-  loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-  }, 1000);
-};
+const totalComments = computed(() => {
+  return dynamicList.value.reduce((sum, item) => sum + item.comments, 0);
+});
 
 const onRefresh = () => {
-  loadDynamicList();
+  isRefreshing.value = true;
+  setTimeout(() => {
+    isRefreshing.value = false;
+    uni.showToast({
+      title: "刷新成功",
+      icon: "success",
+    });
+  }, 1000);
 };
 
 const loadMore = () => {
   console.log("Load more");
 };
 
-const goToDetail = (id) => {
+const goToDetail = (item: any) => {
   uni.navigateTo({
-    url: `/pages/circle/detail?id=${id}`,
+    url: "/pages/circle/detail?id=" + item.id,
   });
 };
 
-const handleLike = (item) => {
-  item.isLiked = !item.isLiked;
-  item.likeCount += item.isLiked ? 1 : -1;
-  uni.vibrateShort({ type: "light" });
+const goToPublish = () => {
+  uni.navigateTo({
+    url: "/pages/circle/publish",
+  });
 };
 
-const showMoreActions = (item) => {
+const handleLike = (item: any) => {
+  if (!item.liked) {
+    item.liked = true;
+    item.likes += 1;
+    uni.vibrateShort({ type: "light" });
+  }
+};
+
+const showMoreActions = (item: any) => {
   uni.vibrateShort({ type: "light" });
   uni.showActionSheet({
-    itemList: ["删除"],
+    itemList: ["编辑动态", "删除动态", "分享动态"],
     success: (res) => {
       if (res.tapIndex === 0) {
+        handleEdit(item);
+      } else if (res.tapIndex === 1) {
         handleDelete(item);
+      } else if (res.tapIndex === 2) {
+        handleShare(item);
       }
     },
   });
 };
 
-const handleDelete = (item) => {
+const handleEdit = (item: any) => {
+  uni.vibrateShort({ type: "light" });
+  uni.showToast({
+    title: "编辑功能开发中",
+    icon: "none",
+  });
+};
+
+const handleDelete = (item: any) => {
   uni.showModal({
-    title: "提示",
-    content: "确定要删除这条动态吗？",
+    title: "删除动态",
+    content: "确定要删除这条动态吗？删除后无法恢复",
+    confirmColor: "#FF6B8A",
     success: (res) => {
       if (res.confirm) {
         const index = dynamicList.value.findIndex((d) => d.id === item.id);
         if (index > -1) {
           dynamicList.value.splice(index, 1);
+          uni.showToast({
+            title: "删除成功",
+            icon: "success",
+          });
         }
-        uni.showToast({
-          title: "删除成功",
-          icon: "success",
-        });
       }
     },
+  });
+};
+
+const handleShare = (item: any) => {
+  uni.showShareMenu({
+    withShareTicket: true,
+  });
+};
+
+const previewImage = (item: any, index: number) => {
+  const imageUrls = item.images.map((img: any) => {
+    return `https://via.placeholder.com/400x400/${img.color.replace("#", "")}`;
+  });
+  uni.previewImage({
+    urls: imageUrls,
+    current: index,
   });
 };
 </script>
 
 <style lang="scss" scoped>
-.my-dynamic-page {
-  width: 100%;
+@import "@/styles/variables.scss";
+
+.page-container {
   min-height: 100vh;
-  background: #fff8f7;
+  background: $color-bg-primary;
 }
 
-.page-content {
-  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
+.header-safe {
+  height: 80rpx;
+  background: $color-bg-primary;
 }
 
-.content-scroll {
-  width: 100%;
-  box-sizing: border-box;
-  height: calc(100vh - 200rpx);
-  padding: 0 40rpx;
-  padding-top: 16rpx;
-}
-
-/* 个人资料迷你卡片 */
-.profile-mini-card {
-  background: #ffffff;
-  border-radius: 48rpx;
+.stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: $color-bg-white;
+  margin: 0 32rpx 32rpx;
   padding: 32rpx;
-  margin-bottom: 32rpx;
-  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  border: 2rpx solid rgba(255, 221, 226, 0.3);
+  border-radius: $border-radius-large;
+  border: 2rpx solid rgba(113, 88, 92, 0.1);
+  box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.08);
 }
 
-.profile-left {
-  display: flex;
-  align-items: center;
-  gap: 32rpx;
-}
-
-.avatar-wrapper {
-  position: relative;
-}
-
-.avatar {
-  width: 128rpx;
-  height: 128rpx;
-  border-radius: 50%;
-  border: 4rpx solid #ffdde2;
-}
-
-.edit-badge {
-  position: absolute;
-  right: -8rpx;
-  bottom: -8rpx;
-  width: 40rpx;
-  height: 40rpx;
-  background: #71585c;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 4rpx solid #ffffff;
-}
-
-.edit-icon {
-  width: 24rpx;
-  height: 24rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-}
-
-.profile-info {
+.stat-item {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8rpx;
 }
 
-.profile-name {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #71585c;
+.stat-number {
+  font-size: 40rpx;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
 }
 
-.profile-desc {
-  font-size: 26rpx;
-  color: #4f4446;
-  opacity: 0.7;
+.stat-label {
+  font-size: $font-size-helper;
+  color: $color-gray-medium;
 }
 
-/* 动态列表 */
-.dynamic-list {
-  display: flex;
-  flex-direction: column;
-  gap: 32rpx;
+.stat-divider {
+  width: 2rpx;
+  height: 60rpx;
+  background: rgba(113, 88, 92, 0.1);
 }
 
-.dynamic-card {
-  background: #ffffff;
-  border-radius: 48rpx;
+.feed-list {
+  padding: 0 32rpx;
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+  height: calc(100vh - 340rpx);
+  box-sizing: border-box;
+}
+
+.feed-card {
+  background: $color-bg-white;
+  border-radius: $border-radius-large;
   padding: 32rpx;
-  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  border: 2rpx solid rgba(255, 221, 226, 0.3);
-  transition: transform 0.2s ease;
+  margin-bottom: 32rpx;
+  border: 2rpx solid rgba(113, 88, 92, 0.1);
+  box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.08);
+  transition: transform $transition-base;
 
   &:active {
     transform: scale(1);
+    box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.12);
   }
 }
 
@@ -310,37 +336,44 @@ const handleDelete = (item) => {
   margin-bottom: 24rpx;
 }
 
-.author-info {
+.user-info {
   display: flex;
   align-items: center;
-  gap: 24rpx;
+  gap: 20rpx;
 }
 
-.author-avatar {
+.user-avatar {
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
+  padding: 4rpx;
+  border: 4rpx solid $color-primary-light;
 }
 
-.author-text {
+.avatar-bg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.user-text {
   display: flex;
   flex-direction: column;
   gap: 4rpx;
 }
 
-.author-name {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #1e1b1b;
+.user-name {
+  font-size: $font-size-body;
+  font-weight: $font-weight-bold;
+  color: $color-gray-dark;
 }
 
 .post-time {
-  font-size: 22rpx;
-  color: #4f4446;
-  opacity: 0.6;
+  font-size: $font-size-helper;
+  color: $color-gray-light;
 }
 
-.more-btn {
+.action-btn {
   width: 56rpx;
   height: 56rpx;
   display: flex;
@@ -351,82 +384,143 @@ const handleDelete = (item) => {
 .more-icon {
   width: 40rpx;
   height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f4446'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
-.post-content {
-  font-size: 32rpx;
-  color: #1e1b1b;
-  line-height: 1.7;
+.card-content {
+  font-size: $font-size-body;
+  color: $color-gray-dark;
+  line-height: 1.6;
   margin-bottom: 24rpx;
 }
 
-.post-images {
-  display: flex;
-  flex-wrap: wrap;
+.card-images {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16rpx;
   margin-bottom: 24rpx;
 }
 
-.post-image {
-  width: calc((100% - 32rpx) / 3);
-  height: 220rpx;
-  border-radius: 24rpx;
-
-  &.single {
-    width: 100%;
-    height: 420rpx;
-  }
+.image-item {
+  aspect-ratio: 1;
+  border-radius: $border-radius-medium;
 }
 
 .card-footer {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 48rpx;
-  padding-top: 20rpx;
-  border-top: 2rpx solid rgba(210, 195, 196, 0.2);
+  padding-top: 24rpx;
+  border-top: 2rpx solid rgba(113, 88, 92, 0.1);
 }
 
-.stat-item {
+.footer-left {
+  display: flex;
+  gap: 32rpx;
+}
+
+.footer-right {
+  display: flex;
+  gap: 16rpx;
+}
+
+.footer-item {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  transition: transform 0.2s ease;
+  gap: 8rpx;
+}
+
+.footer-icon {
+  width: 36rpx;
+  height: 36rpx;
+
+  &.liked {
+    .like-icon {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+        no-repeat center;
+      background-size: 100%;
+    }
+  }
+}
+
+.like-icon {
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.comment-icon {
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.edit-icon {
+  width: 36rpx;
+  height: 36rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+  opacity: 0.6;
+}
+
+.footer-count {
+  font-size: $font-size-helper;
+  font-weight: $font-weight-bold;
+  color: $color-gray-medium;
+}
+
+.footer-text {
+  font-size: $font-size-helper;
+  color: $color-gray-medium;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+}
+
+.empty-icon {
+  width: 200rpx;
+  height: 200rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23D2C3C4'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+  margin-bottom: 32rpx;
+  opacity: 0.4;
+}
+
+.empty-text {
+  font-size: $font-size-body;
+  color: $color-gray-light;
+  margin-bottom: 48rpx;
+}
+
+.empty-btn {
+  background: $color-primary;
+  padding: 24rpx 64rpx;
+  border-radius: $border-radius-large;
+  box-shadow: 0 8rpx 24rpx rgba(113, 88, 92, 0.2);
 
   &:active {
     transform: scale(1);
   }
 }
 
-.stat-icon {
-  width: 40rpx;
-  height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-
-  &.liked {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B8A'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-
-  &.comment {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-    opacity: 0.6;
-  }
-}
-
-.stat-text {
-  font-size: 24rpx;
-  font-weight: 700;
-  color: #71585c;
-  letter-spacing: 0.05em;
+.btn-text {
+  font-size: $font-size-body;
+  font-weight: $font-weight-bold;
+  color: $color-bg-white;
 }
 
 .bottom-hint {
@@ -435,8 +529,35 @@ const handleDelete = (item) => {
 }
 
 .hint-text {
-  font-size: 24rpx;
-  color: #4f4446;
-  opacity: 0.4;
+  font-size: $font-size-helper;
+  color: $color-gray-light;
+}
+
+.fab {
+  position: fixed;
+  bottom: 160rpx;
+  right: 32rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: $color-primary;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(113, 88, 92, 0.3);
+  z-index: 9999;
+
+  &:active {
+    transform: scale(1);
+    background: $color-primary-dark;
+  }
+}
+
+.fab-icon {
+  width: 48rpx;
+  height: 48rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
 }
 </style>

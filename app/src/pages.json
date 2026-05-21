@@ -1,176 +1,185 @@
 {
-	"pages": [
-		{
-			"path": "pages/login/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/home/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/circle/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/message/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/mine/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/circle/detail",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "动态详情",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/circle/publish",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "发布动态",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		
-		{
-			"path": "pages/message/chat",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "聊天",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/message/systemDetail",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "系统通知",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/mine/myDynamic",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "我的动态",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/mine/petInfo",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "宠物信息",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/mine/myPets",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "我的宠物",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/mine/addPet",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "添加宠物",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/mine/collection",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "我的收藏",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/mine/follow",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "关注",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/mine/fans",
-			"style": {
-				"navigationBarTitleText": "粉丝",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/mine/editInfo",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "编辑资料",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/mine/setting",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "设置",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/home/friendList",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "好友列表",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/home/placeList",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "附近场所",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/home/storeDetail",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "店铺详情",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		},
-		{
-			"path": "pages/notification-detail/notification-detail",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "通知详情",
-				"navigationBarBackgroundColor": "#ffffff"
-			}
-		}
-	],
-	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "Waggleworld",
-		"navigationBarBackgroundColor": "#ffffff",
-		"backgroundColor": "#f5f5f5"
-	}
+  "pages": [
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/circle/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/message/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/circle/detail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "动态详情",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/circle/publish",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "发布动态",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+
+    {
+      "path": "pages/message/chat",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "聊天",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/message/systemDetail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "系统通知",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/mine/myDynamic",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的动态",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/mine/petInfo",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "宠物信息",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/mine/myPets",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的宠物",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/mine/addPet",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "添加宠物",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/mine/collection",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的收藏",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/mine/follow",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "关注",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/mine/fans",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "粉丝",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/mine/editInfo",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "编辑资料",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/mine/setting",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "设置",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/home/friendList",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "好友列表",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/home/placeList",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "附近场所",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/home/storeDetail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "店铺详情",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/notification-detail/notification-detail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "通知详情",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/demo/components-demo",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "组件演示",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "Waggleworld",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f5f5"
+  }
 }

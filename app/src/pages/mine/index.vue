@@ -155,6 +155,13 @@ const goToFans = () => {
   });
 };
 
+const goToMyDynamic = () => {
+  uni.vibrateShort({ type: "light" });
+  uni.navigateTo({
+    url: "/pages/mine/myDynamic",
+  });
+};
+
 const handleGenerateTips = () => {
   uni.vibrateShort({ type: "medium" });
   uni.showToast({
