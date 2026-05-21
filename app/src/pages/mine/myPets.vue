@@ -1,5 +1,5 @@
 <template>
-  <view class="my-pets-page">
+  <view class="page-container">
     <TopNavBar class="chat-nav" :showBack="true" title="我的宠物" />
     <!-- Main Content -->
     <scroll-view class="page-content" scroll-y>

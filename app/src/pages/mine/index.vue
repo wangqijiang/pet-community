@@ -1,5 +1,5 @@
 <template>
-  <view class="mine-page">
+  <view class="page-container">
     <view class="header-safe"></view>
 
     <view class="page-content">

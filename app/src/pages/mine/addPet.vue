@@ -1,5 +1,5 @@
 <template>
-  <view class="add-pet-page">
+  <view class="page-container">
     <!-- Top Navigation Bar -->
     <view class="nav-bar">
       <view class="nav-left">

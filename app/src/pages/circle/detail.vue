@@ -1,5 +1,5 @@
 <template>
-  <view class="detail-container">
+  <view class="page-container">
     <TopNavBar :showBack="true" title="动态详情" />
 
     <scroll-view scroll-y class="detail-content">

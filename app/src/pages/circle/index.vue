@@ -1,5 +1,5 @@
 <template>
-  <view class="circle-container">
+  <view class="page-container">
     <TopNavBar title="萌宠朋友圈" :showBack="false" rightIcon="icon-bell" />
 
     <view class="category-tabs">

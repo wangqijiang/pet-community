@@ -1,5 +1,5 @@
 <template>
-  <view class="chat-container">
+  <view class="page-container">
     <TopNavBar class="chat-nav" :showBack="true" :title="friendName" />
 
     <scroll-view

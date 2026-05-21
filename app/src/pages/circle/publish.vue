@@ -1,5 +1,5 @@
 <template>
-  <view class="publish-container">
+  <view class="page-container">
     <TopNavBar title="发布萌宠日常" :showBack="true" rightIcon="icon-bell" />
 
     <view class="publish-content">

@@ -1,5 +1,5 @@
 <template>
-  <view class="message-container">
+  <view class="page-container">
     <TopNavBar title="消息" :showBack="false" />
 
     <view class="message-tabs">

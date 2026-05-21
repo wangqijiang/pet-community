@@ -1,5 +1,5 @@
 <template>
-  <view class="profile-page">
+  <view class="page-container">
     <TopNavBar class="chat-nav" :showBack="true" title="个人资料编辑" />
     <!-- Main Content -->
     <scroll-view class="page-content" scroll-y>

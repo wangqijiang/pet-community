@@ -1,5 +1,5 @@
 <template>
-  <view class="home-container">
+  <view class="page-container">
     <TopNavBar
       title="同城狗友地图"
       :showBack="false"
@@ -331,11 +331,6 @@ const goToPlaceList = () => {
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
-
-.home-container {
-  min-height: 100vh;
-  background: $color-bg-primary;
-}
 
 .home-content {
   padding-bottom: calc(112rpx + constant(safe-area-inset-bottom));
