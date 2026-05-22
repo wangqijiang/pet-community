@@ -40,12 +40,14 @@
       </view>
     </view>
 
+    <view v-if="showWordCount && maxlength > 0" class="input-word-count">
+      <text class="count-text" :class="{ 'count-warning': modelValue.length >= maxlength * 0.8 }">
+        {{ modelValue.length }}/{{ maxlength }}
+      </text>
+    </view>
+
     <view v-if="error" class="input-error-text">{{ error }}</view>
     <view v-else-if="hint" class="input-hint-text">{{ hint }}</view>
-
-    <view v-if="showWordCount && maxlength > 0" class="input-word-count">
-      <text class="count-text">{{ modelValue.length }}/{{ maxlength }}</text>
-    </view>
   </view>
 </template>
 
@@ -160,21 +162,23 @@ const handleClear = () => {
 
 .label-required {
   color: $color-error;
-  margin-left: 4rpx;
+  margin-left: 8rpx;
+  font-weight: bold;
 }
 
 .input-container {
   display: flex;
   align-items: center;
   background: $color-bg-white;
-  border: 2rpx solid rgba(113, 88, 92, 0.15);
+  border: 2rpx solid rgba(113, 88, 92, 0.1);
   border-radius: $border-radius-medium;
-  padding: 24rpx;
+  padding: 28rpx 24rpx;
   transition: all 0.3s ease;
+  box-shadow: 0 4rpx 16rpx rgba(168, 155, 157, 0.06);
 
   &.input-focused {
     border-color: $color-primary;
-    box-shadow: 0 0 0 4rpx rgba($color-primary, 0.1);
+    box-shadow: 0 0 0 6rpx rgba($color-primary, 0.1), 0 4rpx 16rpx rgba(168, 155, 157, 0.06);
   }
 }
 
@@ -186,8 +190,8 @@ const handleClear = () => {
 }
 
 .prefix-icon {
-  width: 40rpx;
-  height: 40rpx;
+  width: 44rpx;
+  height: 44rpx;
   margin-right: 16rpx;
 }
 
@@ -198,8 +202,8 @@ const handleClear = () => {
 }
 
 .suffix-icon {
-  width: 40rpx;
-  height: 40rpx;
+  width: 44rpx;
+  height: 44rpx;
   margin-left: 16rpx;
 }
 
@@ -207,7 +211,7 @@ const handleClear = () => {
   flex: 1;
   font-size: $font-size-body;
   color: $color-gray-dark;
-  min-height: 40rpx;
+  min-height: 44rpx;
 
   &::placeholder {
     color: $color-gray-light;
@@ -223,16 +227,22 @@ const handleClear = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40rpx;
-  height: 40rpx;
+  width: 48rpx;
+  height: 48rpx;
   margin-left: 8rpx;
   flex-shrink: 0;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+
+  &:active {
+    background: rgba(113, 88, 92, 0.1);
+  }
 }
 
 .clear-icon {
-  width: 32rpx;
-  height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23C0B8B9'%3E%3Cpath d='M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z'/%3E%3C/svg%3E")
+  width: 36rpx;
+  height: 36rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
   transition: all 0.2s ease;
@@ -243,11 +253,30 @@ const handleClear = () => {
   }
 }
 
+.input-word-count {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12rpx;
+}
+
+.count-text {
+  font-size: $font-size-helper;
+  color: $color-gray-light;
+  transition: color 0.3s ease;
+
+  &.count-warning {
+    color: $color-warning;
+  }
+}
+
 .input-error-text {
   font-size: $font-size-helper;
   color: $color-error;
   margin-top: 12rpx;
   padding-left: 8rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .input-hint-text {
@@ -257,21 +286,11 @@ const handleClear = () => {
   padding-left: 8rpx;
 }
 
-.input-word-count {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8rpx;
-}
-
-.count-text {
-  font-size: $font-size-helper;
-  color: $color-gray-light;
-}
-
 .input-disabled {
   .input-container {
     background: rgba(113, 88, 92, 0.05);
-    opacity: 0.6;
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -280,7 +299,7 @@ const handleClear = () => {
     border-color: $color-error;
 
     &.input-focused {
-      box-shadow: 0 0 0 4rpx rgba($color-error, 0.1);
+      box-shadow: 0 0 0 6rpx rgba($color-error, 0.1), 0 4rpx 16rpx rgba(168, 155, 157, 0.06);
     }
   }
 }

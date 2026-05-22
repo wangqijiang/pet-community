@@ -137,19 +137,21 @@ const handleConfirm = (e: any) => {
 
 .label-required {
   color: $color-error;
-  margin-left: 4rpx;
+  margin-left: 8rpx;
+  font-weight: bold;
 }
 
 .textarea-container {
   background: $color-bg-white;
-  border: 2rpx solid rgba(113, 88, 92, 0.15);
+  border: 2rpx solid rgba(113, 88, 92, 0.1);
   border-radius: $border-radius-medium;
-  padding: 24rpx;
+  padding: 28rpx 24rpx;
   transition: all 0.3s ease;
+  box-shadow: 0 4rpx 16rpx rgba(168, 155, 157, 0.06);
 
   &.textarea-focused {
     border-color: $color-primary;
-    box-shadow: 0 0 0 4rpx rgba($color-primary, 0.1);
+    box-shadow: 0 0 0 6rpx rgba($color-primary, 0.1), 0 4rpx 16rpx rgba(168, 155, 157, 0.06);
   }
 }
 
@@ -158,7 +160,7 @@ const handleConfirm = (e: any) => {
   min-height: 200rpx;
   font-size: $font-size-body;
   color: $color-gray-dark;
-  line-height: 1.6;
+  line-height: 1.7;
   text-align: left;
 
   &::placeholder {
@@ -168,6 +170,22 @@ const handleConfirm = (e: any) => {
   &:disabled {
     color: $color-gray-light;
     background: transparent;
+  }
+}
+
+.textarea-word-count {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12rpx;
+}
+
+.count-text {
+  font-size: $font-size-helper;
+  color: $color-gray-light;
+  transition: color 0.3s ease;
+
+  &.count-warning {
+    color: $color-warning;
   }
 }
 
@@ -185,26 +203,11 @@ const handleConfirm = (e: any) => {
   padding-left: 8rpx;
 }
 
-.textarea-word-count {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8rpx;
-}
-
-.count-text {
-  font-size: $font-size-helper;
-  color: $color-gray-light;
-  transition: color 0.3s ease;
-
-  &.count-warning {
-    color: $color-warning;
-  }
-}
-
 .textarea-disabled {
   .textarea-container {
     background: rgba(113, 88, 92, 0.05);
-    opacity: 0.6;
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -213,7 +216,7 @@ const handleConfirm = (e: any) => {
     border-color: $color-error;
 
     &.textarea-focused {
-      box-shadow: 0 0 0 4rpx rgba($color-error, 0.1);
+      box-shadow: 0 0 0 6rpx rgba($color-error, 0.1), 0 4rpx 16rpx rgba(168, 155, 157, 0.06);
     }
   }
 }

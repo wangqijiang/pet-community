@@ -1,6 +1,6 @@
 <template>
-  <view class="action-sheet-mask" v-if="visible" @click="handleMaskClick">
-    <view class="action-sheet-container" :class="{ 'sheet-show': visible }" @click.stop>
+  <view class="action-sheet-mask" @click="handleMaskClick">
+    <view class="action-sheet-container" @click.stop>
       <view class="action-sheet-header" v-if="title">
         <text class="header-title">{{ title }}</text>
       </view>
@@ -25,6 +25,8 @@
         </view>
       </view>
 
+      <view class="action-sheet-divider"></view>
+      
       <view class="action-sheet-cancel" @click="handleCancel">
         <text class="cancel-text">{{ cancelText }}</text>
       </view>
@@ -45,7 +47,6 @@ interface ActionSheetItem {
 }
 
 interface Props {
-  visible?: boolean
   title?: string
   actions?: ActionSheetItem[]
   cancelText?: string
@@ -53,7 +54,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  visible: false,
   title: '',
   actions: () => [],
   cancelText: '取消',
@@ -61,9 +61,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:visible': [value: boolean]
   'select': [item: ActionSheetItem, index: number]
-  'close': []
+  'cancel': []
 }>()
 
 const handleActionClick = (item: ActionSheetItem, index: number) => {
@@ -71,13 +70,11 @@ const handleActionClick = (item: ActionSheetItem, index: number) => {
 
   uni.vibrateShort({ type: 'light' })
   emit('select', item, index)
-  emit('update:visible', false)
 }
 
 const handleCancel = () => {
   uni.vibrateShort({ type: 'light' })
-  emit('close')
-  emit('update:visible', false)
+  emit('cancel')
 }
 
 const handleMaskClick = () => {
@@ -97,28 +94,34 @@ const handleMaskClick = () => {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
   z-index: 1000;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-
-  &.action-sheet-show {
-    opacity: 1;
-  }
+  display: flex;
+  align-items: flex-end;
 }
 
 .action-sheet-container {
-  position: absolute;
-  left: 16rpx;
-  right: 16rpx;
-  bottom: 16rpx;
+  width: 100%;
   background: $color-bg-white;
-  border-radius: 32rpx;
+  border-radius: 32rpx 32rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.sheet-show {
     transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
@@ -148,7 +151,7 @@ const handleMaskClick = () => {
   position: relative;
 
   &:active {
-    background: rgba(113, 88, 92, 0.05);
+    background: rgba(252, 218, 223, 0.3);
   }
 
   &.action-item-disabled {
@@ -169,7 +172,7 @@ const handleMaskClick = () => {
     right: 32rpx;
     bottom: 0;
     height: 2rpx;
-    background: rgba(113, 88, 92, 0.08);
+    background: rgba(113, 88, 92, 0.06);
   }
 
   &:last-child::after {
@@ -178,9 +181,12 @@ const handleMaskClick = () => {
 }
 
 .action-icon {
-  width: 48rpx;
-  height: 48rpx;
+  width: 56rpx;
+  height: 56rpx;
   margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   image {
     width: 100%;
@@ -196,7 +202,7 @@ const handleMaskClick = () => {
 .action-text {
   font-size: $font-size-body;
   color: $color-gray-dark;
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -207,11 +213,13 @@ const handleMaskClick = () => {
   text-align: center;
 }
 
+.action-sheet-divider {
+  height: 16rpx;
+  background: $color-bg-primary;
+}
+
 .action-sheet-cancel {
-  margin: 16rpx 0;
-  background: $color-bg-white;
-  border-radius: 32rpx;
-  padding: 32rpx;
+  padding: 28rpx;
   text-align: center;
   transition: all 0.2s ease;
 
@@ -222,12 +230,13 @@ const handleMaskClick = () => {
 
 .cancel-text {
   font-size: $font-size-body;
-  color: $color-primary;
-  font-weight: $font-weight-bold;
+  color: $color-gray-medium;
+  font-weight: 600;
 }
 
 .safe-area-bottom {
+  height: constant(safe-area-inset-bottom);
   height: env(safe-area-inset-bottom);
-  background: transparent;
+  background: $color-bg-white;
 }
 </style>
