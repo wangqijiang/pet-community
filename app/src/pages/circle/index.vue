@@ -26,7 +26,7 @@
         @click="goToDetail(item)"
       >
         <view class="card-header">
-          <view class="user-avatar">
+          <view class="user-avatar" @tap="goToUserProfile(item)">
             <view
               class="avatar-bg"
               :style="{ background: item.avatarColor }"
@@ -88,6 +88,12 @@ import TabBar from "@/components/common/TabBar.vue";
 import { ref, computed } from "vue";
 
 const currentTab = ref(0);
+
+const goToUserProfile = (item: any) => {
+  uni.navigateTo({
+    url: `/pages/mine/userProfile?id=${item.id}&name=${encodeURIComponent(item.userName)}`,
+  });
+};
 
 const tabs = [
   { label: "全部动态", key: "all" },
@@ -212,20 +218,24 @@ const previewImage = (item: any, index: number) => {
     current: index,
   });
 };
+
+
 </script>
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
 
 .circle-container {
-  min-height: 100vh;
+  height: 100vh;
   background: $color-bg-primary;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .category-tabs {
   padding: 0 32rpx;
+  flex-shrink: 0;
 }
 
 .tab-scroll {
@@ -256,7 +266,8 @@ const previewImage = (item: any, index: number) => {
 }
 
 .feed-list {
-  flex: 1;
+  height: calc(100vh - 180rpx - env(safe-area-inset-bottom));
+  height: calc(100vh - 180rpx - constant(safe-area-inset-bottom));
   padding: 32rpx;
   padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
   padding-bottom: calc(200rpx + constant(safe-area-inset-bottom));
@@ -377,7 +388,7 @@ const previewImage = (item: any, index: number) => {
 
   &.liked {
     .like-icon {
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF4757'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
         no-repeat center;
       background-size: 100%;
     }

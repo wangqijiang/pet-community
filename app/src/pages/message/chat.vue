@@ -38,11 +38,13 @@
         </view>
       </view>
       <view class="input-area">
-        <input
+        <textarea
           v-model="inputText"
           class="input-field"
           placeholder="输入消息..."
           placeholder-class="input-placeholder"
+          :auto-height="true"
+          :maxlength="500"
         />
         <view
           class="send-btn"
@@ -306,11 +308,13 @@ onMounted(() => {
 
 .input-field {
   flex: 1;
-  height: 72rpx;
+  min-height: 72rpx;
+  max-height: 200rpx;
   background: $color-bg-primary;
   border-radius: 36rpx;
-  padding: 0 24rpx;
+  padding: 16rpx 24rpx;
   font-size: $font-size-body;
+  line-height: 1.5;
 }
 
 .input-placeholder {

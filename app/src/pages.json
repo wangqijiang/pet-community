@@ -136,6 +136,22 @@
       }
     },
     {
+      "path": "pages/mine/userProfile",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "用户主页",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/mine/petProfile",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "宠物主页",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
       "path": "pages/home/friendList",
       "style": {
         "navigationStyle": "custom",

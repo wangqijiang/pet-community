@@ -60,7 +60,7 @@
           </view>
           <scroll-view class="pets-scroll" scroll-x>
             <view class="pets-list">
-              <view class="pet-card">
+              <view class="pet-card" @tap="goToPetProfile(1)">
                 <image
                   class="pet-cover"
                   src="/static/images/post-default.png"
@@ -72,7 +72,7 @@
                 </view>
                 <view class="pet-tag">活泼</view>
               </view>
-              <view class="pet-card">
+              <view class="pet-card" @tap="goToPetProfile(2)">
                 <image
                   class="pet-cover"
                   src="/static/images/post-default.png"
@@ -94,7 +94,7 @@
             <text class="section-title">TA的萌宠日常</text>
           </view>
           <view class="feed-grid">
-            <view class="feed-card tall">
+            <view class="feed-card tall" @tap="goToFeedDetail(1)">
               <image
                 class="feed-image"
                 src="/static/images/post-default.png"
@@ -116,7 +116,7 @@
                 </view>
               </view>
             </view>
-            <view class="feed-card">
+            <view class="feed-card" @tap="goToFeedDetail(2)">
               <image
                 class="feed-image"
                 src="/static/images/post-default.png"
@@ -175,9 +175,22 @@ const handleFollow = () => {
 
 const sendMessage = () => {
   uni.vibrateShort({ type: "light" });
-  uni.showToast({
-    title: "私信功能开发中",
-    icon: "none",
+  uni.navigateTo({
+    url: "/pages/message/chat",
+  });
+};
+
+const goToPetProfile = (petId) => {
+  uni.vibrateShort({ type: "light" });
+  uni.navigateTo({
+    url: `/pages/mine/petProfile?id=${petId}`,
+  });
+};
+
+const goToFeedDetail = (feedId) => {
+  uni.vibrateShort({ type: "light" });
+  uni.navigateTo({
+    url: `/pages/circle/detail?id=${feedId}`,
   });
 };
 </script>
