@@ -318,7 +318,7 @@ const handlePublish = () => {
   left: 0;
   right: 0;
   padding: 32rpx;
-  padding-bottom: calc(32rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
   background: linear-gradient(to top, $color-bg-primary 50%, transparent 100%);
   z-index: 100;
   box-sizing: border-box;

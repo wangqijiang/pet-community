@@ -333,7 +333,7 @@ const goToPlaceList = () => {
 @import "@/styles/variables.scss";
 
 .home-content {
-  padding-bottom: calc(112rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(112rpx + env(safe-area-inset-bottom));
 }
 
 .filter-bar {

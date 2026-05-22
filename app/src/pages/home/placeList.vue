@@ -250,6 +250,7 @@ const goToDetail = (place: any) => {
 
 .list-footer {
   padding: 40rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
   text-align: center;
 }
 

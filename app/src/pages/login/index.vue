@@ -161,7 +161,7 @@ const handleLogin = () => {
 }
 
 .terms-area {
-  margin-bottom: 48rpx;
+  margin-bottom: calc(48rpx + env(safe-area-inset-bottom));
   z-index: 10;
 }
 

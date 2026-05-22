@@ -1,5 +1,5 @@
 <template>
-  <view class="page-container">
+  <view class="circle-container">
     <TopNavBar title="萌宠朋友圈" :showBack="false" rightIcon="icon-bell" />
 
     <view class="category-tabs">
@@ -220,6 +220,8 @@ const previewImage = (item: any, index: number) => {
 .circle-container {
   min-height: 100vh;
   background: $color-bg-primary;
+  display: flex;
+  flex-direction: column;
 }
 
 .category-tabs {
@@ -254,9 +256,10 @@ const previewImage = (item: any, index: number) => {
 }
 
 .feed-list {
+  flex: 1;
   padding: 32rpx;
-  padding-bottom: calc(140rpx + constant(safe-area-inset-bottom));
-  height: calc(100vh - 340rpx);
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(200rpx + constant(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 

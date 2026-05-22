@@ -70,6 +70,7 @@ const goToRelated = () => {
 .page-content {
   padding-top: calc(#{$nav-bar-height} + 20rpx);
   padding: calc(#{$nav-bar-height} + 20rpx) $spacing-page-horizontal;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
 .notice-card {

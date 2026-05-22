@@ -321,7 +321,7 @@ const handleCollect = () => {
   display: flex;
   background: #ffffff;
   padding: 20rpx 32rpx;
-  padding-bottom: calc(20rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   border-top: 2rpx solid #ffc1e9;
 }
 

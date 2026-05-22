@@ -765,7 +765,7 @@ const sendComment = () => {
   align-items: center;
   gap: 20rpx;
   padding: 16rpx 32rpx;
-  padding-bottom: calc(16rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   background: $color-bg-white;
   border-top: 1rpx solid rgba(113, 88, 92, 0.1);
   box-shadow: 0 -4rpx 16rpx rgba(168, 155, 157, 0.08);

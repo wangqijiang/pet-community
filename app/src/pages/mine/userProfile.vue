@@ -191,6 +191,7 @@ const sendMessage = () => {
 
 .page-content {
   padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
 }
 
 .content-scroll {

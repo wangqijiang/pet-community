@@ -637,7 +637,7 @@ const handleDelete = () => {
 .page-content {
   box-sizing: border-box;
   flex: 1;
-  padding: 40rpx 40rpx 200rpx;
+  padding: 40rpx 40rpx calc(200rpx + env(safe-area-inset-bottom));
 }
 
 /* Avatar Section */

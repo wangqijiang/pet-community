@@ -196,6 +196,7 @@ const handleSave = () => {
   flex: 1;
   box-sizing: border-box;
   padding: $spacing-page-horizontal;
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
 }
 
 .form-item {

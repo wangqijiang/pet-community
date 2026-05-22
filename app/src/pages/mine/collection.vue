@@ -179,6 +179,7 @@ const handleUncollect = (item) => {
 .dynamic-list {
   height: calc(100vh - #{$nav-bar-height} - 40rpx);
   padding: 0 $spacing-page-horizontal;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
 .dynamic-card {

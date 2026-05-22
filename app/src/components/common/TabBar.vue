@@ -87,7 +87,7 @@ const handleTabClick = (index: number) => {
 }
 
 .tabbar-safe {
-  height: constant(safe-area-inset-bottom);
+  height: env(safe-area-inset-bottom);
   height: env(safe-area-inset-bottom);
   background: rgba(255, 248, 247, 0.95);
 }

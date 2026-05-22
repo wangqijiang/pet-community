@@ -1,5 +1,5 @@
 <template>
-  <view class="page-container">
+  <view class="chat-container">
     <TopNavBar class="chat-nav" :showBack="true" :title="friendName" />
 
     <scroll-view
@@ -63,6 +63,10 @@ import { ref, watch, onMounted } from "vue";
 const friendName = ref("小明");
 const inputText = ref("");
 const scrollToId = ref("");
+
+const handleInput = (e: any) => {
+  inputText.value = e.detail.value;
+};
 
 const messages = ref([
   {
@@ -258,7 +262,7 @@ onMounted(() => {
   right: 0;
   background: $color-bg-white;
   padding: 16rpx 32rpx;
-  padding-bottom: calc(16rpx + constant(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
   border-top: 2rpx solid rgba(113, 88, 92, 0.1);
 }
 
