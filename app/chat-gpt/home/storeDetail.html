@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>店铺详情</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      background:#F2EFEC;
+      font-family:'Noto Sans SC',sans-serif;
+
+      display:flex;
+      justify-content:center;
+
+      padding:40px;
+    }
+
+    .phone{
+      width:390px;
+      height:844px;
+
+      background:#FFF8F5;
+
+      border-radius:42px;
+
+      overflow:hidden;
+
+      position:relative;
+
+      box-shadow:
+      0 24px 60px rgba(0,0,0,0.08);
+    }
+
+    .page{
+      height:100%;
+      overflow-y:auto;
+    }
+
+    .hero{
+      position:relative;
+
+      width:100%;
+      height:360px;
+    }
+
+    .hero img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
+    .hero-mask{
+      position:absolute;
+
+      left:0;
+      bottom:0;
+
+      width:100%;
+      height:180px;
+
+      background:
+      linear-gradient(
+      180deg,
+      rgba(0,0,0,0),
+      rgba(0,0,0,0.65)
+      );
+    }
+
+    .topbar{
+      position:absolute;
+
+      top:0;
+      left:0;
+
+      width:100%;
+
+      padding:52px 18px 0;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+
+      z-index:10;
+    }
+
+    .nav-btn{
+      width:40px;
+      height:40px;
+
+      border-radius:999px;
+
+      background:rgba(255,255,255,0.9);
+
+      backdrop-filter:blur(10px);
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      color:#5E4636;
+
+      box-shadow:
+      0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .hero-content{
+      position:absolute;
+
+      left:22px;
+      bottom:28px;
+
+      z-index:2;
+
+      color:white;
+    }
+
+    .tag{
+      display:inline-flex;
+
+      align-items:center;
+
+      padding:8px 14px;
+
+      border-radius:999px;
+
+      background:rgba(255,255,255,0.18);
+
+      backdrop-filter:blur(12px);
+
+      font-size:13px;
+      font-weight:600;
+
+      margin-bottom:14px;
+    }
+
+    .store-name{
+      font-size:34px;
+      font-weight:800;
+
+      letter-spacing:1px;
+    }
+
+    .store-desc{
+      margin-top:10px;
+
+      font-size:14px;
+
+      line-height:1.8;
+
+      opacity:.95;
+    }
+
+    .meta-row{
+      margin-top:16px;
+
+      display:flex;
+      gap:18px;
+
+      flex-wrap:wrap;
+    }
+
+    .meta-item{
+      display:flex;
+      align-items:center;
+      gap:6px;
+
+      font-size:13px;
+    }
+
+    .content{
+      padding:
+      22px 18px 40px;
+    }
+
+    .card{
+      background:white;
+
+      border-radius:30px;
+
+      padding:22px;
+
+      margin-bottom:18px;
+
+      box-shadow:
+      0 10px 30px rgba(107,78,61,0.05);
+    }
+
+    .section-title{
+      font-size:18px;
+      font-weight:700;
+
+      color:#4D3E3E;
+
+      margin-bottom:16px;
+
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .section-title i{
+      color:#F4A259;
+    }
+
+    .intro{
+      color:#746868;
+
+      font-size:14px;
+
+      line-height:2;
+    }
+
+    .info-list{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+
+    .info-item{
+      display:flex;
+      align-items:flex-start;
+      gap:14px;
+    }
+
+    .info-icon{
+      width:42px;
+      height:42px;
+
+      border-radius:16px;
+
+      background:#FFF3E7;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      color:#F4A259;
+
+      flex-shrink:0;
+    }
+
+    .info-label{
+      font-size:13px;
+      color:#B0A6A6;
+    }
+
+    .info-value{
+      margin-top:4px;
+
+      font-size:15px;
+      font-weight:600;
+
+      color:#4D3E3E;
+
+      line-height:1.8;
+    }
+
+    .action-grid{
+      display:grid;
+
+      grid-template-columns:1fr 1fr 1fr;
+
+      gap:12px;
+    }
+
+    .action-item{
+      height:88px;
+
+      border-radius:24px;
+
+      background:#FFF8F3;
+
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+
+      gap:8px;
+
+      transition:all .2s ease;
+    }
+
+    .action-item:hover{
+      transform:translateY(-2px);
+    }
+
+    .action-item i{
+      color:#F4A259;
+    }
+
+    .action-text{
+      font-size:14px;
+      font-weight:700;
+
+      color:#6B5B5B;
+    }
+
+    .review-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+
+      margin-bottom:18px;
+    }
+
+    .user{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .avatar{
+      width:52px;
+      height:52px;
+
+      border-radius:18px;
+
+      object-fit:cover;
+    }
+
+    .username{
+      font-size:16px;
+      font-weight:700;
+
+      color:#4D3E3E;
+    }
+
+    .date{
+      margin-top:4px;
+
+      font-size:12px;
+
+      color:#B0A6A6;
+    }
+
+    .stars{
+      display:flex;
+      gap:2px;
+
+      color:#FFB648;
+    }
+
+    .review-text{
+      font-size:14px;
+
+      line-height:2;
+
+      color:#746868;
+    }
+
+    .bottom-space{
+      height:40px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="phone">
+
+    <div class="page">
+
+      <div class="hero">
+
+        <img
+        src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1200&auto=format&fit=crop"
+        />
+
+        <div class="hero-mask"></div>
+
+        <div class="topbar">
+
+          <div class="nav-btn">
+            <i data-lucide="chevron-left"></i>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+
+            <div class="nav-btn">
+              <i data-lucide="ellipsis"></i>
+            </div>
+
+            <div class="nav-btn">
+              <i data-lucide="circle"></i>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="hero-content">
+
+          <div class="tag">
+            宠物友好公园
+          </div>
+
+          <div class="store-name">
+            中央公园
+          </div>
+
+          <div class="store-desc">
+            草坪宽阔 · 适合遛狗 · 狗友聚集地
+          </div>
+
+          <div class="meta-row">
+
+            <div class="meta-item">
+              <i data-lucide="star"></i>
+              4.9评分
+            </div>
+
+            <div class="meta-item">
+              <i data-lucide="map-pin"></i>
+              距离500m
+            </div>
+
+            <div class="meta-item">
+              <i data-lucide="paw-print"></i>
+              23只宠物
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="content">
+
+        <div class="card">
+
+          <div class="section-title">
+
+            <i data-lucide="file-text"></i>
+
+            店铺介绍
+
+          </div>
+
+          <div class="intro">
+            中央公园是本地最受欢迎的宠物友好地点之一，拥有大面积草坪与休闲步道。园区内提供宠物饮水区、便便袋领取点与休息区域，周末经常有狗友聚会，非常适合带毛孩子出来玩耍与社交。
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-title">
+
+            <i data-lucide="info"></i>
+
+            基础信息
+
+          </div>
+
+          <div class="info-list">
+
+            <div class="info-item">
+
+              <div class="info-icon">
+                <i data-lucide="clock-3"></i>
+              </div>
+
+              <div>
+
+                <div class="info-label">
+                  营业时间
+                </div>
+
+                <div class="info-value">
+                  周一至周日 06:00 - 22:00
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="info-item">
+
+              <div class="info-icon">
+                <i data-lucide="map-pinned"></i>
+              </div>
+
+              <div>
+
+                <div class="info-label">
+                  店铺地址
+                </div>
+
+                <div class="info-value">
+                  市中心公园路88号
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-title">
+
+            <i data-lucide="sparkles"></i>
+
+            快捷操作
+
+          </div>
+
+          <div class="action-grid">
+
+            <div class="action-item">
+
+              <i data-lucide="navigation"></i>
+
+              <div class="action-text">
+                导航前往
+              </div>
+
+            </div>
+
+            <div class="action-item">
+
+              <i data-lucide="phone"></i>
+
+              <div class="action-text">
+                联系店铺
+              </div>
+
+            </div>
+
+            <div class="action-item">
+
+              <i data-lucide="heart"></i>
+
+              <div class="action-text">
+                收藏地点
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-title">
+
+            <i data-lucide="message-circle-heart"></i>
+
+            用户评价
+
+          </div>
+
+          <div class="review-header">
+
+            <div class="user">
+
+              <img
+              class="avatar"
+              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop"
+              />
+
+              <div>
+
+                <div class="username">
+                  小明
+                </div>
+
+                <div class="date">
+                  2024-01-15
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="stars">
+
+              <i data-lucide="star"></i>
+              <i data-lucide="star"></i>
+              <i data-lucide="star"></i>
+              <i data-lucide="star"></i>
+              <i data-lucide="star"></i>
+
+            </div>
+
+          </div>
+
+          <div class="review-text">
+            草坪特别干净，空气很好，狗狗玩得特别开心。周末很多养狗的人会聚在这里，氛围非常舒服，已经连续来了很多次了 🐾
+          </div>
+
+        </div>
+
+        <div class="bottom-space"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>

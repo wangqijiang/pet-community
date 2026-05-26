@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <title>BottomTabBar</title>
+
+  <style>
+
+    body{
+      margin:0;
+      background:#F3F1EE;
+      display:flex;
+      justify-content:center;
+      align-items:flex-end;
+      height:100vh;
+      padding:40px;
+      font-family:'Noto Sans SC',sans-serif;
+    }
+
+    .phone{
+      width:390px;
+      height:120px;
+      position:relative;
+    }
+
+    .tabbar{
+      width:100%;
+      height:92px;
+
+      background:rgba(255,255,255,0.88);
+      backdrop-filter:blur(24px);
+
+      border-radius:28px 28px 0 0;
+
+      border-top:1px solid rgba(0,0,0,0.03);
+
+      display:flex;
+      justify-content:space-around;
+      align-items:center;
+
+      box-shadow:0 -4px 20px rgba(107,78,61,0.04);
+    }
+
+    .tab-item{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+
+      color:#8A7F7F;
+      font-size:11px;
+      font-weight:500;
+
+      transition:all .2s ease;
+    }
+
+    .tab-item.active{
+      color:#F4A259;
+    }
+
+    .tab-item i{
+      width:22px;
+      height:22px;
+      stroke-width:2px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="phone">
+
+    <div class="tabbar">
+
+      <div class="tab-item active">
+        <i data-lucide="house"></i>
+        <span>首页</span>
+      </div>
+
+      <div class="tab-item">
+        <i data-lucide="paw-print"></i>
+        <span>萌宠圈</span>
+      </div>
+
+      <div class="tab-item">
+        <i data-lucide="message-circle"></i>
+        <span>消息</span>
+      </div>
+
+      <div class="tab-item">
+        <i data-lucide="user-round"></i>
+        <span>我的</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>

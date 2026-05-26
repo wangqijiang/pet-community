@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>微信登录</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      background:#F3F1EE;
+
+      font-family:'Noto Sans SC',sans-serif;
+
+      display:flex;
+      justify-content:center;
+
+      padding:40px;
+    }
+
+    .phone{
+      width:390px;
+      height:844px;
+
+      background:
+      linear-gradient(
+      180deg,
+      #FFF7F1 0%,
+      #FFF3EA 100%
+      );
+
+      border-radius:42px;
+
+      overflow:hidden;
+
+      position:relative;
+
+      box-shadow:
+      0 20px 60px rgba(0,0,0,0.08);
+    }
+
+    .top-light{
+      position:absolute;
+
+      top:-180px;
+      left:-120px;
+
+      width:420px;
+      height:420px;
+
+      border-radius:999px;
+
+      background:
+      radial-gradient(
+      circle,
+      rgba(255,200,150,0.35) 0%,
+      rgba(255,200,150,0) 70%
+      );
+    }
+
+    .bottom-light{
+      position:absolute;
+
+      bottom:-220px;
+      right:-120px;
+
+      width:420px;
+      height:420px;
+
+      border-radius:999px;
+
+      background:
+      radial-gradient(
+      circle,
+      rgba(255,220,190,0.45) 0%,
+      rgba(255,220,190,0) 70%
+      );
+    }
+
+    .content{
+      position:relative;
+
+      z-index:2;
+
+      height:100%;
+
+      padding:120px 36px 60px;
+
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+
+    .hero{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    .logo-wrap{
+      width:140px;
+      height:140px;
+
+      border-radius:999px;
+
+      background:
+      linear-gradient(
+      135deg,
+      #FFE7CC,
+      #FFF4E8
+      );
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      box-shadow:
+      0 16px 40px rgba(255,179,107,0.18);
+    }
+
+    .logo-wrap i{
+      width:64px;
+      height:64px;
+
+      color:#F4A259;
+    }
+
+    .title{
+      margin-top:36px;
+
+      font-size:38px;
+      font-weight:700;
+
+      color:#4E3B32;
+
+      letter-spacing:1px;
+    }
+
+    .subtitle{
+      margin-top:16px;
+
+      font-size:15px;
+
+      line-height:1.9;
+
+      color:#8A7F7F;
+
+      text-align:center;
+    }
+
+    .pet-card{
+      margin-top:48px;
+
+      width:100%;
+
+      background:rgba(255,255,255,0.72);
+
+      backdrop-filter:blur(18px);
+
+      border-radius:32px;
+
+      padding:26px;
+
+      box-shadow:
+      0 12px 36px rgba(107,78,61,0.06);
+    }
+
+    .pet-row{
+      display:flex;
+      align-items:center;
+      gap:16px;
+    }
+
+    .pet-avatar{
+      width:64px;
+      height:64px;
+
+      border-radius:24px;
+
+      object-fit:cover;
+    }
+
+    .pet-name{
+      font-size:18px;
+      font-weight:700;
+
+      color:#3D2F2F;
+    }
+
+    .pet-desc{
+      margin-top:6px;
+
+      font-size:13px;
+
+      color:#8A7F7F;
+    }
+
+    .login-area{
+      width:100%;
+    }
+
+    .wechat-btn{
+      width:100%;
+      height:58px;
+
+      border:none;
+
+      border-radius:999px;
+
+      background:
+      linear-gradient(
+      135deg,
+      #FFB36B,
+      #FFA95D
+      );
+
+      color:white;
+
+      font-size:17px;
+      font-weight:700;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+
+      box-shadow:
+      0 12px 28px rgba(255,179,107,0.32);
+
+      transition:all .2s ease;
+
+      cursor:pointer;
+    }
+
+    .wechat-btn:hover{
+      transform:scale(1.02);
+    }
+
+    .wechat-btn i{
+      width:22px;
+      height:22px;
+    }
+
+    .agreement{
+      margin-top:22px;
+
+      text-align:center;
+
+      font-size:12px;
+
+      line-height:1.8;
+
+      color:#A39797;
+    }
+
+    .agreement span{
+      color:#F4A259;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="phone">
+
+    <div class="top-light"></div>
+
+    <div class="bottom-light"></div>
+
+    <div class="content">
+
+      <div class="hero">
+
+        <div class="logo-wrap">
+          <i data-lucide="paw-print"></i>
+        </div>
+
+        <div class="title">
+          萌宠朋友圈
+        </div>
+
+        <div class="subtitle">
+          记录和毛孩子的每一天<br>
+          发现城市里的宠物友好生活 🐾
+        </div>
+
+        <div class="pet-card">
+
+          <div class="pet-row">
+
+            <img
+            class="pet-avatar"
+            src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400&auto=format&fit=crop"
+            />
+
+            <div>
+
+              <div class="pet-name">
+                带上狗狗去生活
+              </div>
+
+              <div class="pet-desc">
+                分享日常 · 发现遛狗好去处 · 认识附近狗友
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="login-area">
+
+        <button class="wechat-btn">
+
+          <i data-lucide="message-circle-heart"></i>
+
+          微信一键登录
+
+        </button>
+
+        <div class="agreement">
+          登录即代表同意
+          <span>《用户协议》</span>
+          与
+          <span>《隐私政策》</span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>

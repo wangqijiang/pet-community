@@ -1,6 +1,6 @@
 <template>
   <view class="circle-container">
-    <TopNavBar title="萌宠朋友圈" :showBack="false" rightIcon="icon-bell" />
+    <TopNavBar title="萌宠朋友圈 🐾" :showBack="false" rightIcon="icon-ellipsis" />
 
     <view class="category-tabs">
       <scroll-view scroll-x class="tab-scroll">
@@ -26,17 +26,23 @@
         @click="goToDetail(item)"
       >
         <view class="card-header">
-          <view class="user-avatar" @tap="goToUserProfile(item)">
-            <view
-              class="avatar-bg"
-              :style="{ background: item.avatarColor }"
-            ></view>
-          </view>
-          <view class="user-info">
-            <text class="user-name">{{ item.userName }}</text>
-            <view class="user-tags">
-              <text class="tag">{{ item.userTag }}</text>
+          <view class="user-row">
+            <view class="user-left">
+              <view class="user-avatar" @tap="goToUserProfile(item)">
+                <view
+                  class="avatar-bg"
+                  :style="{ background: item.avatarColor }"
+                ></view>
+              </view>
+              <view class="user-info">
+                <view class="user-name-row">
+                  <text class="user-name">{{ item.userName }}</text>
+                  <text class="level">Lv.2</text>
+                </view>
+                <text class="user-meta">20分钟前 · 杭州</text>
+              </view>
             </view>
+            <view class="more-icon"></view>
           </view>
         </view>
 
@@ -50,6 +56,14 @@
             :style="{ background: img.color }"
             @click.stop="previewImage(item, imgIndex)"
           ></view>
+        </view>
+
+        <view class="location" v-if="item.location">
+          <view class="location-left">
+            <view class="location-icon"></view>
+            <text class="location-text">{{ item.location }}</text>
+          </view>
+          <text class="location-distance">{{ item.distance }}</text>
         </view>
 
         <view class="card-footer">
@@ -111,16 +125,18 @@ const feedList = ref([
     avatarColor: "#FFC1E9",
     userTag: "柯基 · 2岁",
     content:
-      "今天带布丁去公园草坪打滚啦！阳光超级好，它开心得像个200斤的孩子哈哈。这就是简单的幸福吧～✨",
+      "今天带布丁去公园撒欢啦！\n秋天的草地太舒服了，它开心得像个小疯子～🍂🐶",
     images: [
       { color: "#FFE4E1" },
       { color: "#FFD4F0" },
       { color: "#FFC1E9" },
       { color: "#FFB6C1" },
     ],
+    location: "西湖边 · 太子湾公园",
+    distance: "2.3km",
     category: "daily",
-    likes: 128,
-    comments: 32,
+    likes: 96,
+    comments: 18,
     liked: false,
   },
   {
@@ -131,6 +147,8 @@ const feedList = ref([
     content:
       "新来的小橘太粘人啦！一进门就开始蹭腿，求一个有缘的家庭带它回家～ 坐标上海。🍊",
     images: [{ color: "#FFF4D2" }],
+    location: "上海市 · 徐汇区",
+    distance: "5.6km",
     category: "lost",
     likes: 456,
     comments: 89,
@@ -144,6 +162,8 @@ const feedList = ref([
     content:
       "今天训练了新技能！握手、趴下、打滚一气呵成，奖励了超多零食～🐾",
     images: [{ color: "#FFE4E1" }, { color: "#FFC1E9" }],
+    location: "北京 · 奥林匹克公园",
+    distance: "1.2km",
     category: "skill",
     likes: 234,
     comments: 45,
@@ -157,6 +177,8 @@ const feedList = ref([
     content:
       "有没有住在朝阳区的小伙伴？每天晚上7点左右在望京公园遛狗，想找个搭子一起～",
     images: [{ color: "#FFD4F0" }],
+    location: "北京 · 望京公园",
+    distance: "3.8km",
     category: "walk",
     likes: 89,
     comments: 23,
@@ -170,6 +192,8 @@ const feedList = ref([
     content:
       "推荐这款狗粮！我家宝贝吃了三个月，毛发明显变亮了，而且消化也很好～",
     images: [{ color: "#E8F5E9" }, { color: "#FFF4D2" }, { color: "#FFE4E1" }],
+    location: "广州 · 天河公园",
+    distance: "0.8km",
     category: "share",
     likes: 156,
     comments: 38,
@@ -234,7 +258,7 @@ const previewImage = (item: any, index: number) => {
 }
 
 .category-tabs {
-  padding: 0 32rpx;
+  padding: 24rpx 32rpx;
   flex-shrink: 0;
 }
 
@@ -244,64 +268,61 @@ const previewImage = (item: any, index: number) => {
 
 .tab-list {
   display: inline-flex;
-  gap: 16rpx;
+  gap: 20rpx;
 }
 
 .tab-item {
   flex-shrink: 0;
-  padding: 16rpx 32rpx;
+  padding: 20rpx 32rpx;
   background: $color-bg-white;
-  border: 2rpx solid rgba(113, 88, 92, 0.1);
-  border-radius: 32rpx;
-  font-size: $font-size-body;
-  color: $color-gray-medium;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  color: #7A6E6E;
   transition: all $transition-base;
-  box-shadow: 0 4rpx 12rpx rgba(168, 155, 157, 0.08);
 
   &.active {
-    background: rgba(113, 88, 92, 0.1);
-    color: $color-primary;
-    border-color: $color-primary-light;
+    background: #FFE2C2;
+    color: #D97D2F;
+    font-weight: 600;
   }
 }
 
 .feed-list {
-  height: calc(100vh - 180rpx - env(safe-area-inset-bottom));
-  height: calc(100vh - 180rpx - constant(safe-area-inset-bottom));
-  padding: 32rpx;
-  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
-  padding-bottom: calc(200rpx + constant(safe-area-inset-bottom));
+  flex: 1;
+  padding: 0 32rpx;
+  padding-bottom: calc(240rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(240rpx + constant(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
 .feed-card {
   background: $color-bg-white;
-  border-radius: $border-radius-large;
+  border-radius: 24rpx;
   padding: 32rpx;
-  margin-bottom: 32rpx;
-  border: 1rpx solid rgba(113, 88, 92, 0.1);
-  box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.08);
-  transition: transform $transition-base;
-
-  &:active {
-    transform: scale(1);
-    box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.12);
-  }
+  margin-bottom: 36rpx;
+  box-shadow: 0 12rpx 40rpx rgba(107, 78, 61, 0.06);
 }
 
 .card-header {
+  margin-bottom: 28rpx;
+}
+
+.user-row {
   display: flex;
-  align-items: flex-start;
-  margin-bottom: 24rpx;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-left {
+  display: flex;
+  gap: 24rpx;
+  align-items: center;
 }
 
 .user-avatar {
-  width: 80rpx;
-  height: 80rpx;
+  width: 96rpx;
+  height: 96rpx;
   border-radius: 50%;
-  padding: 4rpx;
-  border: 4rpx solid $color-primary-light;
-  margin-right: 20rpx;
 }
 
 .avatar-bg {
@@ -314,72 +335,112 @@ const previewImage = (item: any, index: number) => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 4rpx;
+}
+
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
 }
 
 .user-name {
-  font-size: $font-size-body;
-  font-weight: $font-weight-bold;
-  color: $color-gray-dark;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #3D2F2F;
 }
 
-.user-tags {
-  display: flex;
-  gap: 8rpx;
-}
-
-.tag {
+.level {
+  background: #FFF0D9;
+  color: #E49743;
+  font-size: 22rpx;
   padding: 6rpx 16rpx;
-  background: rgba(113, 88, 92, 0.08);
-  color: $color-primary;
-  font-size: $font-size-helper;
-  font-weight: $font-weight-bold;
-  border-radius: $border-radius-small;
+  border-radius: 999rpx;
+  font-weight: 600;
 }
+
+.user-meta {
+  font-size: 24rpx;
+  color: #9B9090;
+}
+
 .more-icon {
-  width: 36rpx;
-  height: 36rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
+  width: 40rpx;
+  height: 40rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237A6E6E'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }
 
 .card-content {
-  font-size: $font-size-body;
-  color: $color-gray-dark;
-  line-height: 1.6;
-  margin-bottom: 24rpx;
+  font-size: 30rpx;
+  color: #4D3E3E;
+  line-height: 1.8;
+  margin-bottom: 28rpx;
 }
 
 .card-images {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 28rpx;
 }
 
 .image-item {
   aspect-ratio: 1;
-  border-radius: $border-radius-medium;
+  border-radius: 16rpx;
+}
+
+.location {
+  background: #FFF5EA;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+
+.location-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.location-icon {
+  width: 32rpx;
+  height: 32rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237B5B45'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.location-text {
+  font-size: 28rpx;
+  color: #7B5B45;
+}
+
+.location-distance {
+  font-size: 28rpx;
+  color: #7B5B45;
 }
 
 .card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 24rpx;
-  border-top: 1rpx solid rgba(113, 88, 92, 0.1);
+  padding-top: 32rpx;
 }
 
 .footer-left {
   display: flex;
-  gap: 32rpx;
+  gap: 36rpx;
 }
 
 .footer-item {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 12rpx;
 }
 
 .footer-icon {
@@ -388,7 +449,7 @@ const previewImage = (item: any, index: number) => {
 
   &.liked {
     .like-icon {
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF4757'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF4757'%3E%3Cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'/%3E%3C/svg%3E")
         no-repeat center;
       background-size: 100%;
     }
@@ -398,7 +459,7 @@ const previewImage = (item: any, index: number) => {
 .like-icon {
   width: 100%;
   height: 100%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6E6E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }
@@ -406,7 +467,7 @@ const previewImage = (item: any, index: number) => {
 .comment-icon {
   width: 100%;
   height: 100%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6E6E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }
@@ -414,41 +475,35 @@ const previewImage = (item: any, index: number) => {
 .share-icon {
   width: 36rpx;
   height: 36rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6E6E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }
 
 .footer-count {
-  font-size: $font-size-helper;
-  font-weight: $font-weight-bold;
-  color: $color-gray-medium;
+  font-size: 28rpx;
+  color: #7A6E6E;
 }
 
 .fab {
   position: fixed;
-  bottom: 160rpx;
-  right: 32rpx;
-  width: 100rpx;
-  height: 100rpx;
-  background: $color-primary;
+  bottom: 220rpx;
+  right: 40rpx;
+  width: 116rpx;
+  height: 116rpx;
+  background: linear-gradient(135deg, #FFB36B, #FFA552);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(113, 88, 92, 0.3);
+  box-shadow: 0 20rpx 48rpx rgba(255, 179, 107, 0.4);
   z-index: 9999;
-
-  &:active {
-    transform: scale(1);
-    background: $color-primary-dark;
-  }
 }
 
 .fab-icon {
   width: 48rpx;
   height: 48rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }

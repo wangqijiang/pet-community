@@ -1,39 +1,58 @@
 <template>
   <view class="login-page">
-    <!-- 主背景区域 -->
-    <view class="main-container paw-pattern">
-      <!-- 插画区域 -->
-      <view class="illustration-area">
-        <view class="mascot-wrapper">
-          <image
-            class="mascot"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8JgpHQAmP9OCn4WDQmV7sHMV9DqTCdkLEB_g-8yUMppPn3hACdkAj2F3XioEuVxSk61S_sLRszkFe3HotbOJdWlaRoMfvimnzih0T7OjP6ahQuwFClON9UVbIxRMa8ZgUtR9KGO1XVHhIvQMrBqCwzqQaWH6nlmw4n_-Nv9HXVFLS6GnEDTvYDvperQkw5miFzvuWWrXXfw4dRnXl04FF1xwtCYBoz6IqCuIDIVCYpElzZwW91911akVhYGbnrBd4NvpBGpAm3Efg"
-            mode="aspectFit"
-          />
-        </view>
-        <view class="title-area">
-          <text class="app-title">WaggleWorld</text>
-          <text class="app-subtitle">狗狗的治愈星球 · 遇见温暖</text>
-        </view>
-      </view>
+    <!-- 顶部光晕 -->
+    <view class="top-light"></view>
 
-      <!-- 登录容器 -->
-      <view class="login-container">
-        <view class="login-btn-area">
-          <view class="login-btn" @click="handleLogin">
-            <text class="btn-icon">🐾</text>
-            <text class="btn-text">微信一键登录</text>
+    <!-- 底部光晕 -->
+    <view class="bottom-light"></view>
+
+    <!-- 内容区域 -->
+    <view class="content">
+      <!-- 头部区域 -->
+      <view class="hero">
+        <!-- Logo -->
+        <view class="logo-wrap">
+          <view class="logo-icon icon-paw"></view>
+        </view>
+
+        <!-- 标题 -->
+        <text class="title">萌宠朋友圈</text>
+
+        <!-- 副标题 -->
+        <text class="subtitle"
+          >记录和毛孩子的每一天<br />发现城市里的宠物友好生活 🐾</text
+        >
+
+        <!-- 宠物卡片 -->
+        <view class="pet-card">
+          <view class="pet-row">
+            <image
+              class="pet-avatar"
+              src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400&auto=format&fit=crop"
+              mode="aspectFill"
+            />
+            <view class="pet-info">
+              <text class="pet-name">带上狗狗去生活</text>
+              <text class="pet-desc"
+                >分享日常 · 发现遛狗好去处 · 认识附近狗友</text
+              >
+            </view>
           </view>
         </view>
       </view>
 
-      <!-- 底部条款区域 -->
-      <view class="terms-area">
-        <text class="terms-text">
+      <!-- 登录区域 -->
+      <view class="login-area">
+        <view class="wechat-btn" @click="handleLogin">
+          <view class="wechat-icon icon-heart"></view>
+          <text class="wechat-text">微信一键登录</text>
+        </view>
+
+        <text class="agreement">
           登录即代表同意
-          <text class="link-text">《用户协议》</text>
-          和
-          <text class="link-text">《隐私政策》</text>
+          <text class="agreement-link">《用户协议》</text>
+          与
+          <text class="agreement-link">《隐私政策》</text>
         </text>
       </view>
     </view>
@@ -54,125 +73,187 @@ const handleLogin = () => {
 };
 </script>
 
-<style lang="scss">
-@import "@/styles/variables.scss";
-
+<style lang="scss" scoped>
 .login-page {
-  min-height: 100vh;
-  background-color: $color-bg-primary;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(180deg, #fff7f1 0%, #fff3ea 100%);
+  position: relative;
+  overflow: hidden;
 }
 
-.main-container {
-  min-height: 100vh;
-  width: 100%;
+.top-light {
+  position: absolute;
+  top: -360rpx;
+  left: -240rpx;
+  width: 840rpx;
+  height: 840rpx;
+  border-radius: 999rpx;
+  background: radial-gradient(
+    circle,
+    rgba(255, 200, 150, 0.35) 0%,
+    rgba(255, 200, 150, 0) 70%
+  );
+}
+
+.bottom-light {
+  position: absolute;
+  bottom: -440rpx;
+  right: -240rpx;
+  width: 840rpx;
+  height: 840rpx;
+  border-radius: 999rpx;
+  background: radial-gradient(
+    circle,
+    rgba(255, 220, 190, 0.45) 0%,
+    rgba(255, 220, 190, 0) 70%
+  );
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  padding: 240rpx 72rpx 120rpx;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: space-between;
-  padding: 48rpx 40rpx;
   box-sizing: border-box;
 }
 
-.paw-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 25c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-5-3c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm10 0c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-5-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z' fill='%23FFC1E9' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
-}
-
-.illustration-area {
+.hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 80rpx;
-  z-index: 10;
 }
 
-.mascot-wrapper {
-  width: 224rpx;
-  height: 224rpx;
-  margin-bottom: 16rpx;
-}
-
-.mascot {
-  width: 100%;
-  height: 100%;
-}
-
-.title-area {
-  text-align: center;
-}
-
-.app-title {
-  display: block;
-  font-size: 48rpx;
-  font-weight: 700;
-  color: #71585c;
-  letter-spacing: -0.5rpx;
-  margin-bottom: 8rpx;
-}
-
-.app-subtitle {
-  display: block;
-  font-size: 28rpx;
-  color: #71585c;
-  font-weight: 500;
-}
-
-.login-container {
-  width: 100%;
-  max-width: 560rpx;
-  padding: 32rpx;
-  border-radius: 48rpx;
-  z-index: 10;
-  margin: 32rpx 0;
-}
-
-.login-btn-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8rpx 0;
-}
-
-.login-btn {
-  width: 100%;
-  height: 88rpx;
-  background: $color-primary;
-  border-radius: 44rpx;
+.logo-wrap {
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #ffe7cc, #fff4e8);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(113, 88, 92, 0.3);
-  transition: all 0.2s ease;
+  box-shadow: 0 32rpx 80rpx rgba(255, 179, 107, 0.18);
+}
 
-  &:active {
-    transform: scale(1);
-    opacity: 0.9;
+.logo-icon {
+  width: 128rpx;
+  height: 128rpx;
+
+  &.icon-paw {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
   }
 }
 
-.btn-icon {
-  font-size: 40rpx;
-  margin-right: 12rpx;
+.title {
+  margin-top: 72rpx;
+  font-size: 76rpx;
+  font-weight: 700;
+  color: #4e3b32;
+  letter-spacing: 2rpx;
 }
 
-.btn-text {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.terms-area {
-  margin-bottom: calc(48rpx + env(safe-area-inset-bottom));
-  z-index: 10;
-}
-
-.terms-text {
-  font-size: 24rpx;
-  color: #807476;
+.subtitle {
+  margin-top: 32rpx;
+  font-size: 30rpx;
+  line-height: 1.9;
+  color: #8a7f7f;
   text-align: center;
-  line-height: 1.6;
 }
 
-.link-text {
-  color: #71585c;
+.pet-card {
+  margin-top: 96rpx;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(18px);
+  border-radius: 64rpx;
+  padding: 52rpx;
+  box-shadow: 0 24rpx 72rpx rgba(107, 78, 61, 0.06);
+}
+
+.pet-row {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+}
+
+.pet-avatar {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 48rpx;
+}
+
+.pet-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.pet-name {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #3d2f2f;
+}
+
+.pet-desc {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #8a7f7f;
+}
+
+.login-area {
+  width: 100%;
+}
+
+.wechat-btn {
+  width: 100%;
+  height: 116rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #ffb36b, #ffa95d);
+  color: #ffffff;
+  font-size: 34rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  box-shadow: 0 24rpx 56rpx rgba(255, 179, 107, 0.32);
+}
+
+.wechat-icon {
+  width: 44rpx;
+  height: 44rpx;
+
+  &.icon-heart {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
+}
+
+.wechat-text {
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.agreement {
+  margin-top: 44rpx;
+  text-align: center;
+  font-size: 24rpx;
+  line-height: 1.8;
+  color: #a39797;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agreement-link {
+  color: #f4a259;
 }
 </style>

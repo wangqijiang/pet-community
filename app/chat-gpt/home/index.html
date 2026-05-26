@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>首页地图</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      background:#F3F1EE;
+      font-family:'Noto Sans SC',sans-serif;
+      display:flex;
+      justify-content:center;
+      padding:40px;
+    }
+
+    .phone{
+      width:390px;
+      height:844px;
+      background:#FFF7F1;
+      border-radius:42px;
+      overflow:hidden;
+      position:relative;
+      box-shadow:0 20px 60px rgba(0,0,0,0.08);
+    }
+
+    .topbar{
+      position:absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:92px;
+
+      padding:52px 20px 0;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+
+      z-index:10;
+
+      background:rgba(255,247,241,0.75);
+      backdrop-filter:blur(20px);
+    }
+
+    .title{
+      font-size:20px;
+      font-weight:700;
+      color:#5E4636;
+    }
+
+    .action-btn{
+      width:40px;
+      height:40px;
+      border-radius:999px;
+
+      background:white;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      box-shadow:0 4px 12px rgba(107,78,61,0.08);
+    }
+
+    .map{
+      width:100%;
+      height:100%;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .map img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      filter:saturate(0.88) brightness(1.02);
+    }
+
+    .marker{
+      position:absolute;
+
+      width:54px;
+      height:54px;
+
+      border-radius:999px;
+
+      background:white;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      box-shadow:
+      0 10px 24px rgba(255,179,107,0.18);
+
+      color:#F4A259;
+    }
+
+    .marker::after{
+      content:'';
+      position:absolute;
+      bottom:-6px;
+
+      width:18px;
+      height:18px;
+
+      background:white;
+
+      transform:rotate(45deg);
+
+      z-index:-1;
+    }
+
+    .marker i{
+      width:24px;
+      height:24px;
+    }
+
+    .m1{
+      top:180px;
+      left:90px;
+    }
+
+    .m2{
+      top:320px;
+      right:60px;
+    }
+
+    .m3{
+      bottom:240px;
+      left:70px;
+    }
+
+    .location-btn{
+      position:absolute;
+
+      right:20px;
+      bottom:180px;
+
+      width:56px;
+      height:56px;
+
+      border-radius:999px;
+
+      background:white;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      box-shadow:
+      0 8px 24px rgba(107,78,61,0.12);
+
+      color:#7A6E6E;
+    }
+
+    .bottom-card{
+      position:absolute;
+
+      left:16px;
+      right:16px;
+      bottom:110px;
+
+      background:rgba(255,255,255,0.92);
+
+      backdrop-filter:blur(20px);
+
+      border-radius:28px;
+
+      padding:20px;
+
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+
+      box-shadow:
+      0 12px 32px rgba(107,78,61,0.08);
+    }
+
+    .card-left{
+      display:flex;
+      align-items:center;
+      gap:16px;
+    }
+
+    .card-icon{
+      width:56px;
+      height:56px;
+
+      border-radius:999px;
+
+      background:#FFF0E0;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      color:#F4A259;
+    }
+
+    .card-title{
+      font-size:20px;
+      font-weight:700;
+      color:#3D2F2F;
+    }
+
+    .card-desc{
+      margin-top:4px;
+      font-size:13px;
+      color:#8A7F7F;
+    }
+
+    .tabbar{
+      position:absolute;
+      bottom:0;
+      left:0;
+
+      width:100%;
+      height:92px;
+
+      background:rgba(255,255,255,0.88);
+
+      backdrop-filter:blur(20px);
+
+      display:flex;
+      justify-content:space-around;
+      align-items:center;
+
+      padding-bottom:16px;
+
+      border-top:1px solid rgba(0,0,0,0.03);
+    }
+
+    .tab-item{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:4px;
+
+      color:#8A7F7F;
+      font-size:11px;
+    }
+
+    .tab-item.active{
+      color:#F4A259;
+      font-weight:600;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="phone">
+
+    <div class="topbar">
+
+      <div style="width:40px"></div>
+
+      <div class="title">
+        同城狗友地图
+      </div>
+
+      <div class="action-btn">
+        <i data-lucide="ellipsis"></i>
+      </div>
+
+    </div>
+
+    <div class="map">
+
+      <img src="https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=1200&center=lonlat:116.397128,39.916527&zoom=11&apiKey=YOUR_API_KEY">
+
+      <div class="marker m1">
+        <i data-lucide="paw-print"></i>
+      </div>
+
+      <div class="marker m2">
+        <i data-lucide="trees"></i>
+      </div>
+
+      <div class="marker m3">
+        <i data-lucide="coffee"></i>
+      </div>
+
+    </div>
+
+    <div class="location-btn">
+      <i data-lucide="locate-fixed"></i>
+    </div>
+
+    <div class="bottom-card">
+
+      <div class="card-left">
+
+        <div class="card-icon">
+          <i data-lucide="map-pinned"></i>
+        </div>
+
+        <div>
+          <div class="card-title">
+            附近遛狗好去处
+          </div>
+
+          <div class="card-desc">
+            发现周边宠物友好地点
+          </div>
+        </div>
+
+      </div>
+
+      <i data-lucide="chevron-right"></i>
+
+    </div>
+
+    <div class="tabbar">
+
+      <div class="tab-item active">
+        <i data-lucide="house"></i>
+        首页
+      </div>
+
+      <div class="tab-item">
+        <i data-lucide="paw-print"></i>
+        萌宠圈
+      </div>
+
+      <div class="tab-item">
+        <i data-lucide="message-circle"></i>
+        消息
+      </div>
+
+      <div class="tab-item">
+        <i data-lucide="user-round"></i>
+        我的
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>

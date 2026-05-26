@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>消息页面</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      background:#F3F1EE;
+      font-family:'Noto Sans SC',sans-serif;
+
+      display:flex;
+      justify-content:center;
+
+      padding:40px;
+    }
+
+    .phone{
+      width:390px;
+      height:844px;
+
+      background:#FFF7F1;
+
+      border-radius:42px;
+
+      overflow:hidden;
+
+      position:relative;
+
+      box-shadow:
+      0 20px 60px rgba(0,0,0,0.08);
+    }
+
+    .topbar{
+      height:92px;
+
+      padding:52px 20px 0;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+
+      background:rgba(255,247,241,0.88);
+
+      backdrop-filter:blur(20px);
+
+      border-bottom:
+      1px solid rgba(0,0,0,0.03);
+    }
+
+    .title{
+      font-size:20px;
+      font-weight:700;
+      color:#5E4636;
+    }
+
+    .action-btn{
+      width:40px;
+      height:40px;
+
+      border-radius:999px;
+
+      background:white;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      box-shadow:
+      0 4px 12px rgba(107,78,61,0.08);
+    }
+
+    .tabs{
+      padding:16px;
+
+      display:flex;
+      gap:12px;
+    }
+
+    .tab{
+      flex:1;
+
+      height:48px;
+
+      border-radius:999px;
+
+      background:white;
+
+      border:
+      1px solid #F1E5DA;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      gap:8px;
+
+      font-size:14px;
+      font-weight:600;
+
+      color:#8A7F7F;
+
+      transition:all .2s ease;
+
+      cursor:pointer;
+
+      position:relative;
+    }
+
+    .tab.active{
+      background:#8B6D73;
+      color:white;
+      border:none;
+    }
+
+    .badge{
+      min-width:18px;
+      height:18px;
+
+      padding:0 5px;
+
+      border-radius:999px;
+
+      background:#E54B4B;
+
+      color:white;
+
+      font-size:11px;
+      font-weight:700;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .content{
+      padding:0 16px 120px;
+
+      height:calc(100% - 160px);
+
+      overflow-y:auto;
+    }
+
+    .list{
+      display:none;
+    }
+
+    .list.active{
+      display:block;
+    }
+
+    .card{
+      background:white;
+
+      border-radius:24px;
+
+      padding:18px;
+
+      margin-bottom:16px;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+
+      box-shadow:
+      0 8px 24px rgba(107,78,61,0.05);
+    }
+
+    .left{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+
+    .icon-wrap{
+      width:52px;
+      height:52px;
+
+      border-radius:18px;
+
+      background:#FFF1EC;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      color:#8B6D73;
+    }
+
+    .avatar{
+      width:52px;
+      height:52px;
+
+      border-radius:18px;
+
+      object-fit:cover;
+    }
+
+    .name{
+      font-size:16px;
+      font-weight:700;
+
+      color:#3D2F2F;
+    }
+
+    .desc{
+      margin-top:6px;
+
+      font-size:13px;
+
+      color:#8A7F7F;
+    }
+
+    .right{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:8px;
+    }
+
+    .time{
+      font-size:12px;
+      color:#B0A6A6;
+    }
+
+    .dot{
+      width:8px;
+      height:8px;
+
+      border-radius:999px;
+
+      background:#E54B4B;
+    }
+
+    .tabbar{
+      position:absolute;
+
+      left:0;
+      bottom:0;
+
+      width:100%;
+      height:92px;
+
+      background:rgba(255,255,255,0.88);
+
+      backdrop-filter:blur(20px);
+
+      border-top:
+      1px solid rgba(0,0,0,0.03);
+
+      display:flex;
+      justify-content:space-around;
+      align-items:center;
+
+      padding-bottom:16px;
+    }
+
+    .tab-item{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+
+      gap:4px;
+
+      color:#8A7F7F;
+
+      font-size:11px;
+    }
+
+    .tab-item.active{
+      color:#F4A259;
+      font-weight:600;
+    }
+
+    .message-badge{
+      position:absolute;
+
+      top:-4px;
+      right:-8px;
+
+      width:18px;
+      height:18px;
+
+      border-radius:999px;
+
+      background:#E54B4B;
+
+      color:white;
+
+      font-size:11px;
+      font-weight:700;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .icon-box{
+      position:relative;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="phone">
+
+    <div class="topbar">
+
+      <div style="width:40px"></div>
+
+      <div class="title">
+        消息
+      </div>
+
+      <div class="action-btn">
+        <i data-lucide="ellipsis"></i>
+      </div>
+
+    </div>
+
+    <div class="tabs">
+
+      <div class="tab active" onclick="switchTab('system')">
+
+        系统通知
+
+        <div class="badge">
+          2
+        </div>
+
+      </div>
+
+      <div class="tab" onclick="switchTab('friend')">
+        好友私信
+      </div>
+
+    </div>
+
+    <div class="content">
+
+      <!-- 系统通知 -->
+
+      <div class="list active" id="system-list">
+
+        <div class="card">
+
+          <div class="left">
+
+            <div class="icon-wrap">
+              <i data-lucide="heart"></i>
+            </div>
+
+            <div>
+
+              <div class="name">
+                点赞通知
+              </div>
+
+              <div class="desc">
+                小明 点赞了你的动态
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="right">
+
+            <div class="time">
+              59分钟前
+            </div>
+
+            <div class="dot"></div>
+
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <div class="left">
+
+            <div class="icon-wrap">
+              <i data-lucide="message-circle"></i>
+            </div>
+
+            <div>
+
+              <div class="name">
+                评论通知
+              </div>
+
+              <div class="desc">
+                阿花 评论了你的动态
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="right">
+
+            <div class="time">
+              10分钟前
+            </div>
+
+            <div class="dot"></div>
+
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <div class="left">
+
+            <div class="icon-wrap">
+              <i data-lucide="user-plus"></i>
+            </div>
+
+            <div>
+
+              <div class="name">
+                关注通知
+              </div>
+
+              <div class="desc">
+                旺财 关注了你
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="right">
+
+            <div class="time">
+              1小时前
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <div class="left">
+
+            <div class="icon-wrap">
+              <i data-lucide="badge-check"></i>
+            </div>
+
+            <div>
+
+              <div class="name">
+                系统通知
+              </div>
+
+              <div class="desc">
+                实名认证审核已通过
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="right">
+
+            <div class="time">
+              3小时前
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- 好友消息 -->
+
+      <div class="list" id="friend-list">
+
+        <div class="card">
+
+          <div class="left">
+
+            <img
+            class="avatar"
+            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop"
+            />
+
+            <div>
+
+              <div class="name">
+                小明
+              </div>
+
+              <div class="desc">
+                今天去遛狗吗？
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="right">
+
+            <div class="time">
+              刚刚
+            </div>
+
+            <div class="badge">
+              3
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <div class="left">
+
+            <img
+            class="avatar"
+            src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=400&auto=format&fit=crop"
+            />
+
+            <div>
+
+              <div class="name">
+                阿花
+              </div>
+
+              <div class="desc">
+                好的，明天见～
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="right">
+
+            <div class="time">
+              10分钟前
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <div class="left">
+
+            <img
+            class="avatar"
+            src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop"
+            />
+
+            <div>
+
+              <div class="name">
+                旺财
+              </div>
+
+              <div class="desc">
+                周末一起去公园吧 🐾
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="right">
+
+            <div class="time">
+              1小时前
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="tabbar">
+
+      <div class="tab-item">
+        <i data-lucide="house"></i>
+        首页
+      </div>
+
+      <div class="tab-item">
+        <i data-lucide="paw-print"></i>
+        萌宠圈
+      </div>
+
+      <div class="tab-item active">
+
+        <div class="icon-box">
+
+          <i data-lucide="message-circle"></i>
+
+          <div class="message-badge">
+            2
+          </div>
+
+        </div>
+
+        消息
+
+      </div>
+
+      <div class="tab-item">
+        <i data-lucide="user-round"></i>
+        我的
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    lucide.createIcons();
+
+    function switchTab(type){
+
+      const tabs =
+      document.querySelectorAll('.tab');
+
+      tabs.forEach(item=>{
+        item.classList.remove('active');
+      });
+
+      event.currentTarget.classList.add('active');
+
+      document
+      .getElementById('system-list')
+      .classList.remove('active');
+
+      document
+      .getElementById('friend-list')
+      .classList.remove('active');
+
+      if(type === 'system'){
+        document
+        .getElementById('system-list')
+        .classList.add('active');
+      }else{
+        document
+        .getElementById('friend-list')
+        .classList.add('active');
+      }
+
+    }
+
+  </script>
+
+</body>
+</html>

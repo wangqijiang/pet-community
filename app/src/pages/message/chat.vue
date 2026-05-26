@@ -1,10 +1,20 @@
 <template>
   <view class="chat-container">
-    <TopNavBar class="chat-nav" :showBack="true" :title="friendName" />
+    <view class="topbar">
+      <view class="top-left">
+        <view class="back-btn" @click="goBack">
+          <view class="back-icon"></view>
+        </view>
+      </view>
+      <text class="title">{{ friendName }}</text>
+      <view class="action-btn">
+        <view class="action-icon"></view>
+      </view>
+    </view>
 
     <scroll-view
       scroll-y
-      class="chat-content"
+      class="chat-area"
       :scroll-into-view="scrollToId"
       scroll-with-animation
     >
@@ -12,122 +22,109 @@
         v-for="(msg, index) in messages"
         :key="index"
         :id="'msg-' + index"
-        class="message-bubble"
-        :class="{ 'is-me': msg.isMe }"
+        class="message"
+        :class="{ right: msg.isMe }"
       >
-        <view class="bubble-avatar">
-          <view
-            class="avatar-bg"
-            :style="{ background: msg.isMe ? '#FFC1E9' : msg.avatarColor }"
-          ></view>
-        </view>
-        <view class="bubble-content">
-          <text class="bubble-text">{{ msg.content }}</text>
-          <text class="bubble-time">{{ msg.time }}</text>
+        <view class="message-wrap">
+          <image class="avatar" :src="msg.isMe ? myAvatar : msg.avatar" mode="aspectFill" />
+          <view class="bubble-group">
+            <view class="bubble">{{ msg.content }}</view>
+            <text class="time">{{ msg.time }}</text>
+          </view>
         </view>
       </view>
     </scroll-view>
 
-    <view class="chat-input">
-      <view class="input-tools">
-        <view class="tool-item">
-          <view class="tool-icon icon-emoji"></view>
-        </view>
-        <view class="tool-item">
-          <view class="tool-icon icon-image"></view>
-        </view>
+    <view class="input-area">
+      <view class="input-icon">
+        <view class="icon-plus"></view>
       </view>
-      <view class="input-area">
-        <textarea
-          v-model="inputText"
-          class="input-field"
-          placeholder="输入消息..."
-          placeholder-class="input-placeholder"
-          :auto-height="true"
-          :maxlength="500"
-        />
-        <view
-          class="send-btn"
-          :class="{ active: inputText.trim() }"
-          @click="sendMessage"
-        >
-          <text class="send-text">发送</text>
-        </view>
+      <view class="input-icon">
+        <view class="icon-image"></view>
+      </view>
+      <input
+        v-model="inputText"
+        class="input-box"
+        placeholder="输入消息..."
+        @confirm="sendMessage"
+      />
+      <view class="send-btn" :class="{ active: inputText.trim() }" @click="sendMessage">
+        <text class="send-text">发送</text>
       </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import TopNavBar from "@/components/common/TopNavBar.vue";
 import { ref, watch, onMounted } from "vue";
 
 const friendName = ref("小明");
 const inputText = ref("");
 const scrollToId = ref("");
-
-const handleInput = (e: any) => {
-  inputText.value = e.detail.value;
-};
+const myAvatar = ref("https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop");
 
 const messages = ref([
   {
     id: 1,
-    content: "你好！",
+    content: "你好呀！🐶",
     time: "10:00",
     isMe: false,
-    avatarColor: "#FFC1E9",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
   },
   {
     id: 2,
-    content: "你好呀！",
+    content: "你好呀！今天出去遛狗吗？",
     time: "10:01",
     isMe: true,
-    avatarColor: "#FFC1E9",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
   },
   {
     id: 3,
-    content: "今天天气不错，要不要一起遛狗？",
+    content: "今天不下雨，要不要一起去公园？",
     time: "10:02",
     isMe: false,
-    avatarColor: "#FFC1E9",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
   },
   {
     id: 4,
-    content: "好呀！去哪里呢？",
+    content: "好呀！去哪边？",
     time: "10:03",
     isMe: true,
-    avatarColor: "#FFC1E9",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
   },
   {
     id: 5,
-    content: "中央公园吧，那边草坪大",
+    content: "中央公园吧，那边草坪大～",
     time: "10:05",
     isMe: false,
-    avatarColor: "#FFC1E9",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
   },
   {
     id: 6,
     content: "可以，几点？",
     time: "10:06",
     isMe: true,
-    avatarColor: "#FFC1E9",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
   },
   {
     id: 7,
-    content: "下午3点怎么样？",
+    content: "下午三点怎么样？",
     time: "10:08",
     isMe: false,
-    avatarColor: "#FFC1E9",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
   },
   {
     id: 8,
-    content: "没问题，到时见！",
+    content: "没问题，到时见！🐾",
     time: "10:10",
     isMe: true,
-    avatarColor: "#FFC1E9",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
   },
 ]);
+
+const goBack = () => {
+  uni.navigateBack();
+};
 
 const sendMessage = () => {
   if (!inputText.value.trim()) return;
@@ -140,7 +137,7 @@ const sendMessage = () => {
       minute: "2-digit",
     }),
     isMe: true,
-    avatarColor: "#FFC1E9",
+    avatar: myAvatar.value,
   });
 
   inputText.value = "";
@@ -154,7 +151,7 @@ const sendMessage = () => {
         minute: "2-digit",
       }),
       isMe: false,
-      avatarColor: "#FFC1E9",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
     });
   }, 1000);
 };
@@ -175,173 +172,222 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/variables.scss";
-
 .chat-container {
   min-height: 100vh;
-  background: $color-bg-primary;
+  background: #FFF7F1;
   display: flex;
   flex-direction: column;
 }
 
-.chat-content {
-  flex: 1;
-  box-sizing: border-box;
-  padding: 24rpx 32rpx;
-  padding-bottom: 200rpx;
+.topbar {
+  height: 184rpx;
+  padding: 104rpx 20rpx 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 247, 241, 0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.03);
 }
 
-.message-bubble {
+.top-left {
+  width: 80rpx;
   display: flex;
-  margin-bottom: 24rpx;
+  align-items: center;
+}
 
-  &.is-me {
-    flex-direction: row-reverse;
+.back-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(107, 78, 61, 0.08);
+}
 
-    .bubble-content {
-      background: $color-primary;
-      border-radius: $border-radius-large $border-radius-small
-        $border-radius-large $border-radius-large;
+.back-icon {
+  width: 32rpx;
+  height: 32rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237A6E6E'%3E%3Cpath d='M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
 
-      .bubble-text {
-        color: $color-bg-white;
-      }
+.title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #5E4636;
+}
 
-      .bubble-time {
-        color: rgba(255, 255, 255, 0.8);
-      }
+.action-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(107, 78, 61, 0.08);
+}
+
+.action-icon {
+  width: 32rpx;
+  height: 32rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237A6E6E'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40rpx 36rpx 80rpx;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 44rpx;
+
+  &.right {
+    justify-content: flex-end;
+
+    .message-wrap {
+      flex-direction: row-reverse;
     }
 
-    .bubble-avatar {
-      background: $color-primary-light;
+    .bubble {
+      background: #8B6D73;
+      color: #ffffff;
+      border-bottom-right-radius: 16rpx;
+      box-shadow: 0 16rpx 40rpx rgba(139, 109, 115, 0.22);
+    }
+
+    .time {
+      text-align: right;
     }
   }
 }
 
-.bubble-avatar {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 50%;
-  padding: 4rpx;
-  background: $color-primary-light;
+.message-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 20rpx;
+  max-width: 78%;
+}
+
+.avatar {
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 32rpx;
   flex-shrink: 0;
 }
 
-.avatar-bg {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-}
-
-.bubble-content {
-  max-width: 70%;
-  background: $color-bg-white;
-  border-radius: $border-radius-small $border-radius-large $border-radius-large
-    $border-radius-large;
-  padding: 20rpx;
-  margin: 0 16rpx;
-  border: 2rpx solid rgba(113, 88, 92, 0.1);
-}
-
-.bubble-text {
-  font-size: $font-size-body;
-  color: $color-gray-dark;
-  line-height: 1.5;
-}
-
-.bubble-time {
-  display: block;
-  text-align: right;
-  font-size: $font-size-helper;
-  color: $color-gray-medium;
-  margin-top: 8rpx;
-}
-
-.chat-input {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: $color-bg-white;
-  padding: 16rpx 32rpx;
-  padding-bottom: env(safe-area-inset-bottom);
-  border-top: 2rpx solid rgba(113, 88, 92, 0.1);
-}
-
-.input-tools {
+.bubble-group {
   display: flex;
-  gap: 32rpx;
-  margin-bottom: 16rpx;
+  flex-direction: column;
 }
 
-.tool-item {
-  width: 56rpx;
-  height: 56rpx;
-
-  &:active {
-    opacity: 0.7;
-  }
+.bubble {
+  padding: 28rpx 32rpx;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  line-height: 1.7;
+  background: #ffffff;
+  color: #4D3E3E;
+  border-bottom-left-radius: 16rpx;
+  box-shadow: 0 12rpx 36rpx rgba(107, 78, 61, 0.05);
+  word-break: break-word;
 }
 
-.tool-icon {
-  width: 100%;
-  height: 100%;
-
-  &.icon-emoji {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-
-  &.icon-image {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
+.time {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #B0A6A6;
 }
 
 .input-area {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 160rpx;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border-top: 1rpx solid rgba(0, 0, 0, 0.03);
+  padding: 24rpx 32rpx 40rpx;
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 24rpx;
 }
 
-.input-field {
+.input-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 24rpx;
+  background: #FFF2EA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-plus {
+  width: 32rpx;
+  height: 32rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238B6D73'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.icon-image {
+  width: 32rpx;
+  height: 32rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238B6D73'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.input-box {
   flex: 1;
-  min-height: 72rpx;
-  max-height: 200rpx;
-  background: $color-bg-primary;
-  border-radius: 36rpx;
-  padding: 16rpx 24rpx;
-  font-size: $font-size-body;
-  line-height: 1.5;
-}
-
-.input-placeholder {
-  color: $color-gray-medium;
+  height: 88rpx;
+  border: none;
+  border-radius: 999rpx;
+  background: #F7F1EE;
+  padding: 0 36rpx;
+  font-size: 28rpx;
+  outline: none;
+  color: #4D3E3E;
 }
 
 .send-btn {
-  padding: 16rpx 32rpx;
-  background: rgba(113, 88, 92, 0.1);
-  border-radius: 36rpx;
+  height: 80rpx;
+  padding: 0 36rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 179, 107, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 16rpx 40rpx rgba(255, 179, 107, 0.15);
+  transition: all 0.2s ease;
 
   &.active {
-    background: $color-primary;
+    background: #FFB36B;
 
     .send-text {
-      color: $color-bg-white;
+      color: #ffffff;
     }
   }
 
   &:active {
-    transform: scale(1);
+    transform: scale(1.03);
   }
 }
 
 .send-text {
-  font-size: 26rpx;
-  color: #999999;
+  font-size: 28rpx;
   font-weight: 600;
+  color: #B0A6A6;
 }
 </style>

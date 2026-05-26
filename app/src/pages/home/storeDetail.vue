@@ -1,112 +1,138 @@
 <template>
   <view class="store-detail-container">
-    <TopNavBar title="店铺详情" :showBack="true" />
+    <view class="hero">
+      <image
+        class="hero-image"
+        src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1200&auto=format&fit=crop"
+        mode="aspectFill"
+      />
+      <view class="hero-mask"></view>
 
-    <view class="store-header">
-      <view class="header-image">
-        <view class="image-placeholder"></view>
+      <view class="topbar">
+        <view class="nav-btn" @click="goBack">
+          <view class="nav-icon icon-back"></view>
+        </view>
+        <view class="nav-group">
+          <view class="nav-btn">
+            <view class="nav-icon icon-ellipsis"></view>
+          </view>
+          <view class="nav-btn">
+            <view class="nav-icon icon-circle"></view>
+          </view>
+        </view>
       </view>
-      <view class="store-info">
+
+      <view class="hero-content">
+        <view class="tag">宠物友好公园</view>
         <text class="store-name">中央公园</text>
-        <view class="store-meta">
+        <text class="store-desc">草坪宽阔 · 适合遛狗 · 狗友聚集地</text>
+        <view class="meta-row">
           <view class="meta-item">
             <view class="meta-icon icon-star"></view>
-            <text class="meta-text">4.9</text>
+            <text>4.9评分</text>
           </view>
-          <view class="meta-divider"></view>
           <view class="meta-item">
-            <view class="meta-icon icon-foot"></view>
-            <text class="meta-text">500m</text>
+            <view class="meta-icon icon-map-pin"></view>
+            <text>距离500m</text>
           </view>
-          <view class="meta-divider"></view>
           <view class="meta-item">
             <view class="meta-icon icon-paw"></view>
-            <text class="meta-text">23只宠物</text>
+            <text>23只宠物</text>
           </view>
         </view>
       </view>
     </view>
 
-    <view class="store-content">
-      <view class="section">
-        <text class="section-title">店铺介绍</text>
-        <text class="section-content">
-          中央公园是城市中最受欢迎的宠物友好公园之一，拥有广阔的草坪和专业的宠物活动区域。公园内设有宠物饮水点、便便袋分发站、休息区等完善设施，是您和爱宠休闲娱乐的最佳选择。
+    <view class="content">
+      <view class="card">
+        <view class="section-title">
+          <view class="title-icon icon-file"></view>
+          <text>店铺介绍</text>
+        </view>
+        <text class="intro">
+          中央公园是本地最受欢迎的宠物友好地点之一，拥有大面积草坪与休闲步道。园区内提供宠物饮水区、便便袋领取点与休息区域，周末经常有狗友聚会，非常适合带毛孩子出来玩耍与社交。
         </text>
       </view>
 
-      <view class="section">
-        <text class="section-title">营业时间</text>
-        <view class="time-info">
-          <text class="time-text">周一至周日 06:00 - 22:00</text>
+      <view class="card">
+        <view class="section-title">
+          <view class="title-icon icon-info"></view>
+          <text>基础信息</text>
         </view>
-      </view>
-
-      <view class="section">
-        <text class="section-title">地址</text>
-        <text class="section-content">市中心区公园路88号</text>
-      </view>
-
-      <view class="section">
-        <text class="section-title">用户评价</text>
-        <view class="review-list">
-          <view class="review-item">
-            <view class="review-avatar">
-              <view class="avatar-bg"></view>
-            </view>
-            <view class="review-content">
-              <view class="review-header">
-                <text class="review-name">小明</text>
-                <view class="review-rating">
-                  <view class="star" v-for="i in 5" :key="i"></view>
-                </view>
-              </view>
-              <text class="review-text"
-                >非常棒的公园！草坪很干净，设施也很齐全，狗狗玩得很开心。</text
-              >
-              <text class="review-time">2024-01-15</text>
+        <view class="info-list">
+          <view class="info-item">
+            <view class="info-icon icon-clock"></view>
+            <view class="info-content">
+              <text class="info-label">营业时间</text>
+              <text class="info-value">周一至周日 06:00 - 22:00</text>
             </view>
           </view>
-          <view class="review-item">
-            <view class="review-avatar">
-              <view class="avatar-bg"></view>
-            </view>
-            <view class="review-content">
-              <view class="review-header">
-                <text class="review-name">阿花</text>
-                <view class="review-rating">
-                  <view class="star" v-for="i in 5" :key="i"></view>
-                </view>
-              </view>
-              <text class="review-text"
-                >环境很好，人不多，狗狗可以自由奔跑。推荐！</text
-              >
-              <text class="review-time">2024-01-14</text>
+          <view class="info-item">
+            <view class="info-icon icon-map"></view>
+            <view class="info-content">
+              <text class="info-label">店铺地址</text>
+              <text class="info-value">市中心公园路88号</text>
             </view>
           </view>
         </view>
       </view>
-    </view>
 
-    <view class="store-footer">
-      <view class="footer-btn btn-nav" @click="handleNavigate">
-        <view class="btn-icon icon-nav"></view>
-        <text class="btn-text">导航</text>
+      <view class="card">
+        <view class="section-title">
+          <view class="title-icon icon-sparkles"></view>
+          <text>快捷操作</text>
+        </view>
+        <view class="action-grid">
+          <view class="action-item" @click="handleNavigate">
+            <view class="action-icon icon-nav"></view>
+            <text class="action-text">导航前往</text>
+          </view>
+          <view class="action-item" @click="handleCall">
+            <view class="action-icon icon-phone"></view>
+            <text class="action-text">联系店铺</text>
+          </view>
+          <view class="action-item" @click="handleCollect">
+            <view class="action-icon icon-heart"></view>
+            <text class="action-text">收藏地点</text>
+          </view>
+        </view>
       </view>
-      <view class="footer-btn btn-call" @click="handleCall">
-        <view class="btn-icon icon-call"></view>
-        <text class="btn-text">电话</text>
+
+      <view class="card">
+        <view class="section-title">
+          <view class="title-icon icon-message"></view>
+          <text>用户评价</text>
+        </view>
+        <view class="review-header">
+          <view class="user">
+            <image
+              class="avatar"
+              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop"
+              mode="aspectFill"
+            />
+            <view class="user-info">
+              <text class="username">小明</text>
+              <text class="date">2024-01-15</text>
+            </view>
+          </view>
+          <view class="stars">
+            <view class="star-icon" v-for="i in 5" :key="i"></view>
+          </view>
+        </view>
+        <text class="review-text">
+          草坪特别干净，空气很好，狗狗玩得特别开心。周末很多养狗的人会聚在这里，氛围非常舒服，已经连续来了很多次了 🐾
+        </text>
       </view>
-      <view class="footer-btn btn-collect" @click="handleCollect">
-        <view class="btn-icon icon-collect"></view>
-        <text class="btn-text">收藏</text>
-      </view>
+
+      <view class="bottom-space"></view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import TopNavBar from "@/components/common/TopNavBar.vue";
+const goBack = () => {
+  uni.navigateBack();
+};
 
 const handleNavigate = () => {
   uni.showToast({
@@ -133,45 +159,128 @@ const handleCollect = () => {
 <style lang="scss" scoped>
 .store-detail-container {
   min-height: 100vh;
-  background: #fff9f9;
-  padding-bottom: 140rpx;
+  background: #FFF8F5;
 }
 
-.store-header {
+.hero {
+  position: relative;
+  width: 100%;
+  height: 720rpx;
 }
 
-.header-image {
-  height: 400rpx;
-}
-
-.image-placeholder {
+.hero-image {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #ffc1e9 0%, #ffd4f0 100%);
 }
 
-.store-info {
-  background: #ffffff;
-  padding: 24rpx 32rpx;
-  border-bottom: 2rpx solid #ffc1e9;
+.hero-mask {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 360rpx;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.65));
+}
+
+.topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 104rpx 36rpx 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.nav-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20rpx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+}
+
+.nav-group {
+  display: flex;
+  gap: 20rpx;
+}
+
+.nav-icon {
+  width: 32rpx;
+  height: 32rpx;
+
+  &.icon-back {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235E4636'%3E%3Cpath d='M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
+
+  &.icon-ellipsis {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235E4636'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
+
+  &.icon-circle {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235E4636'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
+}
+
+.hero-content {
+  position: absolute;
+  left: 44rpx;
+  bottom: 56rpx;
+  z-index: 2;
+  color: #ffffff;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 16rpx 28rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(24rpx);
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-bottom: 28rpx;
 }
 
 .store-name {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #333333;
-  margin-bottom: 16rpx;
+  font-size: 68rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  display: block;
 }
 
-.store-meta {
+.store-desc {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.8;
+  opacity: 0.95;
+  display: block;
+}
+
+.meta-row {
+  margin-top: 32rpx;
   display: flex;
-  align-items: center;
+  gap: 36rpx;
+  flex-wrap: wrap;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 12rpx;
+  font-size: 26rpx;
 }
 
 .meta-icon {
@@ -179,189 +288,244 @@ const handleCollect = () => {
   height: 28rpx;
 
   &.icon-star {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E")
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFB648'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E")
       no-repeat center;
     background-size: 100%;
   }
 
-  &.icon-foot {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E")
+  &.icon-map-pin {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E")
       no-repeat center;
     background-size: 100%;
   }
 
   &.icon-paw {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E")
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M4.5 12.75l6 6 9-13.5'/%3E%3C/svg%3E")
       no-repeat center;
     background-size: 100%;
   }
 }
 
-.meta-text {
-  font-size: 24rpx;
-  color: #999999;
+.content {
+  padding: 44rpx 36rpx 80rpx;
 }
 
-.meta-divider {
-  width: 2rpx;
-  height: 24rpx;
-  background: #e5e5e5;
-  margin: 0 24rpx;
-}
-
-.store-content {
-  padding: 24rpx 32rpx;
-}
-
-.section {
+.card {
   background: #ffffff;
-  border-radius: 24rpx;
-  padding: 24rpx;
-  margin-bottom: 24rpx;
-  border: 2rpx solid #ffc1e9;
+  border-radius: 60rpx;
+  padding: 44rpx;
+  margin-bottom: 36rpx;
+  box-shadow: 0 20rpx 60rpx rgba(107, 78, 61, 0.05);
 }
 
 .section-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #ffc1e9;
-  margin-bottom: 16rpx;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4D3E3E;
+  margin-bottom: 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
 }
 
-.section-content {
-  font-size: 26rpx;
-  color: #333333;
-  line-height: 1.6;
+.title-icon {
+  width: 36rpx;
+  height: 36rpx;
+
+  &.icon-file {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
+
+  &.icon-info {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
+
+  &.icon-sparkles {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M7 2v11h3v9l7-12h-4l4-8z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
+
+  &.icon-message {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
 }
 
-.time-info {
-  background: rgba(255, 193, 233, 0.1);
-  border-radius: 16rpx;
-  padding: 16rpx;
+.intro {
+  color: #746868;
+  font-size: 28rpx;
+  line-height: 2;
 }
 
-.time-text {
-  font-size: 26rpx;
-  color: #ffc1e9;
-}
-
-.review-list {
+.info-list {
   display: flex;
   flex-direction: column;
+  gap: 32rpx;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 28rpx;
+}
+
+.info-icon {
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 32rpx;
+  background: #FFF3E7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.icon-clock {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 60%;
+    background-color: #FFF3E7;
+  }
+
+  &.icon-map {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M20.5 3l-6 1.5-6-1.5-5.5 1.5v15l5.5-1.5 6 1.5 6-1.5v-15zm-6.5 13.5l-6-1.5v-11l6 1.5v11z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 60%;
+    background-color: #FFF3E7;
+  }
+}
+
+.info-content {
+  flex: 1;
+}
+
+.info-label {
+  font-size: 26rpx;
+  color: #B0A6A6;
+  display: block;
+}
+
+.info-value {
+  margin-top: 8rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #4D3E3E;
+  line-height: 1.8;
+  display: block;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 24rpx;
 }
 
-.review-item {
+.action-item {
+  height: 176rpx;
+  border-radius: 48rpx;
+  background: #FFF8F3;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 16rpx;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: translateY(-4rpx);
+  }
 }
 
-.review-avatar {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 50%;
-  padding: 4rpx;
-  background: #ffc1e9;
+.action-icon {
+  width: 48rpx;
+  height: 48rpx;
+
+  &.icon-nav {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M12 3L1 10l4 2.18v6L12 21l7-3.82v-6l4-2.18L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
+
+  &.icon-phone {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
+
+  &.icon-heart {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+      no-repeat center;
+    background-size: 100%;
+  }
 }
 
-.avatar-bg {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #ffd4f0;
-}
-
-.review-content {
-  flex: 1;
+.action-text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #6B5B5B;
 }
 
 .review-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8rpx;
+  margin-bottom: 36rpx;
 }
 
-.review-name {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #333333;
+.user {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
 }
 
-.review-rating {
+.avatar {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 36rpx;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.username {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #4D3E3E;
+}
+
+.date {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #B0A6A6;
+}
+
+.stars {
   display: flex;
   gap: 4rpx;
 }
 
-.star {
-  width: 24rpx;
-  height: 24rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E")
+.star-icon {
+  width: 28rpx;
+  height: 28rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFB648'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }
 
 .review-text {
-  font-size: 26rpx;
-  color: #666666;
-  line-height: 1.5;
-  margin-bottom: 8rpx;
+  font-size: 28rpx;
+  line-height: 2;
+  color: #746868;
 }
 
-.review-time {
-  font-size: 22rpx;
-  color: #999999;
-}
-
-.store-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  background: #ffffff;
-  padding: 20rpx 32rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  border-top: 2rpx solid #ffc1e9;
-}
-
-.footer-btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8rpx;
-
-  &:active {
-    opacity: 0.7;
-  }
-}
-
-.btn-icon {
-  width: 40rpx;
-  height: 40rpx;
-
-  &.icon-nav {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M12 3L1 10l4 2.18v6L12 21l7-3.82v-6l4-2.18L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 17.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-
-  &.icon-call {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-
-  &.icon-collect {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC1E9'%3E%3Cpath d='M17.34 14.86l-1.41 1.41-6.3-6.3-2.83 2.83-1.41-1.41L4.27 11l3.54-3.54 6.3 6.3 9.17-9.17 1.41 1.41-10.58 10.58z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-}
-
-.btn-text {
-  font-size: 22rpx;
-  color: #ffc1e9;
+.bottom-space {
+  height: 80rpx;
 }
 </style>

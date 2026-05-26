@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <title>TopBar</title>
+
+  <style>
+    body{
+      margin:0;
+      background:#F3F1EE;
+      display:flex;
+      justify-content:center;
+      padding:40px;
+      font-family:'Noto Sans SC',sans-serif;
+    }
+
+    .phone{
+      width:390px;
+      background:#FFF7F1;
+      border-radius:32px;
+      overflow:hidden;
+      box-shadow:0 12px 40px rgba(0,0,0,0.08);
+    }
+
+    .topbar{
+      height:92px;
+      padding:52px 20px 0;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+
+      background:rgba(255,247,241,0.88);
+      backdrop-filter:blur(20px);
+
+      border-bottom:1px solid rgba(0,0,0,0.03);
+    }
+
+    .title{
+      font-size:20px;
+      font-weight:700;
+      color:#6B4E3D;
+      letter-spacing:0.5px;
+    }
+
+    .action-btn{
+      width:40px;
+      height:40px;
+      border-radius:999px;
+      background:white;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      box-shadow:0 4px 12px rgba(107,78,61,0.08);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="phone">
+
+    <div class="topbar">
+
+      <div style="width:40px"></div>
+
+      <div class="title">
+        萌宠朋友圈 🐾
+      </div>
+
+      <div class="action-btn">
+        <i data-lucide="ellipsis"></i>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>
