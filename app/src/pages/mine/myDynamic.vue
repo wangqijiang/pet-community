@@ -1,118 +1,107 @@
 <template>
   <view class="page-container">
-    <view class="header-safe"></view>
-    <TopNavBar title="我的动态" :showBack="true" />
-
-    <view class="stats-bar">
-      <view class="stat-item">
-        <text class="stat-number">{{ dynamicList.length }}</text>
-        <text class="stat-label">全部动态</text>
-      </view>
-      <view class="stat-divider"></view>
-      <view class="stat-item">
-        <text class="stat-number">{{ totalLikes }}</text>
-        <text class="stat-label">获赞总数</text>
-      </view>
-      <view class="stat-divider"></view>
-      <view class="stat-item">
-        <text class="stat-number">{{ totalComments }}</text>
-        <text class="stat-label">评论总数</text>
-      </view>
-    </view>
+    <TopNavBar title="我的动态" showBack @rightClick="handleMore" />
 
     <scroll-view
-      class="feed-list"
+      class="page-content"
       scroll-y
       @scrolltolower="loadMore"
       refresher-enabled
       :refresher-triggered="isRefreshing"
       @refresherrefresh="onRefresh"
     >
-      <view
-        v-for="item in dynamicList"
-        :key="item.id"
-        class="feed-card"
-        @click="goToDetail(item)"
-      >
-        <view class="card-header">
-          <view class="user-info">
-            <view class="user-avatar">
-              <view
-                class="avatar-bg"
-                :style="{ background: item.avatarColor }"
-              ></view>
-            </view>
-            <view class="user-text">
-              <text class="user-name">{{ item.userName }}</text>
-              <text class="post-time">{{ item.time }}</text>
-            </view>
-          </view>
-          <view class="action-btn" @click.stop="showMoreActions(item)">
-            <view class="more-icon"></view>
-          </view>
+      <view class="stats-card">
+        <view class="stat">
+          <text class="stat-num">{{ dynamicList.length }}</text>
+          <text class="stat-label">全部动态</text>
         </view>
+        <view class="stat">
+          <text class="stat-num">{{ totalLikes }}</text>
+          <text class="stat-label">获赞总数</text>
+        </view>
+        <view class="stat">
+          <text class="stat-num">{{ totalComments }}</text>
+          <text class="stat-label">评论总数</text>
+        </view>
+      </view>
 
-        <text class="card-content">{{ item.content }}</text>
+      <view class="feed-list">
+        <view v-for="item in dynamicList" :key="item.id" class="post-card">
+          <view class="post-header">
+            <view class="user">
+              <image class="avatar" :src="item.avatar" mode="aspectFill" />
+              <view class="user-info">
+                <text class="username">{{ item.userName }}</text>
+                <text class="time">{{ item.time }}</text>
+              </view>
+            </view>
+            <view class="more-btn" @click.stop="showMoreActions(item)">
+              <view class="more-icon"></view>
+            </view>
+          </view>
 
-        <view class="card-images" v-if="item.images.length > 0">
+          <text class="post-content">{{ item.content }}</text>
+
           <view
-            v-for="(img, imgIndex) in item.images"
-            :key="imgIndex"
-            class="image-item"
-            :style="{ background: img.color }"
-            @click.stop="previewImage(item, imgIndex)"
-          ></view>
-        </view>
-
-        <view class="card-footer">
-          <view class="footer-left">
-            <view class="footer-item" @click.stop="handleLike(item)">
-              <view class="footer-icon" :class="{ liked: item.liked }">
-                <view class="like-icon"></view>
-              </view>
-              <text class="footer-count">{{ item.likes }}</text>
-            </view>
-            <view class="footer-item">
-              <view class="footer-icon">
-                <view class="comment-icon"></view>
-              </view>
-              <text class="footer-count">{{ item.comments }}</text>
-            </view>
+            class="image-grid"
+            :class="item.images.length === 1 ? 'grid-1' : 'grid-3'"
+          >
+            <image
+              v-for="(img, imgIndex) in item.images"
+              :key="imgIndex"
+              class="post-image"
+              :class="item.images.length === 1 ? 'single-image' : ''"
+              :src="img.url"
+              mode="aspectFill"
+              @click.stop="previewImage(item, imgIndex)"
+            />
           </view>
-          <view class="footer-right">
-            <view class="footer-item" @click.stop="handleEdit(item)">
+
+          <view class="post-footer">
+            <view class="left-actions">
+              <view class="action" @click.stop="handleLike(item)">
+                <view class="action-icon" :class="{ 'is-liked': item.liked }">
+                  <view class="icon-heart"></view>
+                </view>
+                <text class="action-count">{{ item.likes }}</text>
+              </view>
+              <view class="action">
+                <view class="action-icon">
+                  <view class="icon-comment"></view>
+                </view>
+                <text class="action-count">{{ item.comments }}</text>
+              </view>
+            </view>
+            <view class="edit-btn" @click.stop="handleEdit(item)">
               <view class="edit-icon"></view>
-              <text class="footer-text">编辑</text>
+              <text class="edit-text">编辑</text>
             </view>
           </view>
         </view>
-      </view>
 
-      <view v-if="dynamicList.length === 0 && !loading" class="empty-state">
-        <view class="empty-icon"></view>
-        <text class="empty-text">还没有发布过动态哦</text>
-        <view class="empty-btn" @click="goToPublish">
-          <text class="btn-text">去发布</text>
+        <view v-if="dynamicList.length === 0" class="empty-state">
+          <view class="empty-illustration"></view>
+          <text class="empty-text">还没有发布过动态哦</text>
+          <view class="empty-btn" @click="goToPublish">
+            <text class="btn-text">去发布</text>
+          </view>
         </view>
-      </view>
 
-      <view v-if="dynamicList.length > 0" class="bottom-hint">
-        <text class="hint-text">已经到底啦～</text>
+        <view v-if="dynamicList.length > 0" class="bottom-hint">
+          <text class="hint-text">已经到底啦～</text>
+        </view>
       </view>
     </scroll-view>
 
     <view class="fab" @click="goToPublish">
       <view class="fab-icon"></view>
     </view>
-
-    <Loading :visible="loading" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
-import Loading from "@/components/common/Loading.vue";
 
 const loading = ref(false);
 const isRefreshing = ref(false);
@@ -121,11 +110,22 @@ const dynamicList = ref([
   {
     id: 1,
     userName: "Summer Lin",
-    avatarColor: "#FFC1E9",
+    avatar:
+      "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400&auto=format&fit=crop",
     time: "2小时前",
     content:
-      "今天带布丁去公园草坪打滚啦！阳光超级好，它开心得像个200斤的孩子哈哈。这就是简单的幸福吧～✨",
-    images: [{ color: "#FFE4E1" }, { color: "#FFD4F0" }, { color: "#FFC1E9" }],
+      "今天带布丁去公园草坪打滚啦！阳光超级好，它开心得像个200斤的孩子哈哈。这就是简单的小幸福吧～ ✨",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop",
+      },
+      {
+        url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop",
+      },
+      {
+        url: "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=800&auto=format&fit=crop",
+      },
+    ],
     likes: 128,
     comments: 32,
     liked: false,
@@ -133,10 +133,15 @@ const dynamicList = ref([
   {
     id: 2,
     userName: "Summer Lin",
-    avatarColor: "#E8F5E9",
+    avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
     time: "昨天 18:30",
-    content: "午后的小憩时光，它睡得像个小猪哼唧哼唧的。安静的日子，真好。💤",
-    images: [{ color: "#FFF4D2" }],
+    content: "午后的小憩时光，它睡得像个小猪呼噜噜的。安静的日子，真好。💤",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1000&auto=format&fit=crop",
+      },
+    ],
     likes: 85,
     comments: 12,
     liked: true,
@@ -144,10 +149,18 @@ const dynamicList = ref([
   {
     id: 3,
     userName: "Summer Lin",
-    avatarColor: "#FFD4F0",
+    avatar:
+      "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400&auto=format&fit=crop",
     time: "3天前",
     content: "今天训练了新技能！握手、趴下、打滚一气呵成，奖励了超多零食～🐾",
-    images: [{ color: "#FFE4E1" }, { color: "#FFC1E9" }],
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop",
+      },
+      {
+        url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop",
+      },
+    ],
     likes: 234,
     comments: 45,
     liked: false,
@@ -177,26 +190,6 @@ const loadMore = () => {
   console.log("Load more");
 };
 
-const goToDetail = (item: any) => {
-  uni.navigateTo({
-    url: "/pages/circle/detail?id=" + item.id,
-  });
-};
-
-const goToPublish = () => {
-  uni.navigateTo({
-    url: "/pages/circle/publish",
-  });
-};
-
-const handleLike = (item: any) => {
-  if (!item.liked) {
-    item.liked = true;
-    item.likes += 1;
-    uni.vibrateShort({ type: "light" });
-  }
-};
-
 const showMoreActions = (item: any) => {
   uni.vibrateShort({ type: "light" });
   uni.showActionSheet({
@@ -213,15 +206,27 @@ const showMoreActions = (item: any) => {
   });
 };
 
+const handleLike = (item: any) => {
+  if (!item.liked) {
+    item.liked = true;
+    item.likes += 1;
+    uni.vibrateShort({ type: "light" });
+  } else {
+    item.liked = false;
+    item.likes -= 1;
+    uni.vibrateShort({ type: "light" });
+  }
+};
+
 const handleEdit = (item: any) => {
   uni.vibrateShort({ type: "light" });
-  uni.showToast({
-    title: "编辑功能开发中",
-    icon: "none",
+  uni.navigateTo({
+    url: `/pages/circle/publish?editId=${item.id}`,
   });
 };
 
 const handleDelete = (item: any) => {
+  uni.vibrateShort({ type: "light" });
   uni.showModal({
     title: "删除动态",
     content: "确定要删除这条动态吗？删除后无法恢复",
@@ -242,244 +247,253 @@ const handleDelete = (item: any) => {
 };
 
 const handleShare = (item: any) => {
+  uni.vibrateShort({ type: "light" });
   uni.showShareMenu({
     withShareTicket: true,
   });
 };
 
 const previewImage = (item: any, index: number) => {
-  const imageUrls = item.images.map((img: any) => {
-    return `https://via.placeholder.com/400x400/${img.color.replace("#", "")}`;
-  });
+  const imageUrls = item.images.map((img: any) => img.url);
   uni.previewImage({
     urls: imageUrls,
     current: index,
   });
 };
+
+const goToPublish = () => {
+  uni.navigateTo({
+    url: "/pages/circle/publish",
+  });
+};
+
+const handleMore = () => {
+  uni.vibrateShort({ type: "light" });
+};
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/variables.scss";
-
 .page-container {
   min-height: 100vh;
-  background: $color-bg-primary;
+  background: #fff8f5;
 }
 
-.header-safe {
-  height: 80rpx;
-  background: $color-bg-primary;
-}
-
-.stats-bar {
+.stats-card {
+  margin: 44rpx 36rpx 0;
+  background: white;
+  border-radius: 64rpx;
+  padding: 48rpx 20rpx;
   display: flex;
-  align-items: center;
   justify-content: space-around;
-  background: $color-bg-white;
-  margin: 0 32rpx 32rpx;
-  padding: 32rpx;
-  border-radius: $border-radius-large;
-  border: 2rpx solid rgba(113, 88, 92, 0.1);
-  box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.08);
+  box-shadow: 0 24rpx 60rpx rgba(107, 78, 61, 0.05);
 }
 
-.stat-item {
+.stat {
+  flex: 1;
+  text-align: center;
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8rpx;
 }
 
-.stat-number {
-  font-size: 40rpx;
-  font-weight: $font-weight-bold;
-  color: $color-primary;
+.stat:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2rpx;
+  height: 84rpx;
+  background: #f1e6e0;
+}
+
+.stat-num {
+  font-size: 72rpx;
+  font-weight: 800;
+  color: #7b5e5e;
+  line-height: 1;
 }
 
 .stat-label {
-  font-size: $font-size-helper;
-  color: $color-gray-medium;
-}
-
-.stat-divider {
-  width: 2rpx;
-  height: 60rpx;
-  background: rgba(113, 88, 92, 0.1);
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: #aa9f9f;
 }
 
 .feed-list {
-  padding: 0 32rpx;
-  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
-  height: calc(100vh - 340rpx);
-  box-sizing: border-box;
+  padding: 44rpx 36rpx 160rpx;
+  max-height: 600px;
+  overflow: scroll;
 }
 
-.feed-card {
-  background: $color-bg-white;
-  border-radius: $border-radius-large;
-  padding: 32rpx;
-  margin-bottom: 32rpx;
-  border: 2rpx solid rgba(113, 88, 92, 0.1);
-  box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.08);
-  transition: transform $transition-base;
-
-  &:active {
-    transform: scale(1);
-    box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.12);
-  }
+.post-card {
+  background: white;
+  border-radius: 68rpx;
+  padding: 44rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 24rpx 60rpx rgba(107, 78, 61, 0.05);
 }
 
-.card-header {
+.post-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24rpx;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+}
+
+.avatar {
+  width: 116rpx;
+  height: 116rpx;
+  border-radius: 44rpx;
+  object-fit: cover;
 }
 
 .user-info {
   display: flex;
-  align-items: center;
-  gap: 20rpx;
+  flex-direction: column;
+  gap: 8rpx;
 }
 
-.user-avatar {
+.username {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #3d2f2f;
+}
+
+.time {
+  font-size: 26rpx;
+  color: #b0a6a6;
+}
+
+.more-btn {
   width: 80rpx;
   height: 80rpx;
-  border-radius: 50%;
-  padding: 4rpx;
-  border: 4rpx solid $color-primary-light;
-}
-
-.avatar-bg {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-}
-
-.user-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.user-name {
-  font-size: $font-size-body;
-  font-weight: $font-weight-bold;
-  color: $color-gray-dark;
-}
-
-.post-time {
-  font-size: $font-size-helper;
-  color: $color-gray-light;
-}
-
-.action-btn {
-  width: 56rpx;
-  height: 56rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #b0a6a6;
 }
 
 .more-icon {
   width: 40rpx;
   height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B0A6A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='1'/%3E%3Ccircle cx='12' cy='5' r='1'/%3E%3Ccircle cx='12' cy='19' r='1'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
-  opacity: 0.6;
 }
 
-.card-content {
-  font-size: $font-size-body;
-  color: $color-gray-dark;
-  line-height: 1.6;
-  margin-bottom: 24rpx;
+.post-content {
+  margin-top: 36rpx;
+  font-size: 34rpx;
+  line-height: 2;
+  color: #4f4242;
+  font-weight: 500;
 }
 
-.card-images {
+.image-grid {
+  margin-top: 40rpx;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16rpx;
-  margin-bottom: 24rpx;
+  gap: 20rpx;
+
+  &.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  &.grid-1 {
+    grid-template-columns: 1fr;
+  }
 }
 
-.image-item {
-  aspect-ratio: 1;
-  border-radius: $border-radius-medium;
+.post-image {
+  width: 100%;
+  height: 320rpx;
+  border-radius: 48rpx;
+  object-fit: cover;
+
+  &.single-image {
+    height: 440rpx;
+  }
 }
 
-.card-footer {
+.post-footer {
+  margin-top: 44rpx;
+  padding-top: 36rpx;
+  border-top: 2rpx solid #f4ece7;
   display: flex;
+  align-items: center;
   justify-content: space-between;
+}
+
+.left-actions {
+  display: flex;
   align-items: center;
-  padding-top: 24rpx;
-  border-top: 2rpx solid rgba(113, 88, 92, 0.1);
+  gap: 44rpx;
 }
 
-.footer-left {
+.action {
   display: flex;
-  gap: 32rpx;
-}
-
-.footer-right {
-  display: flex;
+  align-items: center;
   gap: 16rpx;
+  color: #7a6e6e;
+  font-size: 30rpx;
+  font-weight: 700;
 }
 
-.footer-item {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
+.action-icon {
+  width: 44rpx;
+  height: 44rpx;
 
-.footer-icon {
-  width: 36rpx;
-  height: 36rpx;
-
-  &.liked {
-    .like-icon {
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+  &.is-liked {
+    .icon-heart {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFB36B' stroke='%23FFB36B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3C/svg%3E")
         no-repeat center;
       background-size: 100%;
     }
   }
 }
 
-.like-icon {
+.icon-heart {
   width: 100%;
   height: 100%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6E6E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }
 
-.comment-icon {
+.icon-comment {
   width: 100%;
   height: 100%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6E6E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.9 20A9 9 0 1 0 4 16.1L2 22Z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
+}
+
+.action-count {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #7a6e6e;
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  color: #b0a6a6;
+  font-size: 30rpx;
+  font-weight: 700;
 }
 
 .edit-icon {
   width: 36rpx;
   height: 36rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B0A6A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
-  opacity: 0.6;
-}
-
-.footer-count {
-  font-size: $font-size-helper;
-  font-weight: $font-weight-bold;
-  color: $color-gray-medium;
-}
-
-.footer-text {
-  font-size: $font-size-helper;
-  color: $color-gray-medium;
 }
 
 .empty-state {
@@ -487,76 +501,76 @@ const previewImage = (item: any, index: number) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 120rpx 0;
+  padding: 160rpx 0;
 }
 
-.empty-icon {
-  width: 200rpx;
-  height: 200rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23D2C3C4'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z'/%3E%3C/svg%3E")
+.empty-illustration {
+  width: 240rpx;
+  height: 240rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D2C3C4' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
-  margin-bottom: 32rpx;
   opacity: 0.4;
+  margin-bottom: 32rpx;
 }
 
 .empty-text {
-  font-size: $font-size-body;
-  color: $color-gray-light;
+  font-size: 28rpx;
+  color: #b0a6a6;
   margin-bottom: 48rpx;
 }
 
 .empty-btn {
-  background: $color-primary;
+  background: linear-gradient(135deg, #8b6d73, #7a5c62);
   padding: 24rpx 64rpx;
-  border-radius: $border-radius-large;
-  box-shadow: 0 8rpx 24rpx rgba(113, 88, 92, 0.2);
+  border-radius: 999rpx;
+  box-shadow: 0 16rpx 32rpx rgba(139, 109, 115, 0.28);
 
   &:active {
-    transform: scale(1);
+    transform: scale(1.02);
   }
 }
 
 .btn-text {
-  font-size: $font-size-body;
-  font-weight: $font-weight-bold;
-  color: $color-bg-white;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: white;
 }
 
 .bottom-hint {
-  padding: 48rpx 0;
+  padding: 96rpx 0;
   text-align: center;
 }
 
 .hint-text {
-  font-size: $font-size-helper;
-  color: $color-gray-light;
+  font-size: 24rpx;
+  color: #b0a6a6;
 }
 
 .fab {
   position: fixed;
-  bottom: 160rpx;
-  right: 32rpx;
-  width: 100rpx;
-  height: 100rpx;
-  background: $color-primary;
-  border-radius: 50%;
+  right: 44rpx;
+  bottom: 68rpx;
+  width: 148rpx;
+  height: 148rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #8b6d73, #7a5c62);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(113, 88, 92, 0.3);
+  box-shadow: 0 32rpx 64rpx rgba(139, 109, 115, 0.28);
   z-index: 9999;
+  transition: all 0.2s ease;
 
   &:active {
-    transform: scale(1);
-    background: $color-primary-dark;
+    transform: scale(1.04);
   }
 }
 
 .fab-icon {
-  width: 48rpx;
-  height: 48rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E")
+  width: 64rpx;
+  height: 64rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'/%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }

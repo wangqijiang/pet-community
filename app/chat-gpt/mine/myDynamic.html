@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>我的动态</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #F1EEEB;
+            font-family: 'Noto Sans SC', sans-serif;
+
+            display: flex;
+            justify-content: center;
+
+            padding: 40px;
+        }
+
+        .phone {
+            width: 390px;
+            height: 844px;
+
+            background: #FFF8F5;
+
+            border-radius: 42px;
+
+            overflow: hidden;
+
+            position: relative;
+
+            box-shadow:
+                0 24px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .page {
+            height: 100%;
+            overflow-y: auto;
+
+            padding-bottom: 120px;
+        }
+
+        .topbar {
+            padding:
+                52px 18px 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+
+            border-radius: 999px;
+
+            background: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #6B5B5B;
+
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: 800;
+
+            color: #6B4E3D;
+        }
+
+        .stats-card {
+            margin:
+                22px 18px 0;
+
+            background: white;
+
+            border-radius: 32px;
+
+            padding: 24px 10px;
+
+            display: flex;
+            justify-content: space-around;
+
+            box-shadow:
+                0 12px 30px rgba(107, 78, 61, 0.05);
+        }
+
+        .stat {
+            flex: 1;
+
+            text-align: center;
+
+            position: relative;
+        }
+
+        .stat:not(:last-child)::after {
+            content: '';
+
+            position: absolute;
+
+            right: 0;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            width: 1px;
+            height: 42px;
+
+            background: #F1E6E0;
+        }
+
+        .stat-num {
+            font-size: 36px;
+            font-weight: 800;
+
+            color: #7B5E5E;
+        }
+
+        .stat-label {
+            margin-top: 8px;
+
+            font-size: 13px;
+
+            color: #AA9F9F;
+        }
+
+        .feed {
+            padding:
+                22px 18px 40px;
+        }
+
+        .post-card {
+            background: white;
+
+            border-radius: 34px;
+
+            padding: 22px;
+
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 12px 30px rgba(107, 78, 61, 0.05);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .avatar {
+            width: 58px;
+            height: 58px;
+
+            border-radius: 22px;
+
+            object-fit: cover;
+        }
+
+        .username {
+            font-size: 20px;
+            font-weight: 800;
+
+            color: #3D2F2F;
+        }
+
+        .time {
+            margin-top: 4px;
+
+            font-size: 13px;
+
+            color: #B0A6A6;
+        }
+
+        .more-btn {
+            color: #B0A6A6;
+        }
+
+        .post-content {
+            margin-top: 18px;
+
+            font-size: 17px;
+
+            line-height: 2;
+
+            color: #4F4242;
+
+            font-weight: 500;
+        }
+
+        .image-grid {
+            margin-top: 20px;
+
+            display: grid;
+
+            gap: 10px;
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-1 {
+            grid-template-columns: 1fr;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 160px;
+
+            border-radius: 24px;
+
+            object-fit: cover;
+        }
+
+        .single-image {
+            height: 220px;
+        }
+
+        .post-footer {
+            margin-top: 22px;
+
+            padding-top: 18px;
+
+            border-top:
+                1px solid #F4ECE7;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .left-actions {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            color: #7A6E6E;
+
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .edit-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            color: #B0A6A6;
+
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .float-btn {
+            position: absolute;
+
+            right: 22px;
+            bottom: 34px;
+
+            width: 74px;
+            height: 74px;
+
+            border-radius: 999px;
+
+            border: none;
+
+            background:
+                linear-gradient(135deg,
+                    #8B6D73,
+                    #7A5C62);
+
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            box-shadow:
+                0 16px 32px rgba(139, 109, 115, 0.28);
+
+            transition: all .2s ease;
+        }
+
+        .float-btn:hover {
+            transform: scale(1.04);
+        }
+
+        .float-btn i {
+            width: 32px;
+            height: 32px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="phone">
+
+        <div class="page">
+
+            <div class="topbar">
+
+                <div class="nav-btn">
+                    <i data-lucide="chevron-left"></i>
+                </div>
+
+                <div class="title">
+                    我的动态
+                </div>
+
+                <div style="display:flex;gap:10px;">
+
+                    <div class="nav-btn">
+                        <i data-lucide="ellipsis"></i>
+                    </div>
+
+                    <div class="nav-btn">
+                        <i data-lucide="circle"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="stats-card">
+
+                <div class="stat">
+
+                    <div class="stat-num">
+                        3
+                    </div>
+
+                    <div class="stat-label">
+                        全部动态
+                    </div>
+
+                </div>
+
+                <div class="stat">
+
+                    <div class="stat-num">
+                        447
+                    </div>
+
+                    <div class="stat-label">
+                        获赞总数
+                    </div>
+
+                </div>
+
+                <div class="stat">
+
+                    <div class="stat-num">
+                        89
+                    </div>
+
+                    <div class="stat-label">
+                        评论总数
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="feed">
+
+                <!-- 动态1 -->
+
+                <div class="post-card">
+
+                    <div class="post-header">
+
+                        <div class="user">
+
+                            <img class="avatar"
+                                src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400&auto=format&fit=crop" />
+
+                            <div>
+
+                                <div class="username">
+                                    Summer Lin
+                                </div>
+
+                                <div class="time">
+                                    2小时前
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="more-btn">
+                            <i data-lucide="more-vertical"></i>
+                        </div>
+
+                    </div>
+
+                    <div class="post-content">
+                        今天带布丁去公园草坪打滚啦！阳光超级好，它开心得像个200斤的孩子哈哈。这就是简单的小幸福吧～ ✨
+                    </div>
+
+                    <div class="image-grid grid-3">
+
+                        <img class="post-image"
+                            src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop" />
+
+                        <img class="post-image"
+                            src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop" />
+
+                        <img class="post-image"
+                            src="https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=800&auto=format&fit=crop" />
+
+                    </div>
+
+                    <div class="post-footer">
+
+                        <div class="left-actions">
+
+                            <div class="action">
+
+                                <i data-lucide="heart"></i>
+
+                                128
+
+                            </div>
+
+                            <div class="action">
+
+                                <i data-lucide="message-circle"></i>
+
+                                32
+
+                            </div>
+
+                        </div>
+
+                        <div class="edit-btn">
+
+                            <i data-lucide="square-pen"></i>
+
+                            编辑
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- 动态2 -->
+
+                <div class="post-card">
+
+                    <div class="post-header">
+
+                        <div class="user">
+
+                            <img class="avatar"
+                                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop" />
+
+                            <div>
+
+                                <div class="username">
+                                    Summer Lin
+                                </div>
+
+                                <div class="time">
+                                    昨天 18:30
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="more-btn">
+                            <i data-lucide="more-vertical"></i>
+                        </div>
+
+                    </div>
+
+                    <div class="post-content">
+                        午后的小憩时光，它睡得像个小猪呼噜噜的。安静的日子，真好。💤
+                    </div>
+
+                    <div class="image-grid grid-1">
+
+                        <img class="post-image single-image"
+                            src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1000&auto=format&fit=crop" />
+
+                    </div>
+
+                    <div class="post-footer">
+
+                        <div class="left-actions">
+
+                            <div class="action">
+
+                                <i data-lucide="heart"></i>
+
+                                85
+
+                            </div>
+
+                            <div class="action">
+
+                                <i data-lucide="message-circle"></i>
+
+                                12
+
+                            </div>
+
+                        </div>
+
+                        <div class="edit-btn">
+
+                            <i data-lucide="square-pen"></i>
+
+                            编辑
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <button class="float-btn">
+
+            <i data-lucide="plus"></i>
+
+        </button>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+</body>
+
+</html>

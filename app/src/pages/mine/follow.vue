@@ -36,13 +36,11 @@
                   :src="user.avatar"
                   mode="aspectFill"
                 ></image>
+                <view v-if="user.isOnline" class="online-dot"></view>
               </view>
               <view class="user-info">
                 <view class="user-name-row">
                   <text class="user-name">{{ user.nickname }}</text>
-                  <view class="level-badge" :class="user.levelClass">
-                    <text class="level-text">LV.{{ user.level }}</text>
-                  </view>
                 </view>
                 <text class="user-desc">{{ user.desc }}</text>
               </view>
@@ -59,10 +57,10 @@
           </view>
         </view>
 
-        <!-- 底部提示 -->
-        <view class="bottom-hint">
-          <view class="hint-icon"></view>
-          <text class="hint-text">到底啦，去发现更多可爱的TA吧</text>
+        <!-- 空状态 -->
+        <view class="empty-state">
+          <view class="empty-icon"></view>
+          <text class="empty-text">去发现更多可爱的 TA 吧</text>
         </view>
       </scroll-view>
     </view>
@@ -82,39 +80,47 @@ const searchText = ref("");
 const userList = ref([
   {
     id: 1,
-    avatar: "/static/images/avatar-default.png",
+    avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
     nickname: "豆包妈",
     level: 8,
-    levelClass: "level-tertiary",
-    desc: "家里有三只可爱的小柴~",
+    levelClass: "level-green",
+    desc: "家里有三只可爱的小柴～",
     isFollowed: true,
+    isOnline: true,
   },
   {
     id: 2,
-    avatar: "/static/images/avatar-default.png",
+    avatar:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop",
     nickname: "汪汪特工队",
     level: 5,
-    levelClass: "level-secondary",
+    levelClass: "level-yellow",
     desc: "专业训犬日常分享",
     isFollowed: true,
+    isOnline: false,
   },
   {
     id: 3,
-    avatar: "/static/images/avatar-default.png",
+    avatar:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop",
     nickname: "大金毛嘟嘟",
     level: 12,
-    levelClass: "level-primary",
-    desc: "一个温暖的大个子~",
+    levelClass: "level-pink",
+    desc: "一个温暖的大个子～",
     isFollowed: true,
+    isOnline: false,
   },
   {
     id: 4,
-    avatar: "/static/images/avatar-default.png",
+    avatar:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=400&auto=format&fit=crop",
     nickname: "法斗皮皮",
     level: 3,
-    levelClass: "level-tertiary",
+    levelClass: "level-green",
     desc: "丑萌天花板代言人",
     isFollowed: true,
+    isOnline: false,
   },
 ]);
 
@@ -168,7 +174,7 @@ const goToUserProfile = (userId) => {
 .follow-page {
   width: 100%;
   min-height: 100vh;
-  background: #fff8f7;
+  background: linear-gradient(180deg, #fff8f5 0%, #fff6f2 100%);
 }
 
 .page-content {
@@ -179,191 +185,214 @@ const goToUserProfile = (userId) => {
   width: 100%;
   box-sizing: border-box;
   height: calc(100vh - 200rpx);
-  padding: 0 40rpx;
-  padding-top: 16rpx;
 }
 
-/* 搜索框 */
 .search-bar {
+  margin: 44rpx 36rpx 0;
+  height: 116rpx;
+  border-radius: 999rpx;
+  background: white;
   display: flex;
   align-items: center;
-  background: #ffffff;
-  border-radius: 48rpx;
-  padding: 20rpx 32rpx;
-  margin-bottom: 32rpx;
-  box-shadow: 0 4rpx 16rpx rgba(168, 155, 157, 0.08);
-  border: 2rpx solid rgba(255, 221, 226, 0.2);
+  padding: 0 36rpx;
+  box-shadow: 0 20rpx 48rpx rgba(107, 78, 61, 0.04);
 }
 
 .search-icon {
   width: 40rpx;
   height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C3B8B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
-  opacity: 0.6;
 }
 
 .search-input {
   flex: 1;
-  font-size: 28rpx;
-  margin-left: 16rpx;
-  color: #1e1b1b;
+  font-size: 32rpx;
+  margin-left: 24rpx;
+  color: #5e4b4b;
 }
 
 .search-placeholder {
-  color: #807476;
-  opacity: 0.5;
-  width: 100%;
+  color: #c3b8b8;
 }
 
-/* 用户列表 */
 .user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
+  padding: 44rpx 36rpx 60rpx;
 }
 
 .user-card {
+  background: white;
+  border-radius: 68rpx;
+  padding: 36rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  border-radius: 48rpx;
-  padding: 32rpx;
-  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  border: 2rpx solid rgba(255, 221, 226, 0.3);
-  transition: transform 0.2s ease;
+  margin-bottom: 36rpx;
+  box-shadow: 0 24rpx 60rpx rgba(107, 78, 61, 0.05);
+  transition: all 0.2s ease;
 
   &:active {
-    transform: scale(1);
+    transform: translateY(-4rpx);
   }
 }
 
 .user-left {
   display: flex;
   align-items: center;
-  gap: 24rpx;
+  gap: 32rpx;
 }
 
 .avatar-wrapper {
-  width: 112rpx;
-  height: 112rpx;
-  border-radius: 50%;
-  border: 4rpx solid #ffdde2;
-  overflow: hidden;
-  padding: 4rpx;
-  background: #ffffff;
+  position: relative;
 }
 
 .user-avatar {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 56rpx;
+  object-fit: cover;
+  border: 6rpx solid #ffe7ef;
+}
+
+.online-dot {
+  position: absolute;
+  right: 4rpx;
+  bottom: 4rpx;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 999rpx;
+  background: #8ed39b;
+  border: 6rpx solid white;
 }
 
 .user-info {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
 }
 
 .user-name-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 20rpx;
 }
 
 .user-name {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #1e1b1b;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #3f3232;
 }
 
 .level-badge {
-  padding: 4rpx 12rpx;
-  border-radius: 20rpx;
+  height: 60rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  &.level-primary {
-    background: #ffdde2;
+  &.level-green {
+    background: #e7f4e5;
     .level-text {
-      color: #795f64;
+      color: #6e9d68;
     }
   }
 
-  &.level-secondary {
-    background: #eadfbd;
+  &.level-yellow {
+    background: #f5eed7;
     .level-text {
-      color: #6a6347;
+      color: #a38b47;
     }
   }
 
-  &.level-tertiary {
-    background: #daead8;
+  &.level-pink {
+    background: #ffe7ef;
     .level-text {
-      color: #5b6a5c;
+      color: #c27895;
     }
   }
 }
 
 .level-text {
-  font-size: 20rpx;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: 26rpx;
+  font-weight: 800;
 }
 
 .user-desc {
-  font-size: 24rpx;
-  color: #4f4446;
-  opacity: 0.7;
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #a89b9b;
+  line-height: 1.8;
 }
 
 .action-btn {
-  padding: 16rpx 32rpx;
-  background: linear-gradient(135deg, #71585c 0%, #9a7a7e 100%);
-  border-radius: 100rpx;
-  transition: transform 0.2s ease;
+  min-width: 188rpx;
+  height: 96rpx;
+  border: none;
+  border-radius: 36rpx;
+  background: linear-gradient(135deg, #ffd9e5, #ffc9da);
+  box-shadow: 0 16rpx 40rpx rgba(255, 201, 218, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 
   &:active {
-    transform: scale(1);
+    transform: scale(1.03);
   }
 
   &.unfollow {
-    background: #fcdadf;
-    border: 2rpx solid #ffdde2;
+    background: white;
+    border: 4rpx solid #ffd9e5;
 
     .btn-text {
-      color: #584145;
+      color: #7a5c62;
     }
   }
 }
 
 .btn-text {
-  font-size: 24rpx;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.05em;
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #7a5c62;
 }
 
 .bottom-hint {
-  padding: 48rpx 0;
+  display: none;
+}
+
+.empty-state {
+  margin-top: 68rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
-  opacity: 0.3;
+  justify-content: center;
 }
 
-.hint-icon {
-  width: 64rpx;
-  height: 64rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585c'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
+.empty-icon {
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 999rpx;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20rpx 48rpx rgba(107, 78, 61, 0.04);
+}
+
+.empty-icon::after {
+  content: "";
+  width: 48rpx;
+  height: 48rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E5D7D7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
 }
 
-.hint-text {
-  font-size: 22rpx;
-  color: #4f4446;
+.empty-text {
+  margin-top: 36rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #c7bdbd;
 }
 </style>

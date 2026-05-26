@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>关注列表</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #F2EFEC;
+            font-family: 'Noto Sans SC', sans-serif;
+
+            display: flex;
+            justify-content: center;
+
+            padding: 40px;
+        }
+
+        .phone {
+            width: 390px;
+            height: 844px;
+
+            background:
+                linear-gradient(180deg,
+                    #FFF8F5 0%,
+                    #FFF6F2 100%);
+
+            border-radius: 42px;
+
+            overflow: hidden;
+
+            position: relative;
+
+            box-shadow:
+                0 24px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .page {
+            height: 100%;
+            overflow-y: auto;
+
+            padding-bottom: 40px;
+        }
+
+        .topbar {
+            padding:
+                52px 18px 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+
+            border-radius: 999px;
+
+            background: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #6B5B5B;
+
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: 800;
+
+            color: #6B4E3D;
+
+            letter-spacing: 1px;
+        }
+
+        .search-wrap {
+            padding:
+                22px 18px 0;
+        }
+
+        .search-box {
+            height: 58px;
+
+            border-radius: 999px;
+
+            background: white;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 18px;
+
+            box-shadow:
+                0 10px 24px rgba(107, 78, 61, 0.04);
+        }
+
+        .search-box i {
+            color: #C3B8B8;
+        }
+
+        .search-input {
+            border: none;
+            outline: none;
+
+            flex: 1;
+
+            margin-left: 12px;
+
+            background: transparent;
+
+            font-size: 16px;
+            font-weight: 500;
+
+            color: #5E4B4B;
+        }
+
+        .search-input::placeholder {
+            color: #C3B8B8;
+        }
+
+        .list {
+            padding:
+                22px 18px 30px;
+        }
+
+        .user-card {
+            background: white;
+
+            border-radius: 34px;
+
+            padding: 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            margin-bottom: 18px;
+
+            box-shadow:
+                0 12px 30px rgba(107, 78, 61, 0.05);
+
+            transition: all .2s ease;
+        }
+
+        .user-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .left {
+            display: flex;
+            align-items: center;
+
+            gap: 16px;
+        }
+
+        .avatar-wrap {
+            position: relative;
+        }
+
+        .avatar {
+            width: 72px;
+            height: 72px;
+
+            border-radius: 28px;
+
+            object-fit: cover;
+
+            border:
+                3px solid #FFE7EF;
+        }
+
+        .online-dot {
+            position: absolute;
+
+            right: 2px;
+            bottom: 2px;
+
+            width: 16px;
+            height: 16px;
+
+            border-radius: 999px;
+
+            background: #8ED39B;
+
+            border: 3px solid white;
+        }
+
+        .info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .name-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .name {
+            font-size: 24px;
+            font-weight: 800;
+
+            color: #3F3232;
+        }
+
+        .level {
+            height: 30px;
+
+            padding: 0 12px;
+
+            border-radius: 999px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .lv-green {
+            background: #E7F4E5;
+            color: #6E9D68;
+        }
+
+        .lv-yellow {
+            background: #F5EED7;
+            color: #A38B47;
+        }
+
+        .lv-pink {
+            background: #FFE7EF;
+            color: #C27895;
+        }
+
+        .desc {
+            margin-top: 10px;
+
+            font-size: 14px;
+
+            color: #A89B9B;
+
+            line-height: 1.8;
+        }
+
+        .follow-btn {
+            min-width: 94px;
+            height: 48px;
+
+            border: none;
+
+            border-radius: 18px;
+
+            background:
+                linear-gradient(135deg,
+                    #FFD9E5,
+                    #FFC9DA);
+
+            color: #7A5C62;
+
+            font-size: 15px;
+            font-weight: 800;
+
+            box-shadow:
+                0 8px 20px rgba(255, 201, 218, 0.28);
+
+            transition: all .2s ease;
+        }
+
+        .follow-btn:hover {
+            transform: scale(1.03);
+        }
+
+        .empty {
+            margin-top: 34px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-icon {
+            width: 72px;
+            height: 72px;
+
+            border-radius: 999px;
+
+            background: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #E5D7D7;
+
+            box-shadow:
+                0 10px 24px rgba(107, 78, 61, 0.04);
+        }
+
+        .empty-text {
+            margin-top: 18px;
+
+            font-size: 15px;
+            font-weight: 600;
+
+            color: #C7BDBD;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="phone">
+
+        <div class="page">
+
+            <div class="topbar">
+
+                <div class="nav-btn">
+                    <i data-lucide="chevron-left"></i>
+                </div>
+
+                <div class="title">
+                    关注列表
+                </div>
+
+                <div style="display:flex;gap:10px;">
+
+                    <div class="nav-btn">
+                        <i data-lucide="ellipsis"></i>
+                    </div>
+
+                    <div class="nav-btn">
+                        <i data-lucide="circle"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="search-wrap">
+
+                <div class="search-box">
+
+                    <i data-lucide="search"></i>
+
+                    <input class="search-input" placeholder="搜索关注的人..." />
+
+                </div>
+
+            </div>
+
+            <div class="list">
+
+                <!-- 用户1 -->
+
+                <div class="user-card">
+
+                    <div class="left">
+
+                        <div class="avatar-wrap">
+
+                            <img class="avatar"
+                                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop" />
+
+                            <div class="online-dot"></div>
+
+                        </div>
+
+                        <div class="info">
+
+                            <div class="name-row">
+
+                                <div class="name">
+                                    豆包妈
+                                </div>
+
+                                <div class="level lv-green">
+                                    LV.8
+                                </div>
+
+                            </div>
+
+                            <div class="desc">
+                                家里有三只可爱的小柴～
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <button class="follow-btn">
+                        已关注
+                    </button>
+
+                </div>
+
+                <!-- 用户2 -->
+
+                <div class="user-card">
+
+                    <div class="left">
+
+                        <div class="avatar-wrap">
+
+                            <img class="avatar"
+                                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop" />
+
+                        </div>
+
+                        <div class="info">
+
+                            <div class="name-row">
+
+                                <div class="name">
+                                    汪汪特工队
+                                </div>
+
+                                <div class="level lv-yellow">
+                                    LV.5
+                                </div>
+
+                            </div>
+
+                            <div class="desc">
+                                专业训犬日常分享
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <button class="follow-btn">
+                        已关注
+                    </button>
+
+                </div>
+
+                <!-- 用户3 -->
+
+                <div class="user-card">
+
+                    <div class="left">
+
+                        <div class="avatar-wrap">
+
+                            <img class="avatar"
+                                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop" />
+
+                        </div>
+
+                        <div class="info">
+
+                            <div class="name-row">
+
+                                <div class="name">
+                                    大金毛嘟嘟
+                                </div>
+
+                                <div class="level lv-pink">
+                                    LV.12
+                                </div>
+
+                            </div>
+
+                            <div class="desc">
+                                一个温暖的大个子～
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <button class="follow-btn">
+                        已关注
+                    </button>
+
+                </div>
+
+                <!-- 用户4 -->
+
+                <div class="user-card">
+
+                    <div class="left">
+
+                        <div class="avatar-wrap">
+
+                            <img class="avatar"
+                                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=400&auto=format&fit=crop" />
+
+                        </div>
+
+                        <div class="info">
+
+                            <div class="name-row">
+
+                                <div class="name">
+                                    法斗皮皮
+                                </div>
+
+                                <div class="level lv-green">
+                                    LV.3
+                                </div>
+
+                            </div>
+
+                            <div class="desc">
+                                丑萌天花板代言人
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <button class="follow-btn">
+                        已关注
+                    </button>
+
+                </div>
+
+                <div class="empty">
+
+                    <div class="empty-icon">
+                        <i data-lucide="sparkles"></i>
+                    </div>
+
+                    <div class="empty-text">
+                        去发现更多可爱的 TA 吧
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+</body>
+
+</html>
