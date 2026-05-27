@@ -3,289 +3,377 @@
     <view class="header-safe"></view>
     <TopNavBar :title="isEdit ? '编辑宠物' : '添加宠物'" :showBack="true" />
 
-    <!-- Main Content -->
-    <scroll-view class="page-content" scroll-y>
-      <!-- Avatar Upload Section -->
-      <view class="avatar-section">
-        <view class="avatar-wrapper" @tap="chooseAvatar">
-          <image
-            v-if="formData.avatar"
-            class="avatar"
-            :src="getFullAvatarUrl(formData.avatar)"
-            mode="aspectFill"
-          />
-          <view v-else class="avatar-placeholder">
-            <view class="avatar-icon"></view>
-          </view>
-          <view class="upload-btn">
-            <view class="upload-icon"></view>
-          </view>
-        </view>
-        <text class="avatar-tip">点击上传宠物头像</text>
-      </view>
-
-      <!-- Basic Info Section -->
-      <view class="form-section">
-        <text class="section-title">基本信息</text>
-
-        <!-- 宠物名字 -->
-        <view class="form-item">
-          <view class="item-label">
-            <view class="label-icon icon-name"></view>
-            <text class="label-text">宠物名字</text>
-          </view>
-          <input
-            class="item-input"
-            v-model="formData.name"
-            placeholder="请输入宠物名字"
-            maxlength="20"
-          />
-        </view>
-
-        <!-- 宠物种类 -->
-        <view class="form-item" @tap="showSpeciesPicker">
-          <view class="item-label">
-            <view class="label-icon icon-species"></view>
-            <text class="label-text">宠物种类</text>
-          </view>
-          <view class="item-value">
-            <text class="value-text">{{ formData.type || "请选择" }}</text>
-            <view class="arrow-icon"></view>
-          </view>
-        </view>
-
-        <!-- 品种 -->
-        <view class="form-item" @tap="showBreedPicker">
-          <view class="item-label">
-            <view class="label-icon icon-breed"></view>
-            <text class="label-text">品种</text>
-          </view>
-          <view class="item-value">
-            <text class="value-text">{{ formData.breed || "请选择" }}</text>
-            <view class="arrow-icon"></view>
-          </view>
-        </view>
-
-        <!-- 性别 -->
-        <view class="form-item" @tap="showGenderPicker">
-          <view class="item-label">
-            <view class="label-icon icon-gender"></view>
-            <text class="label-text">性别</text>
-          </view>
-          <view class="item-value">
-            <text class="value-text">{{ formData.gender || "请选择" }}</text>
-            <view class="arrow-icon"></view>
-          </view>
-        </view>
-
-        <!-- 年龄 -->
-        <view class="form-item">
-          <view class="item-label">
-            <view class="label-icon icon-birthday"></view>
-            <text class="label-text">年龄</text>
-          </view>
-          <input
-            class="item-input"
-            v-model="formData.age"
-            placeholder="例如：2岁"
-            maxlength="10"
-          />
-        </view>
-      </view>
-
-      <!-- Appearance Section -->
-      <view class="form-section">
-        <text class="section-title">外观特征</text>
-
-        <!-- 毛色 -->
-        <view class="form-item">
-          <view class="item-label">
-            <view class="label-icon icon-color"></view>
-            <text class="label-text">毛色</text>
-          </view>
-          <input
-            class="item-input"
-            v-model="formData.color"
-            placeholder="例如：金色、白色"
-            maxlength="20"
-          />
-        </view>
-
-        <!-- 体重 -->
-        <view class="form-item">
-          <view class="item-label">
-            <view class="label-icon icon-weight"></view>
-            <text class="label-text">体重 (kg)</text>
-          </view>
-          <input
-            class="item-input"
-            v-model="formData.weight"
-            type="digit"
-            placeholder="请输入体重"
-          />
-        </view>
-
-        <!-- 体型 -->
-        <view class="form-item" @tap="showSizePicker">
-          <view class="item-label">
-            <view class="label-icon icon-size"></view>
-            <text class="label-text">体型</text>
-          </view>
-          <view class="item-value">
-            <text class="value-text">{{ formData.size || "请选择" }}</text>
-            <view class="arrow-icon"></view>
-          </view>
-        </view>
-      </view>
-
-      <!-- Health Section -->
-      <view class="form-section">
-        <text class="section-title">健康状况</text>
-
-        <!-- 绝育状态 -->
-        <view class="form-item switch-item">
-          <view class="item-label">
-            <view class="label-icon icon-neutered"></view>
-            <text class="label-text">已绝育</text>
-          </view>
-          <switch
-            :checked="formData.neutered"
-            @change="onNeuteredChange"
-            color="#FFC1E9"
-          />
-        </view>
-
-        <!-- 疫苗情况 -->
-        <view class="form-item" @tap="showVaccinePicker">
-          <view class="item-label">
-            <view class="label-icon icon-vaccine"></view>
-            <text class="label-text">疫苗接种</text>
-          </view>
-          <view class="item-value">
-            <text class="value-text">{{
-              formData.vaccinated || "请选择"
-            }}</text>
-            <view class="arrow-icon"></view>
-          </view>
-        </view>
-
-        <!-- 健康证明 -->
-        <view class="form-item switch-item">
-          <view class="item-label">
-            <view class="label-icon icon-health"></view>
-            <text class="label-text">有健康证明</text>
-          </view>
-          <switch
-            :checked="formData.healthCertificate"
-            @change="onHealthCertificateChange"
-            color="#FFC1E9"
-          />
-        </view>
-      </view>
-
-      <!-- Personality Section -->
-      <view class="form-section">
-        <text class="section-title">性格特点</text>
-
-        <view class="tags-container">
-          <view
-            v-for="tag in personalityTags"
-            :key="tag.id"
-            class="tag-item"
-            :class="{ active: formData.personality.includes(tag.id) }"
-            @tap="togglePersonality(tag.id)"
-          >
-            <view class="tag-icon" :class="tag.icon"></view>
-            <text class="tag-text">{{ tag.label }}</text>
-          </view>
-        </view>
-
-        <!-- 特殊习惯 -->
-        <view class="form-item textarea-item">
-          <view class="item-label">
-            <view class="label-icon icon-habits"></view>
-            <text class="label-text">特殊习惯</text>
-          </view>
-          <textarea
-            class="item-textarea"
-            v-model="formData.habits"
-            placeholder="描述一下宠物的特殊习惯或行为特点..."
-            maxlength="200"
-          />
-          <text class="char-count">{{ formData.habits.length }}/200</text>
-        </view>
-      </view>
-
-      <!-- Photos Section -->
-      <view class="form-section">
-        <text class="section-title">宠物照片</text>
-
-        <view class="photos-grid">
-          <view
-            v-for="(photo, index) in formData.photos"
-            :key="index"
-            class="photo-item"
-          >
+    <view class="form-container">
+      <scroll-view class="form-scroll" scroll-y>
+        <view class="avatar-section">
+          <view class="avatar-wrapper" @tap="chooseAvatar">
             <image
-              class="photo"
-              :src="photo"
+              v-if="formData.avatar"
+              class="avatar"
+              :src="getFullAvatarUrl(formData.avatar)"
               mode="aspectFill"
-              @tap="previewPhoto(index)"
             />
-            <view class="delete-photo" @tap.stop="deletePhoto(index)">
-              <view class="delete-icon"></view>
+            <view v-else class="avatar-placeholder"></view>
+            <view class="upload-btn">
+              <text class="upload-icon">+</text>
             </view>
           </view>
-          <view
-            v-if="formData.photos.length < 9"
-            class="add-photo"
-            @tap="uploadPhotos"
-          >
-            <view class="add-photo-icon"></view>
-            <text class="add-photo-text">添加照片</text>
+          <text class="avatar-tip">点击上传宠物头像</text>
+        </view>
+
+        <view class="section">
+          <text class="section-title">基本信息</text>
+          <view class="card">
+            <view class="item">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">宠物名字</text>
+              </view>
+              <input
+                class="input-field"
+                v-model="formData.name"
+                placeholder="请输入"
+                maxlength="20"
+              />
+            </view>
+
+            <view class="item" @tap="openModal('speciesModal')">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">宠物种类</text>
+              </view>
+              <view class="right">
+                <text class="value-text">{{ formData.type || "请选择" }}</text>
+                <text class="arrow">›</text>
+              </view>
+            </view>
+
+            <view class="item" @tap="openModal('breedModal')">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">品种</text>
+              </view>
+              <view class="right">
+                <text class="value-text">{{ formData.breed || "请选择" }}</text>
+                <text class="arrow">›</text>
+              </view>
+            </view>
+
+            <view class="item" @tap="openModal('genderModal')">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">性别</text>
+              </view>
+              <view class="right">
+                <text class="value-text">{{ displayGender }}</text>
+                <text class="arrow">›</text>
+              </view>
+            </view>
+
+            <view class="item">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">年龄</text>
+              </view>
+              <input
+                class="input-field"
+                v-model="formData.age"
+                placeholder="请输入"
+                maxlength="10"
+              />
+            </view>
           </view>
         </view>
-      </view>
-    </scroll-view>
 
-    <!-- Bottom Action Buttons -->
+        <view class="section">
+          <text class="section-title">外观特征</text>
+          <view class="card">
+            <view class="item">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">毛色</text>
+              </view>
+              <input
+                class="input-field"
+                v-model="formData.color"
+                placeholder="请输入"
+                maxlength="20"
+              />
+            </view>
+
+            <view class="item">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">体重 (kg)</text>
+              </view>
+              <input
+                class="input-field"
+                v-model="formData.weight"
+                type="digit"
+                placeholder="请输入"
+              />
+            </view>
+
+            <view class="item" @tap="openModal('sizeModal')">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">体型</text>
+              </view>
+              <view class="right">
+                <text class="value-text">{{ formData.size || "请选择" }}</text>
+                <text class="arrow">›</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="section">
+          <text class="section-title">健康状况</text>
+          <view class="card">
+            <view class="item">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">已绝育</text>
+              </view>
+              <view class="switch" :class="{ active: formData.neutered }" @tap="toggleSwitch('neutered')"></view>
+            </view>
+
+            <view class="item">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">疫苗接种</text>
+              </view>
+              <view class="switch" :class="{ active: formData.vaccinated }" @tap="toggleSwitch('vaccinated')"></view>
+            </view>
+
+            <view class="item">
+              <view class="left">
+                <view class="icon"></view>
+                <text class="label">有健康证明</text>
+              </view>
+              <view class="switch" :class="{ active: formData.healthCertificate }" @tap="toggleSwitch('healthCertificate')"></view>
+            </view>
+          </view>
+        </view>
+
+        <view class="section">
+          <text class="section-title">性格特点（最多6个）</text>
+          <view class="tags">
+            <view
+              v-for="(tag, index) in personalityTags"
+              :key="index"
+              class="tag"
+              :class="{ active: formData.personality.includes(tag.id) }"
+              @tap="togglePersonality(tag.id)"
+            >
+              {{ tag.label }}
+            </view>
+          </view>
+
+          <view class="textarea-wrap">
+            <textarea
+              class="textarea-field"
+              v-model="formData.habits"
+              placeholder="描述一下宠物的特殊习惯或行为特点..."
+              maxlength="200"
+            />
+            <text class="count">{{ formData.habits.length }}/200</text>
+          </view>
+        </view>
+
+        <view class="section">
+          <text class="section-title">宠物照片</text>
+          <view class="photos">
+            <view
+              v-for="(photo, index) in formData.photos"
+              :key="index"
+              class="photo-item"
+            >
+              <image
+                class="photo-img"
+                :src="photo"
+                mode="aspectFill"
+                @tap="previewPhoto(index)"
+              />
+              <view class="delete" @tap.stop="deletePhoto(index)">×</view>
+            </view>
+            <view
+              v-if="formData.photos.length < 9"
+              class="add-photo"
+              @tap="uploadPhotos"
+            >
+              <text class="add-icon">+</text>
+              <text class="add-text">添加照片</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
     <view class="footer">
-      <view v-if="isEdit" class="delete-btn" @tap="handleDelete">
-        <text class="delete-text">删除宠物</text>
+      <view v-if="isEdit" class="btn delete-btn" @tap="handleDelete">
+        删除宠物
       </view>
-      <view class="save-btn" @tap="handleSave">
-        <text class="save-text">保存</text>
-        <view class="save-icon"></view>
+      <view class="btn save-btn" @tap="handleSave">
+        保存
       </view>
     </view>
+
+    <BottomSheet
+      :visible="activeModal === 'speciesModal'"
+      title="选择宠物种类"
+      @update:visible="activeModal = $event ? 'speciesModal' : null"
+    >
+      <view class="option-grid">
+        <view
+          v-for="(item, index) in speciesList"
+          :key="index"
+          class="option"
+          :class="{ active: formData.type === item }"
+          @tap="selectOption('type', item)"
+        >
+          {{ item }}
+        </view>
+      </view>
+    </BottomSheet>
+
+    <BottomSheet
+      :visible="activeModal === 'genderModal'"
+      title="选择性别"
+      @update:visible="activeModal = $event ? 'genderModal' : null"
+    >
+      <view class="option-grid">
+        <view
+          v-for="item in genderOptions"
+          :key="item.value"
+          class="option"
+          :class="{ active: formData.gender === item.value }"
+          @tap="selectOption('gender', item.value)"
+        >
+          {{ item.label }}
+        </view>
+      </view>
+    </BottomSheet>
+
+    <BottomSheet
+      :visible="activeModal === 'sizeModal'"
+      title="选择体型"
+      @update:visible="activeModal = $event ? 'sizeModal' : null"
+    >
+      <view class="option-grid">
+        <view
+          v-for="(item, index) in sizeList"
+          :key="index"
+          class="option"
+          :class="{ active: formData.size === item }"
+          @tap="selectOption('size', item)"
+        >
+          {{ item }}
+        </view>
+      </view>
+    </BottomSheet>
+
+    <BottomSheet
+      :visible="activeModal === 'breedModal'"
+      title="选择品种"
+      @update:visible="activeModal = $event ? 'breedModal' : null"
+    >
+      <view class="search-box">
+        <input
+          class="search-input"
+          v-model="breedSearch"
+          placeholder="搜索品种..."
+          type="text"
+        />
+      </view>
+      <view class="breed-list">
+        <view
+          v-for="(item, index) in filteredBreedList"
+          :key="index"
+          class="breed-item"
+          :class="{ active: formData.breed === item }"
+          @tap="selectBreed(item)"
+        >
+          {{ item }}
+        </view>
+      </view>
+    </BottomSheet>
 
     <Loading :visible="loading" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import Loading from "@/components/common/Loading.vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import BottomSheet from "@/components/common/BottomSheet.vue";
 import {
   getPetDetail,
   addPet,
   updatePet,
   deletePet,
-  type Pet,
+  type PetFormData,
 } from "@/api/pet";
 
 const loading = ref(false);
 const isEdit = ref(false);
 const petId = ref<number | null>(null);
+const activeModal = ref<string | null>(null);
+const breedSearch = ref('');
+
+const genderMap: Record<string, string> = {
+  male: "公",
+  female: "母",
+};
+
+const genderOptions = [
+  { label: "公", value: "male" },
+  { label: "母", value: "female" }
+];
+
+const speciesList = ["狗狗", "猫咪", "其他"];
+const sizeList = ["小型", "中型", "大型"];
+
+const breedMap: Record<string, string[]> = {
+  狗狗: ["金毛", "哈士奇", "泰迪", "柯基", "拉布拉多", "柴犬", "萨摩耶", "边牧", "阿拉斯加", "比熊", "德牧", "博美", "其他"],
+  猫咪: ["英短", "美短", "布偶", "缅因猫", "其他"],
+  其他: ["兔子", "仓鼠", "龙猫", "其他"],
+};
+
+const personalityTags = [
+  { id: "active", label: "活泼" },
+  { id: "gentle", label: "温顺" },
+  { id: "clingy", label: "粘人" },
+  { id: "independent", label: "独立" },
+  { id: "smart", label: "聪明" },
+  { id: "naughty", label: "调皮" },
+  { id: "quiet", label: "安静" },
+  { id: "friendly", label: "友好" },
+];
+
+const displayGender = computed(() => {
+  return genderMap[formData.value.gender] || formData.value.gender || "请选择";
+});
+
+const filteredBreedList = computed(() => {
+  const list = formData.value.type && breedMap[formData.value.type] 
+    ? breedMap[formData.value.type] 
+    : [];
+  
+  if (!breedSearch.value) return list;
+  
+  return list.filter(item => 
+    item.toLowerCase().includes(breedSearch.value.toLowerCase())
+  );
+});
 
 const getFullAvatarUrl = (avatar: string) => {
   if (!avatar) return "";
   if (avatar.startsWith("http")) return avatar;
-  return `${process.env.VUE_APP_API_BASE}${avatar}`;
+  return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
 };
 
-// 页面加载时检查是否是编辑模式
 onMounted(() => {
   const pages = getCurrentPages();
   const currentPage = pages[pages.length - 1] as any;
@@ -303,22 +391,47 @@ const loadPetData = async () => {
   try {
     if (petId.value) {
       const data = await getPetDetail(petId.value);
+
+      const neutered = Boolean(
+        data.neutered !== undefined && data.neutered !== null
+          ? data.neutered
+          : (data as any).neutered,
+      );
+
+      const healthCertificate = Boolean(
+        data.healthCertificate !== undefined && data.healthCertificate !== null
+          ? data.healthCertificate
+          : (data as any).health_certificate,
+      );
+
+      let vaccinated = false;
+      if (typeof data.vaccinated === 'boolean') {
+        vaccinated = data.vaccinated;
+      } else if (typeof data.vaccinated === 'string') {
+        vaccinated = data.vaccinated === "已接种";
+      } else {
+        vaccinated = Boolean(data.vaccinated);
+      }
+
       formData.value = {
         avatar: data.avatar || "",
         name: data.name || "",
         type: data.type || "",
         breed: data.breed || "",
-        gender: "",
+        gender: data.gender || "",
         age: data.age || "",
-        color: "",
-        weight: "",
-        size: "",
-        neutered: false,
-        vaccinated: "",
-        healthCertificate: false,
-        personality: [],
-        habits: "",
-        photos: [],
+        color: data.color || "",
+        weight:
+          data.weight !== undefined && data.weight !== null
+            ? String(data.weight)
+            : "",
+        size: data.size || "",
+        neutered,
+        vaccinated,
+        healthCertificate,
+        personality: data.personality ? data.personality.split(",") : [],
+        habits: data.habits || "",
+        photos: data.photos ? JSON.parse(data.photos) : [],
       };
     }
   } catch (error) {
@@ -332,19 +445,6 @@ const loadPetData = async () => {
   }
 };
 
-// 性格标签选项
-const personalityTags = ref([
-  { id: "active", label: "活泼", icon: "icon-active" },
-  { id: "gentle", label: "温顺", icon: "icon-gentle" },
-  { id: "clingy", label: "粘人", icon: "icon-clingy" },
-  { id: "independent", label: "独立", icon: "icon-independent" },
-  { id: "smart", label: "聪明", icon: "icon-smart" },
-  { id: "naughty", label: "调皮", icon: "icon-naughty" },
-  { id: "quiet", label: "安静", icon: "icon-quiet" },
-  { id: "friendly", label: "友好", icon: "icon-friendly" },
-]);
-
-// 表单数据
 const formData = ref({
   avatar: "",
   name: "",
@@ -356,36 +456,70 @@ const formData = ref({
   weight: "",
   size: "",
   neutered: false,
-  vaccinated: "",
+  vaccinated: false,
   healthCertificate: false,
   personality: [] as string[],
   habits: "",
   photos: [] as string[],
 });
 
-const goBack = () => {
+const openModal = (modalName: string) => {
   uni.vibrateShort({ type: "light" });
-  uni.navigateBack();
+  activeModal.value = modalName;
 };
 
-// 上传头像
+const closeModal = () => {
+  activeModal.value = null;
+  breedSearch.value = "";
+};
+
+const toggleSwitch = (field: string) => {
+  uni.vibrateShort({ type: "light" });
+  (formData.value as any)[field] = !(formData.value as any)[field];
+};
+
+const selectOption = (field: string, value: any) => {
+  uni.vibrateShort({ type: "light" });
+  (formData.value as any)[field] = value;
+  
+  setTimeout(() => {
+    closeModal();
+  }, 180);
+};
+
+const selectBreed = (breed: string) => {
+  uni.vibrateShort({ type: "light" });
+  formData.value.breed = breed;
+  
+  setTimeout(() => {
+    closeModal();
+  }, 180);
+};
+
 const chooseAvatar = () => {
   uni.vibrateShort({ type: "light" });
   uni.chooseImage({
     count: 1,
     sizeType: ["compressed"],
     sourceType: ["album", "camera"],
-    success: (res) => {
-      formData.value.avatar = res.tempFilePaths[0];
-      uni.showToast({
-        title: "头像上传成功",
-        icon: "success",
-      });
+    success: async (res) => {
+      const tempPath = res.tempFilePaths[0];
+      try {
+        formData.value.avatar = tempPath;
+        uni.showToast({
+          title: "头像选择成功",
+          icon: "success",
+        });
+      } catch (error) {
+        uni.showToast({
+          title: "头像上传失败",
+          icon: "none",
+        });
+      }
     },
   });
 };
 
-// 上传多张照片
 const uploadPhotos = () => {
   uni.vibrateShort({ type: "light" });
   const maxCount = 9 - formData.value.photos.length;
@@ -403,7 +537,6 @@ const uploadPhotos = () => {
   });
 };
 
-// 预览照片
 const previewPhoto = (index: number) => {
   uni.vibrateShort({ type: "light" });
   uni.previewImage({
@@ -412,7 +545,6 @@ const previewPhoto = (index: number) => {
   });
 };
 
-// 删除照片
 const deletePhoto = (index: number) => {
   uni.vibrateShort({ type: "light" });
   uni.showModal({
@@ -430,131 +562,23 @@ const deletePhoto = (index: number) => {
   });
 };
 
-// 种类选择器
-const showSpeciesPicker = () => {
-  uni.vibrateShort({ type: "light" });
-  console.log("showSpeciesPicker called");
-  const speciesList = ["狗狗", "猫咪", "其他"];
-  uni.showActionSheet({
-    itemList: speciesList,
-    success: function(res) {
-      console.log("species selected:", speciesList[res.tapIndex]);
-      formData.value.type = speciesList[res.tapIndex];
-      console.log("formData.type set to:", formData.value.type);
-    },
-    fail: function(err) {
-      console.log("showActionSheet fail:", err);
-    }
-  });
-};
-
-// 品种选择器
-const showBreedPicker = () => {
-  uni.vibrateShort({ type: "light" });
-  console.log("showBreedPicker called, type:", formData.value.type);
-  
-  const breedMap: Record<string, string[]> = {
-    "狗狗": [
-      "金毛",
-      "哈士奇",
-      "泰迪",
-      "柯基",
-      "其他",
-    ],
-    "猫咪": ["英短", "美短", "布偶", "缅因猫", "其他"],
-    "其他": ["兔子", "仓鼠", "龙猫", "其他"],
-  };
-
-  let breeds = ["请先选择种类"];
-  if (formData.value.type && breedMap[formData.value.type]) {
-    breeds = breedMap[formData.value.type];
-  }
-  
-  console.log("breeds:", breeds);
-  
-  uni.showActionSheet({
-    itemList: breeds,
-    success: function(res) {
-      console.log("success callback called, tapIndex:", res.tapIndex);
-      formData.value.breed = breeds[res.tapIndex];
-      console.log("breed set to:", formData.value.breed);
-    },
-    fail: function(err) {
-      console.log("showActionSheet fail:", err);
-    },
-    complete: function() {
-      console.log("showActionSheet complete");
-    }
-  });
-};
-
-// 性别选择器
-const showGenderPicker = () => {
-  uni.vibrateShort({ type: "light" });
-  const genders = ["公", "母"];
-  uni.showActionSheet({
-    itemList: genders,
-    success: (res) => {
-      formData.value.gender = genders[res.tapIndex];
-    },
-  });
-};
-
-// 体型选择器
-const showSizePicker = () => {
-  uni.vibrateShort({ type: "light" });
-  const sizes = ["小型", "中型", "大型"];
-  uni.showActionSheet({
-    itemList: sizes,
-    success: (res) => {
-      formData.value.size = sizes[res.tapIndex];
-    },
-  });
-};
-
-// 疫苗选择器
-const showVaccinePicker = () => {
-  uni.vibrateShort({ type: "light" });
-  const vaccines = ["已接种", "未接种", "接种中"];
-  uni.showActionSheet({
-    itemList: vaccines,
-    success: (res) => {
-      formData.value.vaccinated = vaccines[res.tapIndex];
-    },
-  });
-};
-
-// 绝育状态切换
-const onNeuteredChange = (e: any) => {
-  uni.vibrateShort({ type: "light" });
-  formData.value.neutered = e.detail.value;
-};
-
-// 健康证明切换
-const onHealthCertificateChange = (e: any) => {
-  uni.vibrateShort({ type: "light" });
-  formData.value.healthCertificate = e.detail.value;
-};
-
-// 性格标签切换
 const togglePersonality = (tagId: string) => {
   uni.vibrateShort({ type: "light" });
   const index = formData.value.personality.indexOf(tagId);
   if (index > -1) {
     formData.value.personality.splice(index, 1);
   } else {
-    if (formData.value.personality.length < 5) {
+    if (formData.value.personality.length < 6) {
       formData.value.personality.push(tagId);
     } else {
       uni.showToast({
-        title: "最多选择 5 个性格标签",
+        title: "最多只能选择6个性格标签",
         icon: "none",
       });
     }
   }
 };
 
-// 保存
 const handleSave = () => {
   if (!formData.value.name.trim()) {
     uni.showToast({
@@ -567,27 +591,31 @@ const handleSave = () => {
   uni.vibrateShort({ type: "medium" });
   loading.value = true;
 
-  // 创建表单数据（保存所有填写的字段）
-  const data: Record<string, any> = {
+  const data: PetFormData = {
     name: formData.value.name,
-    type: formData.value.type || null,
-    breed: formData.value.breed || null,
-    age: formData.value.age || null,
-    gender: formData.value.gender || null,
-    color: formData.value.color || null,
-    weight: formData.value.weight || null,
-    size: formData.value.size || null,
+    type: formData.value.type || undefined,
+    breed: formData.value.breed || undefined,
+    age: formData.value.age || undefined,
+    gender: formData.value.gender || undefined,
+    color: formData.value.color || undefined,
+    weight: formData.value.weight || undefined,
+    size: formData.value.size || undefined,
     neutered: formData.value.neutered,
-    vaccinated: formData.value.vaccinated || null,
+    vaccinated: formData.value.vaccinated ? "已接种" : "未接种",
     healthCertificate: formData.value.healthCertificate,
-    personality: formData.value.personality.length > 0 ? formData.value.personality.join(',') : null,
-    habits: formData.value.habits || null,
-    avatar: formData.value.avatar || null,
-    photos: formData.value.photos.length > 0 ? JSON.stringify(formData.value.photos) : null,
+    personality:
+      formData.value.personality.length > 0
+        ? formData.value.personality.join(",")
+        : undefined,
+    habits: formData.value.habits || undefined,
+    avatar: formData.value.avatar || undefined,
+    photos:
+      formData.value.photos.length > 0
+        ? JSON.stringify(formData.value.photos)
+        : undefined,
   };
 
   if (isEdit.value && petId.value) {
-    // 更新宠物
     updatePet(petId.value, data)
       .then(() => {
         uni.showToast({
@@ -598,9 +626,8 @@ const handleSave = () => {
           uni.navigateBack({
             delta: 1,
             success: () => {
-              // 通知上一页刷新数据
-              uni.$emit('refreshPetList');
-            }
+              uni.$emit("refreshPetList");
+            },
           });
         }, 1500);
       })
@@ -615,7 +642,6 @@ const handleSave = () => {
         loading.value = false;
       });
   } else {
-    // 添加宠物
     addPet(data)
       .then(() => {
         uni.showToast({
@@ -626,9 +652,8 @@ const handleSave = () => {
           uni.navigateBack({
             delta: 1,
             success: () => {
-              // 通知上一页刷新数据
-              uni.$emit('refreshPetList');
-            }
+              uni.$emit("refreshPetList");
+            },
           });
         }, 1500);
       })
@@ -645,13 +670,12 @@ const handleSave = () => {
   }
 };
 
-// 删除
 const handleDelete = () => {
   uni.vibrateShort({ type: "medium" });
   uni.showModal({
     title: "提示",
     content: "确定要删除这个宠物信息吗？此操作不可恢复",
-    confirmColor: "#ba1a1a",
+    confirmColor: "#ff7d8f",
     success: (res) => {
       if (res.confirm && petId.value) {
         loading.value = true;
@@ -662,7 +686,11 @@ const handleDelete = () => {
               icon: "success",
             });
             setTimeout(() => {
-              uni.navigateBack();
+              uni.navigateBack({
+                success: () => {
+                  uni.$emit("refreshPetList");
+                },
+              });
             }, 1500);
           })
           .catch((error) => {
@@ -683,614 +711,417 @@ const handleDelete = () => {
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
-/* =========================
-   Add Pet Page - 2026 Premium UI
-   UniApp + rpx
-   治愈系奶油宠物社区风格
-========================= */
 
-.add-pet-page {
+.page-container {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, #fff4ef 0%, transparent 40%),
-    radial-gradient(circle at bottom right, #f7f2ff 0%, transparent 35%),
-    linear-gradient(180deg, #fffaf7 0%, #fffdfb 100%);
+  background: rgb(255, 247, 241);
+  color: #4b3d3f;
+}
+
+.form-container {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-/* =========================
-   Scroll
-========================= */
-
-.page-content {
+.form-scroll {
   flex: 1;
+  height: 0;
   box-sizing: border-box;
-  padding:
-    32rpx
-    32rpx
-    calc(220rpx + env(safe-area-inset-bottom));
+  padding: 32rpx 32rpx calc(280rpx + env(safe-area-inset-bottom));
 }
-
-/* =========================
-   Avatar Area
-========================= */
 
 .avatar-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 56rpx;
-  padding-top: 12rpx;
+  padding: 12rpx 20rpx 60rpx;
 }
 
 .avatar-wrapper {
   position: relative;
+  width: 236rpx;
+  height: 236rpx;
 }
 
 .avatar,
 .avatar-placeholder {
-  width: 240rpx;
-  height: 240rpx;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-}
-
-.avatar {
   object-fit: cover;
-
-  border: 8rpx solid rgba(255,255,255,.95);
-
-  box-shadow:
-    0 12rpx 40rpx rgba(255, 192, 203, 0.18),
-    0 2rpx 10rpx rgba(0,0,0,.05);
+  border: 10rpx solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.06);
 }
 
 .avatar-placeholder {
-  background:
-    linear-gradient(
-      135deg,
-      #ffe6eb 0%,
-      #fff0dc 100%
-    );
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 8rpx solid rgba(255,255,255,.95);
-
-  box-shadow:
-    0 12rpx 40rpx rgba(255, 192, 203, 0.18),
-    0 2rpx 10rpx rgba(0,0,0,.05);
-}
-
-.avatar-icon {
-  width: 96rpx;
-  height: 96rpx;
-  opacity: .5;
+  background: linear-gradient(135deg, #ffe6eb 0%, #fff0dc 100%);
 }
 
 .upload-btn {
   position: absolute;
-  right: 8rpx;
-  bottom: 8rpx;
-
-  width: 72rpx;
-  height: 72rpx;
-
+  right: 4rpx;
+  bottom: 4rpx;
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 50%;
-
-  background: linear-gradient(
-    135deg,
-    #ffb8c8 0%,
-    #ff9db5 100%
-  );
-
+  background: linear-gradient(135deg, #ffb6c8, #ffcfaa);
+  border: 6rpx solid white;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  border: 6rpx solid #fff;
-
-  box-shadow:
-    0 8rpx 20rpx rgba(255, 157, 181, .35);
-
-  transition: .2s;
+  color: white;
+  font-size: 40rpx;
+  font-weight: 300;
 }
 
-.upload-btn:active {
-  transform: scale(.95);
+.upload-icon {
+  line-height: 1;
 }
 
 .avatar-tip {
   margin-top: 28rpx;
-
-  font-size: 24rpx;
-  color: #8d7b7d;
-
-  letter-spacing: 1rpx;
+  font-size: 26rpx;
+  color: #9b8a8c;
 }
 
-/* =========================
-   Section
-========================= */
-
-.form-section {
-  margin-bottom: 44rpx;
+.section {
+  padding: 0 32rpx;
+  margin-bottom: 56rpx;
 }
 
 .section-title {
-  padding-left: 10rpx;
-  margin-bottom: 24rpx;
-
-  font-size: 26rpx;
+  font-size: 30rpx;
   font-weight: 700;
-
-  color: #7c6769;
-
-  letter-spacing: 1rpx;
+  color: #755d61;
+  margin-bottom: 28rpx;
+  padding-left: 8rpx;
 }
 
-/* =========================
-   Card
-========================= */
+.card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+  border-radius: 48rpx;
+  overflow: hidden;
+  box-shadow: 0 20rpx 60rpx rgba(157, 125, 132, 0.05),
+              inset 0 2rpx 0 rgba(255, 255, 255, 0.7);
+}
 
-.form-item {
-  position: relative;
-
+.item {
+  min-height: 144rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  padding: 30rpx;
-
-  margin-bottom: 22rpx;
-
-  border-radius: 32rpx;
-
-  background: rgba(255,255,255,.75);
-
-  backdrop-filter: blur(30rpx);
-
-  box-shadow:
-    0 10rpx 30rpx rgba(255, 209, 220, 0.14),
-    inset 0 1rpx 0 rgba(255,255,255,.8);
-
-  transition: .2s;
+  padding: 0 36rpx;
+  border-bottom: 2rpx solid rgba(230, 220, 220, 0.6);
+  transition: 0.2s;
 }
 
-.form-item:active {
-  transform: scale(.99);
+.item:last-child {
+  border-bottom: none;
 }
 
-.form-item::before {
-  content: "";
-
-  position: absolute;
-  inset: 0;
-
-  border-radius: inherit;
-
-  border: 1rpx solid rgba(255,255,255,.65);
-
-  pointer-events: none;
+.item:active {
+  background: rgba(255, 245, 246, 0.8);
 }
 
-/* =========================
-   Label
-========================= */
-
-.item-label {
+.left {
   display: flex;
   align-items: center;
-  gap: 18rpx;
+  gap: 28rpx;
+  flex: 1;
+}
 
+.icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #ffd6e0, #ffe7c7);
   flex-shrink: 0;
 }
 
-.label-icon {
-  width: 52rpx;
-  height: 52rpx;
-
-  border-radius: 18rpx;
-
-  background: linear-gradient(
-    135deg,
-    #ffe5ec 0%,
-    #fff2d8 100%
-  );
-
-  box-shadow:
-    inset 0 1rpx 2rpx rgba(255,255,255,.9),
-    0 4rpx 10rpx rgba(255, 205, 220, .18);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.label-text {
-  font-size: 30rpx;
+.label {
+  font-size: 32rpx;
   font-weight: 600;
-
-  color: #473c3d;
+  color: #4e4144;
 }
 
-/* =========================
-   Input
-========================= */
-
-.item-input {
-  flex: 1;
-
-  text-align: right;
-
-  font-size: 30rpx;
-  font-weight: 500;
-
-  color: #4f4446;
-}
-
-.item-input::placeholder {
-  color: #b5a8aa;
-}
-
-/* =========================
-   Value
-========================= */
-
-.item-value {
+.right {
   display: flex;
   align-items: center;
-  gap: 10rpx;
+  gap: 20rpx;
+  color: #8d7d7f;
+  font-size: 30rpx;
+}
+
+.input-field {
+  border: none;
+  background: transparent;
+  text-align: right;
+  font-size: 30rpx;
+  color: #4e4144;
+  outline: none;
+  flex: 1;
 }
 
 .value-text {
   font-size: 30rpx;
-  color: #887b7d;
+  color: #8d7d7f;
 }
 
-.arrow-icon {
-  width: 28rpx;
-  height: 28rpx;
-
-  opacity: .45;
+.arrow {
+  font-size: 52rpx;
+  color: #b7a9ab;
+  line-height: 1;
 }
 
-/* =========================
-   Switch
-========================= */
-
-.switch-item {
-  min-height: 112rpx;
+.switch {
+  width: 104rpx;
+  height: 64rpx;
+  background: #e6dede;
+  border-radius: 60rpx;
+  position: relative;
+  transition: 0.25s;
 }
 
-/* =========================
-   Textarea
-========================= */
-
-.textarea-item {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+.switch::after {
+  content: "";
+  position: absolute;
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  background: white;
+  top: 6rpx;
+  left: 6rpx;
+  transition: 0.25s;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
 }
 
-.item-textarea {
-  width: 100%;
-  min-height: 220rpx;
-
-  margin-top: 24rpx;
-
-  padding: 24rpx;
-
-  box-sizing: border-box;
-
-  border-radius: 28rpx;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,.9),
-      rgba(255,248,248,.8)
-    );
-
-  font-size: 28rpx;
-  line-height: 1.7;
-
-  color: #4f4446;
+.switch.active {
+  background: linear-gradient(135deg, #ffb7cb, #ffd39d);
 }
 
-.char-count {
-  margin-top: 14rpx;
-
-  text-align: right;
-
-  font-size: 22rpx;
-  color: #b0a5a7;
+.switch.active::after {
+  left: 46rpx;
 }
 
-/* =========================
-   Tags
-========================= */
-
-.tags-container {
+.tags {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-
-  gap: 18rpx;
+  gap: 24rpx;
+  margin-top: 12rpx;
 }
 
-.tag-item {
-  padding: 24rpx 12rpx;
-
-  border-radius: 28rpx;
-
-  background: rgba(255,255,255,.8);
-
+.tag {
+  height: 128rpx;
+  border-radius: 36rpx;
+  background: rgba(255, 255, 255, 0.72);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  gap: 14rpx;
-
-  transition: .22s;
-
-  box-shadow:
-    0 6rpx 20rpx rgba(255, 215, 224, .12);
-}
-
-.tag-item:active {
-  transform: scale(.96);
-}
-
-.tag-item.active {
-  background:
-    linear-gradient(
-      135deg,
-      #ffc7d5 0%,
-      #ffdca8 100%
-    );
-
-  box-shadow:
-    0 12rpx 28rpx rgba(255, 182, 193, .28);
-}
-
-.tag-item.active .tag-text {
-  color: #fff;
-}
-
-.tag-icon {
-  width: 48rpx;
-  height: 48rpx;
-
-  opacity: .75;
-}
-
-.tag-text {
-  font-size: 24rpx;
+  font-size: 30rpx;
   font-weight: 600;
-
-  color: #66595b;
+  color: #645456;
+  transition: 0.2s;
+  box-shadow: 0 12rpx 36rpx rgba(0, 0, 0, 0.04);
 }
 
-/* =========================
-   Photos
-========================= */
+.tag:active {
+  transform: scale(0.96);
+}
 
-.photos-grid {
+.tag.active {
+  background: linear-gradient(135deg, #ffb7cb, #ffd39d);
+  color: white;
+  transform: translateY(-4rpx);
+  box-shadow: 0 20rpx 40rpx rgba(255, 184, 197, 0.3);
+}
+
+.textarea-wrap {
+  margin-top: 32rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 48rpx;
+  padding: 36rpx;
+}
+
+.textarea-field {
+  width: 100%;
+  min-height: 260rpx;
+  border: none;
+  background: transparent;
+  resize: none;
+  outline: none;
+  font-size: 30rpx;
+  line-height: 1.7;
+  color: #4e4144;
+}
+
+.count {
+  text-align: right;
+  font-size: 24rpx;
+  color: #af9ea0;
+  margin-top: 16rpx;
+}
+
+.photos {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-
-  gap: 18rpx;
+  gap: 24rpx;
 }
 
 .photo-item {
-  position: relative;
-
   aspect-ratio: 1;
-
+  border-radius: 40rpx;
   overflow: hidden;
-
-  border-radius: 26rpx;
-
-  background: #fff;
-
-  box-shadow:
-    0 8rpx 24rpx rgba(255, 210, 220, .16);
+  background: white;
+  position: relative;
 }
 
-.photo {
+.photo-img {
   width: 100%;
   height: 100%;
-
   object-fit: cover;
 }
 
-.delete-photo {
+.delete {
   position: absolute;
-
-  top: 10rpx;
-  right: 10rpx;
-
-  width: 46rpx;
-  height: 46rpx;
-
+  right: 16rpx;
+  top: 16rpx;
+  width: 48rpx;
+  height: 48rpx;
   border-radius: 50%;
-
-  background: rgba(255,255,255,.88);
-
-  backdrop-filter: blur(12rpx);
-
+  background: rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.delete-icon {
-  width: 24rpx;
-  height: 24rpx;
+  font-size: 56rpx;
+  color: #ff6f88;
+  line-height: 1;
 }
 
 .add-photo {
   aspect-ratio: 1;
-
-  border-radius: 26rpx;
-
-  border: 3rpx dashed rgba(255, 192, 203, .55);
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,.8),
-      rgba(255,244,244,.75)
-    );
-
+  border-radius: 40rpx;
+  border: 3rpx dashed #f1c2cb;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  gap: 14rpx;
-
-  transition: .2s;
+  gap: 16rpx;
+  color: #b39298;
+  background: rgba(255, 255, 255, 0.45);
 }
 
 .add-photo:active {
-  transform: scale(.97);
+  transform: scale(0.97);
+  transition: 0.2s;
 }
 
-.add-photo-icon {
-  width: 52rpx;
-  height: 52rpx;
-
-  opacity: .5;
+.add-icon {
+  font-size: 60rpx;
+  font-weight: 300;
 }
 
-.add-photo-text {
+.add-text {
   font-size: 24rpx;
-  color: #8d7b7d;
 }
-
-/* =========================
-   Footer
-========================= */
 
 .footer {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-
-  padding:
-    24rpx
-    32rpx
-    calc(24rpx + env(safe-area-inset-bottom));
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,0),
-      rgba(255,250,248,.96) 30%
-    );
-
-  backdrop-filter: blur(40rpx);
-
+  padding: 32rpx;
+  background: linear-gradient(to top, #f6efef 60%, transparent);
   display: flex;
   flex-direction: column;
-
-  gap: 18rpx;
+  gap: 24rpx;
 }
 
-/* =========================
-   Delete Button
-========================= */
+.btn {
+  height: 112rpx;
+  border-radius: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34rpx;
+  font-weight: 700;
+}
 
 .delete-btn {
-  height: 92rpx;
-
-  border-radius: 999rpx;
-
-  background: rgba(255,255,255,.92);
-
-  border: 2rpx solid rgba(255,120,120,.18);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  box-shadow:
-    0 8rpx 20rpx rgba(255,120,120,.08);
+  background: white;
+  border: 2rpx solid #ffd0d7;
+  color: #ff7d8f;
 }
-
-.delete-text {
-  font-size: 30rpx;
-  font-weight: 700;
-
-  color: #d96c6c;
-}
-
-/* =========================
-   Save Button
-========================= */
 
 .save-btn {
-  height: 100rpx;
+  background: linear-gradient(135deg, #f6a9c0, #f7c39d);
+  color: white;
+  box-shadow: 0 24rpx 50rpx rgba(245, 175, 185, 0.3);
+}
 
-  border-radius: 999rpx;
-
-  background:
-    linear-gradient(
-      135deg,
-      #ffb7c9 0%,
-      #ffc89f 100%
-    );
-
+.search-box {
+  height: 96rpx;
+  background: #f7f4f4;
+  border-radius: 32rpx;
+  padding: 0 32rpx;
   display: flex;
   align-items: center;
-  justify-content: center;
-
-  gap: 14rpx;
-
-  box-shadow:
-    0 14rpx 34rpx rgba(255, 183, 201, .28);
-
-  transition: .2s;
+  margin-bottom: 36rpx;
 }
 
-.save-btn:active {
-  transform: scale(.98);
+.search-input {
+  text-align: left;
+  width: 100%;
+  font-size: 28rpx;
 }
 
-.save-text {
-  font-size: 32rpx;
-  font-weight: 700;
-
-  color: #fff;
+.breed-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
 }
 
-.save-icon {
-  width: 34rpx;
-  height: 34rpx;
+.breed-item {
+  padding: 24rpx 36rpx;
+  border-radius: 32rpx;
+  background: #f8f4f4;
+  font-size: 28rpx;
+  color: #68595b;
+  transition: 0.2s;
 }
 
-/* =========================
-   Safe Area
-========================= */
+.breed-item.active {
+  background: linear-gradient(135deg, #ffb7cb, #ffd39d);
+  color: white;
+}
 
 .header-safe {
   height: env(safe-area-inset-top);
 }
 
-/* =========================
-   Animation
-========================= */
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24rpx;
+}
 
-.form-item,
-.tag-item,
-.photo-item,
-.save-btn,
-.delete-btn {
-  will-change: transform;
+.option {
+  height: 104rpx;
+  border-radius: 32rpx;
+  background: #f8f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #6c5d5f;
+  transition: 0.2s;
+}
+
+.option.active {
+  background: linear-gradient(135deg, #ffb7cb, #ffd39d);
+  color: white;
 }
 </style>

@@ -441,3 +441,96 @@ Marker：
 - 生活方式感
 - 周末感
 - 阳光感
+
+---
+
+# 十九、BottomSheet 组件规范
+
+## 组件说明
+
+BottomSheet 是一个底部弹出式模态遮罩组件，用于展示选项选择、内容详情等需要用户进行交互的场景。
+
+## 使用场景
+
+必须使用 BottomSheet 组件的场景：
+
+- 选项选择器（如宠物种类、性别、体型等）
+- 表单中的选择操作
+- 需要用户进行确认或选择的弹窗
+- 任何需要从底部弹出并覆盖屏幕的交互
+
+禁止使用：
+
+- `uni.showActionSheet()`
+- `uni.showModal()`
+- 硬编码的模态遮罩（inline modal-mask）
+
+## 使用方法
+
+### 基础用法
+
+```vue
+<template>
+  <BottomSheet
+    :visible="isVisible"
+    title="选择标题"
+    @update:visible="isVisible = $event"
+    @close="handleClose"
+  >
+    <!-- 插槽内容 -->
+    <view class="option-grid">
+      <view class="option">选项1</view>
+      <view class="option">选项2</view>
+    </view>
+  </BottomSheet>
+</template>
+
+<script setup>
+import BottomSheet from '@/components/common/BottomSheet.vue'
+
+const isVisible = ref(false)
+
+const openSheet = () => {
+  isVisible.value = true
+}
+
+const handleClose = () => {
+  console.log('BottomSheet closed')
+}
+</script>
+```
+
+### Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| visible | boolean | false | 控制显示/隐藏 |
+| title | string | '' | 标题文字 |
+| closeOnClickMask | boolean | true | 点击遮罩是否关闭 |
+
+### Events
+
+| 事件名 | 参数 | 说明 |
+|--------|------|------|
+| update:visible | boolean | 双向绑定更新 |
+| close | - | 关闭时触发 |
+
+### 插槽
+
+支持默认插槽，用于放置自定义内容。
+
+## 样式定制
+
+组件样式可以通过插槽内容自定义。基础样式已包含：
+
+- 遮罩层：rgba(0, 0, 0, 0.3) + blur(4px)
+- 弹出框：白色背景，56rpx 顶部圆角
+- 动画：0.25s ease 过渡
+- 最大高度：75vh
+
+## 代码复用原则
+
+- 所有类似的底部弹出交互必须使用此组件
+- 不得在页面中硬编码 modal-mask 样式
+- 保持交互一致性
+- 提高代码可维护性

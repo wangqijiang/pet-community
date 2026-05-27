@@ -171,9 +171,13 @@ router.post('/', auth, async (req, res) => {
     return res.status(400).json(error('请输入宠物名字', 400))
   }
   
+  // 处理布尔值字段
+  const neuteredValue = neutered === true || neutered === 'true' || neutered === 1 ? 1 : 0
+  const healthCertValue = healthCertificate === true || healthCertificate === 'true' || healthCertificate === 1 ? 1 : 0
+  
   const result = await query(
     'INSERT INTO pets (user_id, name, type, breed, age, gender, color, weight, size, neutered, vaccinated, health_certificate, personality, habits, avatar, photos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [req.user.id, name, type || null, breed || null, age || null, gender || null, color || null, weight || null, size || null, neutered || 0, vaccinated || null, healthCertificate || 0, personality || null, habits || null, avatar || null, photos || null]
+    [req.user.id, name, type || null, breed || null, age || null, gender || null, color || null, weight || null, size || null, neuteredValue, vaccinated || null, healthCertValue, personality || null, habits || null, avatar || null, photos || null]
   )
   
   const pet = await query(

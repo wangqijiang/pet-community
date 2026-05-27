@@ -1,0 +1,518 @@
+# 宠物列表页面 HTML（可直接复制）
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的宠物</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: "PingFang SC", sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .phone {
+            width: 390px;
+            height: 844px;
+            background: linear-gradient(180deg, #fdf8f6 0%, #fffdfc 100%);
+            border-radius: 38px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .12);
+        }
+
+        .status-bar {
+            height: 44px;
+        }
+
+        .page {
+            height: 100%;
+            overflow-y: auto;
+            padding: 0 22px 160px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7b5d61;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #5b4146;
+        }
+
+        .more-btn {
+            height: 40px;
+            padding: 0 14px;
+            border-radius: 999px;
+            border: 1px solid #eadfdb;
+            background: rgba(255, 255, 255, .85);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 5px;
+            height: 5px;
+            background: #111;
+            border-radius: 50%;
+            box-shadow: 8px 0 0 #111, 16px 0 0 #111;
+        }
+
+        .circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #111;
+            position: relative;
+        }
+
+        .circle::after {
+            content: "";
+            width: 6px;
+            height: 6px;
+            background: #111;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .banner {
+            margin-top: 26px;
+        }
+
+        .banner h2 {
+            font-size: 34px;
+            color: #2c1f22;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .banner p {
+            font-size: 15px;
+            color: #b5a9a8;
+            line-height: 1.7;
+        }
+
+        /* 空状态 */
+        .empty-wrap {
+            margin-top: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .empty-image {
+            width: 240px;
+            height: 240px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .paper-plane {
+            position: absolute;
+            top: 10px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #f0d8cf, #e6c9c0);
+            clip-path: polygon(0 50%, 100% 0, 70% 100%);
+            transform: rotate(15deg);
+            opacity: .7;
+        }
+
+        .dog-box {
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            width: 190px;
+            height: 160px;
+        }
+
+        .box {
+            width: 160px;
+            height: 100px;
+            background: linear-gradient(180deg, #f3dacb, #efd2c0);
+            border-radius: 12px;
+            position: absolute;
+            bottom: 0;
+            left: 15px;
+            box-shadow: 0 12px 24px rgba(224, 184, 168, .25);
+        }
+
+        .box::before,
+        .box::after {
+            content: "";
+            position: absolute;
+            top: -22px;
+            width: 70px;
+            height: 30px;
+            background: #f5e2d7;
+        }
+
+        .box::before {
+            left: 0;
+            transform: skew(-25deg);
+            border-radius: 8px 0 0 0;
+        }
+
+        .box::after {
+            right: 0;
+            transform: skew(25deg);
+            border-radius: 0 8px 0 0;
+        }
+
+        .dog-face {
+            width: 110px;
+            height: 110px;
+            background: #fff7f0;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 40px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, .05);
+        }
+
+        .ear {
+            width: 34px;
+            height: 46px;
+            background: #ffd7ba;
+            border-radius: 30px;
+            position: absolute;
+            top: 12px;
+        }
+
+        .ear.left {
+            left: 8px;
+            transform: rotate(-25deg);
+        }
+
+        .ear.right {
+            right: 8px;
+            transform: rotate(25deg);
+        }
+
+        .eye {
+            width: 8px;
+            height: 8px;
+            background: #5f4545;
+            border-radius: 50%;
+            position: absolute;
+            top: 48px;
+        }
+
+        .eye.left {
+            left: 36px;
+        }
+
+        .eye.right {
+            right: 36px;
+        }
+
+        .nose {
+            width: 12px;
+            height: 10px;
+            background: #8b6666;
+            border-radius: 999px;
+            position: absolute;
+            left: 50%;
+            top: 60px;
+            transform: translateX(-50%);
+        }
+
+        .mouth {
+            width: 24px;
+            height: 12px;
+            border-bottom: 3px solid #8b6666;
+            border-radius: 0 0 20px 20px;
+            position: absolute;
+            left: 50%;
+            top: 72px;
+            transform: translateX(-50%);
+        }
+
+        .empty-title {
+            font-size: 32px;
+            color: #71585c;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .empty-desc {
+            font-size: 16px;
+            color: #b7abaa;
+            margin-bottom: 28px;
+        }
+
+        .empty-btn {
+            height: 54px;
+            padding: 0 28px;
+            border-radius: 999px;
+            border: 1.5px solid #f0c3b4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #d69783;
+            background: rgba(255, 255, 255, .8);
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* 卡片 */
+        .pet-list {
+            margin-top: 34px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .pet-card {
+            background: rgba(255, 255, 255, .88);
+            border: 1px solid #f0e8e5;
+            border-radius: 28px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 10px 30px rgba(219, 201, 194, .16);
+            transition: .25s;
+            cursor: pointer;
+        }
+
+        .pet-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 34px rgba(219, 201, 194, .25);
+        }
+
+        .pet-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .pet-avatar {
+            width: 92px;
+            height: 92px;
+            border-radius: 24px;
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
+        }
+
+        .pet-info h3 {
+            font-size: 30px;
+            color: #654d50;
+            margin-bottom: 12px;
+        }
+
+        .pet-tags {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tag {
+            padding: 8px 14px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            background: #faf5f3;
+            color: #9b7d7b;
+        }
+
+        .edit-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #faf7f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b5a5a4;
+            font-size: 20px;
+        }
+
+        .add-fixed {
+            position: absolute;
+            left: 50%;
+            bottom: 60px;
+            transform: translateX(-50%);
+            width: 190px;
+            height: 64px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #7c5f65, #6f5559);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #fff;
+            font-size: 22px;
+            font-weight: 800;
+            box-shadow: 0 16px 30px rgba(111, 85, 89, .35);
+            cursor: pointer;
+        }
+
+        .plus {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 空状态 -->
+    <div class="phone">
+        <div class="status-bar"></div>
+
+        <div class="page">
+            <div class="topbar">
+                <div class="back-btn">‹</div>
+                <div class="title">我的宠物</div>
+
+                <div class="more-btn">
+                    <div class="dot"></div>
+                    <div class="circle"></div>
+                </div>
+            </div>
+
+            <div class="banner">
+                <h2>宠爱乐园</h2>
+                <p>在这里记录宝贝们成长的每一个瞬间</p>
+            </div>
+
+            <div class="empty-wrap" id="emptyState">
+                <div class="empty-image">
+                    <div class="paper-plane"></div>
+
+                    <div class="dog-box">
+                        <div class="dog-face">
+                            <div class="ear left"></div>
+                            <div class="ear right"></div>
+                            <div class="eye left"></div>
+                            <div class="eye right"></div>
+                            <div class="nose"></div>
+                            <div class="mouth"></div>
+                        </div>
+
+                        <div class="box"></div>
+                    </div>
+                </div>
+
+                <div class="empty-title">还没有添加宠物哦</div>
+                <div class="empty-desc">快去添加你的毛孩子吧</div>
+
+                <div class="empty-btn" onclick="showPetList()">
+                    🐾 去添加宠物
+                </div>
+            </div>
+
+            <!-- 有宠物状态 -->
+            <div class="pet-list hidden" id="petList">
+                <div class="pet-card">
+                    <div class="pet-left">
+                        <img class="pet-avatar"
+                            src="https://img0.baidu.com/it/u=4125114210,1475544264&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500" />
+
+                        <div class="pet-info">
+                            <h3>雪球</h3>
+
+                            <div class="pet-tags">
+                                <div class="tag">🐱 龙猫</div>
+                                <div class="tag">22岁</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="edit-btn">✎</div>
+                </div>
+
+                <div class="pet-card">
+                    <div class="pet-left">
+                        <img class="pet-avatar"
+                            src="https://img1.baidu.com/it/u=2986508974,1253925627&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500" />
+
+                        <div class="pet-info">
+                            <h3>奶茶</h3>
+
+                            <div class="pet-tags">
+                                <div class="tag">🐶 柯基</div>
+                                <div class="tag">2岁</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="edit-btn">✎</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="add-fixed" onclick="toggleState()">
+            <div class="plus">+</div>
+            新增爱宠
+        </div>
+    </div>
+
+    <script>
+        const emptyState = document.getElementById('emptyState')
+        const petList = document.getElementById('petList')
+
+        function showPetList() {
+            emptyState.classList.add('hidden')
+            petList.classList.remove('hidden')
+        }
+
+        function toggleState() {
+            emptyState.classList.toggle('hidden')
+            petList.classList.toggle('hidden')
+        }
+    </script>
+</body>
+
+</html>
+```

@@ -14,43 +14,57 @@
         <view
           v-for="(pet, index) in pets"
           :key="pet.id || index"
-          class="pet-card"
-          @tap="goToPetDetail(pet)"
+          class="pet-card-wrapper"
+          :class="{ swiped: swipedIndex === index }"
+          @touchstart="handleTouchStart($event, index)"
+          @touchmove="handleTouchMove($event, index)"
+          @touchend="handleTouchEnd(index)"
         >
-          <view class="pet-avatar-wrapper">
-            <image
-              v-if="pet.avatar"
-              class="pet-avatar"
-              :src="getFullAvatarUrl(pet.avatar)"
-              mode="aspectFill"
-            />
-            <view v-else class="pet-avatar-placeholder">
-              <view class="placeholder-icon"></view>
-            </view>
-            <view class="gender-badge" :class="getGenderClass(pet.gender)">
-              <view class="gender-icon" :class="getGenderClass(pet.gender)"></view>
-            </view>
-          </view>
-          <view class="pet-info">
-            <view class="pet-header">
-              <text class="pet-name">{{ pet.name }}</text>
-              <view class="edit-btn" @tap.stop="editPet(pet)">
-                <view class="edit-icon"></view>
+          <view class="pet-card" @tap="goToPetDetail(pet)">
+            <view class="pet-avatar-wrapper">
+              <image
+                v-if="pet.avatar"
+                class="pet-avatar"
+                :src="getFullAvatarUrl(pet.avatar)"
+                mode="aspectFill"
+              />
+              <view v-else class="pet-avatar-placeholder">
+                <view class="placeholder-icon"></view>
+              </view>
+              <view class="gender-badge" :class="getGenderClass(pet.gender)">
+                <view
+                  class="gender-icon"
+                  :class="getGenderClass(pet.gender)"
+                ></view>
               </view>
             </view>
-            <view class="pet-tags">
-              <text class="tag breed-tag">{{ pet.breed }}</text>
-              <text class="tag age-tag">{{ pet.age }}</text>
+            <view class="pet-info">
+              <view class="pet-header">
+                <text class="pet-name">{{ pet.name }}</text>
+                <view class="edit-btn" @tap.stop="editPet(pet)">
+                  <view class="edit-icon"></view>
+                </view>
+              </view>
+              <view class="pet-tags">
+                <text class="tag breed-tag">{{ pet.breed }}</text>
+                <text class="tag age-tag">{{ pet.age }}</text>
+              </view>
             </view>
+          </view>
+          <view class="delete-action" @tap.stop="handleDeletePet(pet)">
+            <text class="delete-text">删除</text>
           </view>
         </view>
       </view>
 
       <!-- Empty State -->
-      <view class="empty-state" v-if="pets.length === 0 && !loading">
-        <view class="empty-icon"></view>
-        <text class="empty-text">还没有添加宠物哦</text>
-      </view>
+      <Empty
+        v-if="pets.length === 0 && !loading"
+        title="还没有添加宠物哦"
+        description="快去添加你的毛孩子吧"
+        buttonText="去添加宠物"
+        @click="goToAddPet"
+      />
     </scroll-view>
 
     <!-- Floating Action Button -->
@@ -67,32 +81,98 @@
 
 <script setup lang="ts">
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import Empty from "@/components/common/Empty.vue";
 import { ref, onMounted, onUnmounted } from "vue";
 import Loading from "@/components/common/Loading.vue";
 import { getPetList, deletePet, type Pet } from "@/api/pet";
 
 const loading = ref(false);
 const pets = ref<Pet[]>([]);
+const swipedIndex = ref & lt;
+number | (null & gt);
+null;
+let touchStartX = 0;
+let touchStartY = 0;
+const SWIPE_THRESHOLD = 80;
 
 const getFullAvatarUrl = (avatar: string) => {
   if (!avatar) return "";
   if (avatar.startsWith("http")) return avatar;
-  return `${process.env.VUE_APP_API_BASE}${avatar}`;
+  return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
 };
 
 const getGenderClass = (gender: string) => {
   return gender === "male" ? "male" : gender === "female" ? "female" : "male";
 };
 
+// 滑动删除相关函数
+const handleTouchStart = (e: TouchEvent, index: number) =&gt; {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  if (swipedIndex.value !== null &amp;&amp; swipedIndex.value !== index) {
+    swipedIndex.value = null;
+  }
+};
+
+const handleTouchMove = (e: TouchEvent, _index: number) =&gt; {
+  const touchMoveX = e.touches[0].clientX;
+  const touchMoveY = e.touches[0].clientY;
+  const diffX = touchMoveX - touchStartX;
+  const diffY = touchMoveY - touchStartY;
+
+  if (Math.abs(diffX) &gt; Math.abs(diffY)) {
+    e.preventDefault();
+  }
+};
+
+const handleTouchEnd = (index: number) => {
+  if (swipedIndex.value === index) {
+    swipedIndex.value = null;
+  } else {
+    swipedIndex.value = index;
+  }
+};
+
+const handleDeletePet = async (pet: Pet) => {
+  uni.vibrateShort({ type: "medium" });
+  uni.showModal({
+    title: "提示",
+    content: `确定要删除 "${pet.name}" 吗？此操作不可恢复`,
+    confirmColor: "#ff7d8f",
+    success: async (res) => {
+      if (res.confirm) {
+        loading.value = true;
+        try {
+          await deletePet(pet.id);
+          uni.showToast({
+            title: "删除成功",
+            icon: "success",
+          });
+          swipedIndex.value = null;
+          await loadPets();
+        } catch (error) {
+          console.error("删除宠物失败:", error);
+          uni.showToast({
+            title: "删除失败",
+            icon: "none",
+          });
+        } finally {
+          loading.value = false;
+        }
+      }
+    },
+  });
+};
+
 onMounted(async () => {
   await loadPets();
   // 监听刷新宠物列表事件
-  uni.$on('refreshPetList', loadPets);
+  uni.$on("refreshPetList", loadPets);
 });
 
 onUnmounted(() => {
   // 移除事件监听
-  uni.$off('refreshPetList', loadPets);
+  uni.$off("refreshPetList", loadPets);
 });
 
 const loadPets = async () => {
@@ -136,35 +216,13 @@ const editPet = (pet: Pet) => {
     url: `/pages/mine/addPet?id=${pet.id}`,
   });
 };
-
-const handleDelete = async (pet: Pet) => {
-  uni.showModal({
-    title: "提示",
-    content: `确定要删除 "${pet.name}" 吗？`,
-    success: async (res) => {
-      if (res.confirm) {
-        try {
-          await deletePet(pet.id);
-          uni.showToast({
-            title: "删除成功",
-            icon: "success",
-          });
-          await loadPets();
-        } catch (error) {
-          uni.showToast({
-            title: "删除失败",
-            icon: "none",
-          });
-        }
-      }
-    },
-  });
-};
 </script>
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
-
+.page-content {
+  background: rgb(255, 247, 241);
+}
 .my-pets-page {
   min-height: 100vh;
   background: $color-bg-primary;
@@ -173,6 +231,7 @@ const handleDelete = async (pet: Pet) => {
 /* Page Content */
 .page-content {
   height: 100vh;
+  background: rgb(255, 247, 241);
   box-sizing: border-box;
   padding: 40rpx 40rpx 200rpx;
 }
@@ -203,6 +262,16 @@ const handleDelete = async (pet: Pet) => {
   gap: 24rpx;
 }
 
+.pet-card-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: $border-radius-large;
+
+  &.swiped .pet-card {
+    transform: translateX(-160rpx);
+  }
+}
+
 .pet-card {
   display: flex;
   align-items: center;
@@ -212,11 +281,34 @@ const handleDelete = async (pet: Pet) => {
   border-radius: $border-radius-large;
   box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
   border: 2rpx solid rgba(113, 88, 92, 0.1);
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 2;
 
   &:active {
     transform: scale(1);
   }
+}
+
+.delete-action {
+  position: absolute;
+  right: 4rpx;
+  top: 1rpx;
+  height: 98%;
+  bottom: 0;
+  width: 158rpx;
+  background: linear-gradient(135deg, #ff6f88, #ff4757);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $border-radius-large;
+  z-index: 1;
+}
+
+.delete-text {
+  color: white;
+  font-size: 28rpx;
+  font-weight: 700;
 }
 
 .pet-avatar-wrapper {

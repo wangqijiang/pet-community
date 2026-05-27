@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>新增宠物</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: "PingFang SC", sans-serif;
+        }
+
+        body {
+            background: #f6efef;
+            color: #4b3d3f;
+        }
+
+        .page {
+            min-height: 100vh;
+            padding-bottom: 140px;
+        }
+
+        /* 顶部 */
+        .topbar {
+            height: 92px;
+            padding: 50px 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #74585c;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #74585c;
+        }
+
+        .menu-btn {
+            width: 54px;
+            height: 32px;
+            border-radius: 18px;
+            border: 1px solid #d8c9cb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, .8);
+        }
+
+        .menu-btn span {
+            width: 5px;
+            height: 5px;
+            background: #74585c;
+            border-radius: 50%;
+        }
+
+        /* 头像 */
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 20px 30px;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 118px;
+            height: 118px;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid rgba(255, 255, 255, .9);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .06);
+        }
+
+        .upload-btn {
+            position: absolute;
+            right: 2px;
+            bottom: 2px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffb6c8, #ffcfaa);
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 300;
+        }
+
+        .avatar-tip {
+            margin-top: 14px;
+            font-size: 13px;
+            color: #9b8a8c;
+        }
+
+        /* section */
+        .section {
+            padding: 0 16px;
+            margin-bottom: 28px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #755d61;
+            margin-bottom: 14px;
+            padding-left: 4px;
+        }
+
+        /* 卡片 */
+        .card {
+            background: rgba(255, 255, 255, .72);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow:
+                0 10px 30px rgba(157, 125, 132, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, .7);
+        }
+
+        .item {
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 18px;
+            border-bottom: 1px solid rgba(230, 220, 220, .6);
+            transition: .2s;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item:active {
+            background: rgba(255, 245, 246, 0.8);
+        }
+
+        .left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ffd6e0, #ffe7c7);
+            flex-shrink: 0;
+        }
+
+        .label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4e4144;
+        }
+
+        .right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #8d7d7f;
+            font-size: 15px;
+        }
+
+        input {
+            border: none;
+            background: transparent;
+            text-align: right;
+            font-size: 15px;
+            color: #4e4144;
+            outline: none;
+            width: 160px;
+        }
+
+        .arrow {
+            font-size: 13px;
+            color: #b7a9ab;
+        }
+
+        /* switch */
+        .switch {
+            width: 52px;
+            height: 32px;
+            background: #e6dede;
+            border-radius: 30px;
+            position: relative;
+            transition: .25s;
+        }
+
+        .switch::after {
+            content: "";
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: white;
+            top: 3px;
+            left: 3px;
+            transition: .25s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+        }
+
+        .switch.active {
+            background: linear-gradient(135deg, #ffb8ca, #ffcfa6);
+        }
+
+        .switch.active::after {
+            left: 23px;
+        }
+
+        /* 性格标签 */
+        .tags {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .tag {
+            height: 64px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, .72);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 600;
+            color: #645456;
+            transition: .2s;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .04);
+        }
+
+        .tag.active {
+            background: linear-gradient(135deg, #ffb7cb, #ffd39d);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 184, 197, 0.3);
+        }
+
+        /* textarea */
+        .textarea-wrap {
+            margin-top: 16px;
+            background: rgba(255, 255, 255, .72);
+            border-radius: 24px;
+            padding: 18px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 130px;
+            border: none;
+            background: transparent;
+            resize: none;
+            outline: none;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #4e4144;
+        }
+
+        .count {
+            text-align: right;
+            font-size: 12px;
+            color: #af9ea0;
+            margin-top: 8px;
+        }
+
+        /* 图片 */
+        .photos {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .photo {
+            aspect-ratio: 1;
+            border-radius: 20px;
+            overflow: hidden;
+            background: white;
+            position: relative;
+        }
+
+        .photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .delete {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #ff6f88;
+        }
+
+        .add-photo {
+            aspect-ratio: 1;
+            border-radius: 20px;
+            border: 1.5px dashed #f1c2cb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+            color: #b39298;
+            background: rgba(255, 255, 255, .45);
+        }
+
+        .add-photo span {
+            font-size: 30px;
+            font-weight: 300;
+        }
+
+        /* 底部 */
+        .footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 16px;
+            background: linear-gradient(to top, #f6efef 60%, transparent);
+        }
+
+        .btn {
+            height: 56px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .delete-btn {
+            background: white;
+            border: 1px solid #ffd0d7;
+            color: #ff7d8f;
+            margin-bottom: 12px;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #f6a9c0, #f7c39d);
+            color: white;
+            box-shadow: 0 12px 25px rgba(245, 175, 185, 0.3);
+        }
+
+        /* 弹窗 */
+        .modal-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .3);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: flex-end;
+            z-index: 999;
+        }
+
+        .modal-mask.show {
+            display: flex;
+        }
+
+        .sheet {
+            width: 100%;
+            background: #fff;
+            border-radius: 28px 28px 0 0;
+            padding: 20px 18px 30px;
+            animation: up .25s ease;
+            max-height: 75vh;
+            overflow-y: auto;
+        }
+
+        @keyframes up {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .sheet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .sheet-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #5c4a4d;
+        }
+
+        .close {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #f5f1f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #8b7b7d;
+        }
+
+        .option-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .option {
+            height: 52px;
+            border-radius: 16px;
+            background: #f8f4f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 600;
+            color: #6c5d5f;
+            transition: .2s;
+        }
+
+        .option.active {
+            background: linear-gradient(135deg, #ffb7cb, #ffd19f);
+            color: white;
+        }
+
+        /* 品种搜索 */
+        .search-box {
+            height: 48px;
+            background: #f7f4f4;
+            border-radius: 16px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .search-box input {
+            text-align: left;
+            width: 100%;
+        }
+
+        .breed-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .breed-item {
+            padding: 12px 18px;
+            border-radius: 16px;
+            background: #f8f4f4;
+            font-size: 14px;
+            color: #68595b;
+            transition: .2s;
+        }
+
+        .breed-item.active {
+            background: linear-gradient(135deg, #ffb7cb, #ffd19f);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
+
+        <!-- 顶部 -->
+        <div class="topbar">
+            <div class="back-btn">‹</div>
+            <div class="title">编辑宠物</div>
+            <div class="menu-btn">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <!-- 头像 -->
+        <div class="avatar-section">
+            <div class="avatar-wrapper">
+                <img class="avatar" src="https://picsum.photos/300/300" />
+                <div class="upload-btn">+</div>
+            </div>
+            <div class="avatar-tip">点击上传宠物头像</div>
+        </div>
+
+        <!-- 基本信息 -->
+        <div class="section">
+            <div class="section-title">基本信息</div>
+
+            <div class="card">
+
+                <div class="item">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">宠物名字</div>
+                    </div>
+                    <input value="雪球" />
+                </div>
+
+                <div class="item" onclick="openModal('speciesModal')">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">宠物种类</div>
+                    </div>
+                    <div class="right">
+                        <span id="speciesText">狗狗</span>
+                        <span class="arrow">›</span>
+                    </div>
+                </div>
+
+                <div class="item" onclick="openModal('breedModal')">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">品种</div>
+                    </div>
+                    <div class="right">
+                        <span id="breedText">金毛</span>
+                        <span class="arrow">›</span>
+                    </div>
+                </div>
+
+                <div class="item" onclick="openModal('genderModal')">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">性别</div>
+                    </div>
+                    <div class="right">
+                        <span id="genderText">公</span>
+                        <span class="arrow">›</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">年龄</div>
+                    </div>
+                    <input value="3岁" />
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 外观 -->
+        <div class="section">
+            <div class="section-title">外观特征</div>
+
+            <div class="card">
+
+                <div class="item">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">毛色</div>
+                    </div>
+                    <input value="白色" />
+                </div>
+
+                <div class="item">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">体重 (kg)</div>
+                    </div>
+                    <input value="11.0" />
+                </div>
+
+                <div class="item" onclick="openModal('sizeModal')">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">体型</div>
+                    </div>
+                    <div class="right">
+                        <span id="sizeText">小型</span>
+                        <span class="arrow">›</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 健康 -->
+        <div class="section">
+            <div class="section-title">健康状况</div>
+
+            <div class="card">
+
+                <div class="item">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">已绝育</div>
+                    </div>
+                    <div class="switch" onclick="toggleSwitch(this)"></div>
+                </div>
+
+                <div class="item">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">疫苗接种</div>
+                    </div>
+                    <div class="switch active" onclick="toggleSwitch(this)"></div>
+                </div>
+
+                <div class="item">
+                    <div class="left">
+                        <div class="icon"></div>
+                        <div class="label">有健康证明</div>
+                    </div>
+                    <div class="switch" onclick="toggleSwitch(this)"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 性格 -->
+        <div class="section">
+            <div class="section-title">性格特点（最多6个）</div>
+
+            <div class="tags">
+                <div class="tag">活泼</div>
+                <div class="tag active">温顺</div>
+                <div class="tag active">粘人</div>
+                <div class="tag">独立</div>
+                <div class="tag">聪明</div>
+                <div class="tag active">调皮</div>
+                <div class="tag active">安静</div>
+                <div class="tag">友好</div>
+            </div>
+
+            <div class="textarea-wrap">
+                <textarea placeholder="描述一下宠物的特殊习惯或行为特点...">特别喜欢抱着睡觉。</textarea>
+                <div class="count">18/200</div>
+            </div>
+
+        </div>
+
+        <!-- 照片 -->
+        <div class="section">
+            <div class="section-title">宠物照片</div>
+
+            <div class="photos">
+
+                <div class="photo">
+                    <img src="https://picsum.photos/200/200?1">
+                    <div class="delete">×</div>
+                </div>
+
+                <div class="photo">
+                    <img src="https://picsum.photos/200/200?2">
+                    <div class="delete">×</div>
+                </div>
+
+                <div class="add-photo">
+                    <span>+</span>
+                    <div>添加照片</div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 底部按钮 -->
+    <div class="footer">
+        <div class="btn delete-btn">删除宠物</div>
+        <div class="btn save-btn">保存</div>
+    </div>
+
+    <!-- 宠物种类 -->
+    <div class="modal-mask" id="speciesModal">
+        <div class="sheet">
+            <div class="sheet-header">
+                <div class="sheet-title">选择宠物种类</div>
+                <div class="close" onclick="closeModal('speciesModal')">×</div>
+            </div>
+
+            <div class="option-grid">
+                <div class="option active" onclick="selectOption(this,'speciesText','狗狗','speciesModal')">狗狗</div>
+                <div class="option" onclick="selectOption(this,'speciesText','猫咪','speciesModal')">猫咪</div>
+                <div class="option" onclick="selectOption(this,'speciesText','其他','speciesModal')">其他</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 性别 -->
+    <div class="modal-mask" id="genderModal">
+        <div class="sheet">
+            <div class="sheet-header">
+                <div class="sheet-title">选择性别</div>
+                <div class="close" onclick="closeModal('genderModal')">×</div>
+            </div>
+
+            <div class="option-grid">
+                <div class="option active" onclick="selectOption(this,'genderText','公','genderModal')">公</div>
+                <div class="option" onclick="selectOption(this,'genderText','母','genderModal')">母</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 体型 -->
+    <div class="modal-mask" id="sizeModal">
+        <div class="sheet">
+            <div class="sheet-header">
+                <div class="sheet-title">选择体型</div>
+                <div class="close" onclick="closeModal('sizeModal')">×</div>
+            </div>
+
+            <div class="option-grid">
+                <div class="option active" onclick="selectOption(this,'sizeText','小型','sizeModal')">小型</div>
+                <div class="option" onclick="selectOption(this,'sizeText','中型','sizeModal')">中型</div>
+                <div class="option" onclick="selectOption(this,'sizeText','大型','sizeModal')">大型</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 品种 -->
+    <div class="modal-mask" id="breedModal">
+        <div class="sheet">
+
+            <div class="sheet-header">
+                <div class="sheet-title">选择品种</div>
+                <div class="close" onclick="closeModal('breedModal')">×</div>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="breedSearch" placeholder="搜索品种..." onkeyup="searchBreed()">
+            </div>
+
+            <div class="breed-list" id="breedList">
+
+                <div class="breed-item active" onclick="chooseBreed(this)">金毛</div>
+                <div class="breed-item" onclick="chooseBreed(this)">拉布拉多</div>
+                <div class="breed-item" onclick="chooseBreed(this)">柯基</div>
+                <div class="breed-item" onclick="chooseBreed(this)">柴犬</div>
+                <div class="breed-item" onclick="chooseBreed(this)">萨摩耶</div>
+                <div class="breed-item" onclick="chooseBreed(this)">边牧</div>
+                <div class="breed-item" onclick="chooseBreed(this)">哈士奇</div>
+                <div class="breed-item" onclick="chooseBreed(this)">泰迪</div>
+                <div class="breed-item" onclick="chooseBreed(this)">阿拉斯加</div>
+                <div class="breed-item" onclick="chooseBreed(this)">比熊</div>
+                <div class="breed-item" onclick="chooseBreed(this)">德牧</div>
+                <div class="breed-item" onclick="chooseBreed(this)">博美</div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+
+        // modal
+        function openModal(id) {
+            document.getElementById(id).classList.add('show')
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show')
+        }
+
+        // switch
+        function toggleSwitch(el) {
+            el.classList.toggle('active')
+        }
+
+        // option select
+        function selectOption(el, textId, value, modalId) {
+
+            let parent = el.parentNode
+
+            parent.querySelectorAll('.option').forEach(item => {
+                item.classList.remove('active')
+            })
+
+            el.classList.add('active')
+
+            document.getElementById(textId).innerText = value
+
+            setTimeout(() => {
+                closeModal(modalId)
+            }, 180)
+        }
+
+        // personality
+        const tags = document.querySelectorAll('.tag')
+
+        tags.forEach(tag => {
+
+            tag.onclick = function () {
+
+                if (this.classList.contains('active')) {
+                    this.classList.remove('active')
+                    return
+                }
+
+                const activeCount = document.querySelectorAll('.tag.active').length
+
+                if (activeCount >= 6) {
+                    alert('最多只能选择6个性格标签')
+                    return
+                }
+
+                this.classList.add('active')
+            }
+
+        })
+
+        // breed
+        function chooseBreed(el) {
+
+            document.querySelectorAll('.breed-item').forEach(item => {
+                item.classList.remove('active')
+            })
+
+            el.classList.add('active')
+
+            document.getElementById('breedText').innerText = el.innerText
+
+            setTimeout(() => {
+                closeModal('breedModal')
+            }, 180)
+        }
+
+        function searchBreed() {
+
+            const value = document.getElementById('breedSearch').value.toLowerCase()
+
+            const items = document.querySelectorAll('.breed-item')
+
+            items.forEach(item => {
+
+                if (item.innerText.toLowerCase().includes(value)) {
+                    item.style.display = 'block'
+                } else {
+                    item.style.display = 'none'
+                }
+
+            })
+
+        }
+
+        // 点击遮罩关闭
+        document.querySelectorAll('.modal-mask').forEach(mask => {
+
+            mask.addEventListener('click', function (e) {
+
+                if (e.target === this) {
+                    this.classList.remove('show')
+                }
+
+            })
+
+        })
+
+    </script>
+
+</body>
+
+</html>

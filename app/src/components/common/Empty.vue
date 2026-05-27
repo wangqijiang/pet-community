@@ -1,28 +1,78 @@
 <template>
-  <view class="empty-container">
-    <view class="empty-illustration">
-      <view :class="['illustration', `illustration-${type}`]"></view>
-    </view>
-    <view class="empty-text">{{ text }}</view>
-    <view class="empty-btn" v-if="showBtn" @click="handleClick">
-      {{ btnText }}
+  <view class="empty-container" :class="{ show: visible }">
+    <view class="empty-wrapper">
+      <!-- 图形区域 -->
+      <view class="empty-image">
+        <!-- 纸飞机 -->
+        <view class="paper-plane"></view>
+
+        <!-- 狗狗盒子 -->
+        <view class="dog-box">
+          <!-- 狗脸 -->
+          <view class="dog-face">
+            <view class="ear left"></view>
+            <view class="ear right"></view>
+            <view class="eye left"></view>
+            <view class="eye right"></view>
+            <view class="nose"></view>
+            <view class="mouth"></view>
+          </view>
+
+          <!-- 盒子 -->
+          <view class="box"></view>
+        </view>
+      </view>
+
+      <!-- 文本内容 -->
+      <view class="empty-content">
+        <text class="empty-title">{{ title }}</text>
+        <text class="empty-desc">{{ description }}</text>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view 
+        v-if="buttonText" 
+        class="empty-button"
+        @tap="handleClick"
+      >
+        <text class="button-icon">🐾</text>
+        <text class="button-text">{{ buttonText }}</text>
+      </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  type?: string
-  text?: string
-  showBtn?: boolean
-  btnText?: string
-}>()
+import { ref, onMounted } from 'vue'
+
+interface Props {
+  title?: string
+  description?: string
+  buttonText?: string
+  buttonIcon?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  title: '还没有内容哦',
+  description: '快去添加吧',
+  buttonText: '',
+  buttonIcon: '🐾'
+})
 
 const emit = defineEmits<{
   click: []
 }>()
 
+const visible = ref(false)
+
+onMounted(() => {
+  setTimeout(() => {
+    visible.value = true
+  }, 100)
+})
+
 const handleClick = () => {
+  uni.vibrateShort({ type: 'light' })
   emit('click')
 }
 </script>
@@ -30,69 +80,231 @@ const handleClick = () => {
 <style lang="scss" scoped>
 .empty-container {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 120rpx 0;
+  width: 100%;
+  padding: 120rpx 32rpx;
+  opacity: 0;
+  transform: translateY(30rpx);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  
+  &.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.empty-illustration {
+.empty-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* =========================
+   Empty Image Area
+========================= */
+
+.empty-image {
   width: 240rpx;
   height: 240rpx;
-  margin-bottom: 32rpx;
+  position: relative;
+  margin-bottom: 40rpx;
 }
 
-.illustration {
-  width: 100%;
-  height: 100%;
+/* 纸飞机 */
+.paper-plane {
+  position: absolute;
+  top: 20rpx;
+  right: 60rpx;
+  width: 50rpx;
+  height: 50rpx;
+  background: linear-gradient(135deg, #f0d8cf, #e6c9c0);
+  opacity: 0.7;
+  transform: rotate(15deg);
   
-  &.illustration-default {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Ccircle cx='50' cy='55' r='25' fill='%23FFC1E9'/%3E%3Ccircle cx='42' cy='50' r='3' fill='%23333'/%3E%3Ccircle cx='58' cy='50' r='3' fill='%23333'/%3E%3Cpath d='M45 60 Q50 65 55 60' stroke='%23333' stroke-width='2' fill='none'/%3E%3Ccircle cx='35' cy='45' r='4' fill='%23FFC1E9'/%3E%3Ccircle cx='65' cy='45' r='4' fill='%23FFC1E9'/%3E%3Ccircle cx='38' cy='38' r='3' fill='%23FFC1E9'/%3E%3Ccircle cx='62' cy='38' r='3' fill='%23FFC1E9'/%3E%3Ccircle cx='40' cy='34' r='2' fill='%23FFC1E9'/%3E%3Ccircle cx='60' cy='34' r='2' fill='%23FFC1E9'/%3E%3C/svg%3E") no-repeat center;
-    background-size: 100%;
-  }
-  
-  &.illustration-dog {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Cellipse cx='50' cy='60' rx='28' ry='25' fill='%23FFC1E9'/%3E%3Ccircle cx='50' cy='35' r='20' fill='%23FFC1E9'/%3E%3Ccircle cx='42' cy='32' r='2.5' fill='%23333'/%3E%3Ccircle cx='58' cy='32' r='2.5' fill='%23333'/%3E%3Cellipse cx='50' cy='40' rx='4' ry='3' fill='%23333'/%3E%3Cpath d='M46 46 Q50 50 54 46' stroke='%23333' stroke-width='1.5' fill='none'/%3E%3Cellipse cx='35' cy='25' rx='6' ry='8' fill='%23FFC1E9'/%3E%3Cellipse cx='65' cy='25' rx='6' ry='8' fill='%23FFC1E9'/%3E%3Cellipse cx='38' cy='18' rx='4' ry='5' fill='%23FFC1E9'/%3E%3Cellipse cx='62' cy='18' rx='4' ry='5' fill='%23FFC1E9'/%3E%3Cpath d='M25 75 Q20 85 25 90' stroke='%23FFC1E9' stroke-width='3' fill='none'/%3E%3Cpath d='M75 75 Q80 85 75 90' stroke='%23FFC1E9' stroke-width='3' fill='none'/%3E%3Ccircle cx='25' cy='92' r='4' fill='%23FFC1E9'/%3E%3Ccircle cx='75' cy='92' r='4' fill='%23FFC1E9'/%3E%3C/svg%3E") no-repeat center;
-    background-size: 100%;
-  }
-  
-  &.illustration-camera {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Ccircle cx='50' cy='50' r='35' fill='%23FFC1E9'/%3E%3Ccircle cx='50' cy='50' r='25' fill='%23FFF9F9'/%3E%3Ccircle cx='50' cy='50' r='18' fill='%23E5E5E5'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23333'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%23FFF9F9'/%3E%3Crect x='70' y='45' width='12' height='10' rx='2' fill='%23FFC1E9'/%3E%3Ccircle cx='76' cy='50' r='2' fill='%23FFF9F9'/%3E%3Ccircle cx='65' cy='35' r='4' fill='%23FFC1E9'/%3E%3C/svg%3E") no-repeat center;
-    background-size: 100%;
-  }
-  
-  &.illustration-bell {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Cpath d='M35 25 L35 50 Q35 65 50 75 Q65 65 65 50 L65 25 Z' fill='%23FFC1E9'/%3E%3Crect x='30' y='25' width='40' height='15' rx='3' fill='%23FFC1E9'/%3E%3Ccircle cx='50' cy='80' r='8' fill='%23FFC1E9'/%3E%3Cpath d='M45 88 Q50 95 55 88' stroke='%23FFC1E9' stroke-width='3' fill='none'/%3E%3Ccircle cx='50' cy='45' r='5' fill='%23FFF9F9'/%3E%3Ccircle cx='50' cy='45' r='2' fill='%23333'/%3E%3C/svg%3E") no-repeat center;
-    background-size: 100%;
-  }
-  
-  &.illustration-star {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Cpath d='M50 5 L60 35 L95 40 L68 60 L78 95 L50 75 L22 95 L32 60 L5 40 L40 35 Z' fill='%23FFC1E9'/%3E%3Ccircle cx='50' cy='50' r='20' fill='%23FFF4D2'/%3E%3Cpath d='M50 38 L53 48 L63 48 L55 55 L58 65 L50 60 L42 65 L45 55 L37 48 L47 48 Z' fill='%23FFC1E9'/%3E%3C/svg%3E") no-repeat center;
-    background-size: 100%;
-  }
-  
-  &.illustration-network {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Ccircle cx='50' cy='50' r='30' fill='%23FFC1E9'/%3E%3Ccircle cx='50' cy='50' r='20' fill='%23FFF9F9'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23FFC1E9'/%3E%3Ccircle cx='25' cy='30' r='5' fill='%23FFC1E9'/%3E%3Ccircle cx='75' cy='30' r='5' fill='%23FFC1E9'/%3E%3Ccircle cx='25' cy='70' r='5' fill='%23FFC1E9'/%3E%3Ccircle cx='75' cy='70' r='5' fill='%23FFC1E9'/%3E%3Cpath d='M50 20 L50 35' stroke='%23FFC1E9' stroke-width='2'/%3E%3Cpath d='M50 65 L50 80' stroke='%23FFC1E9' stroke-width='2'/%3E%3Cpath d='M35 50 L20 50' stroke='%23FFC1E9' stroke-width='2'/%3E%3Cpath d='M65 50 L80 50' stroke='%23FFC1E9' stroke-width='2'/%3E%3Cpath d='M35 35 L25 30' stroke='%23FFC1E9' stroke-width='2'/%3E%3Cpath d='M65 35 L75 30' stroke='%23FFC1E9' stroke-width='2'/%3E%3Cpath d='M35 65 L25 70' stroke='%23FFC1E9' stroke-width='2'/%3E%3Cpath d='M65 65 L75 70' stroke='%23FFC1E9' stroke-width='2'/%3E%3C/svg%3E") no-repeat center;
-    background-size: 100%;
+  &::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 25rpx solid transparent;
+    border-right: 25rpx solid transparent;
+    border-bottom: 50rpx solid #e6c9c0;
+    transform: rotate(45deg) translate(-5rpx, -5rpx);
   }
 }
 
-.empty-text {
+/* 狗狗盒子 */
+.dog-box {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 190rpx;
+  height: 160rpx;
+}
+
+/* 盒子 */
+.box {
+  width: 160rpx;
+  height: 100rpx;
+  background: linear-gradient(180deg, #f3dacb, #efd2c0);
+  border-radius: 12rpx;
+  position: absolute;
+  bottom: 0;
+  left: 15rpx;
+  box-shadow: 0 12rpx 24rpx rgba(224, 184, 168, 0.25);
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -22rpx;
+    width: 70rpx;
+    height: 30rpx;
+    background: #f5e2d7;
+  }
+
+  &::before {
+    left: 0;
+    transform: skew(-25deg);
+    border-radius: 8rpx 0 0 0;
+  }
+
+  &::after {
+    right: 0;
+    transform: skew(25deg);
+    border-radius: 0 8rpx 0 0;
+  }
+}
+
+/* 狗脸 */
+.dog-face {
+  width: 110rpx;
+  height: 110rpx;
+  background: #fff7f0;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 40rpx;
+  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 耳朵 */
+.ear {
+  width: 34rpx;
+  height: 46rpx;
+  background: #ffd7ba;
+  border-radius: 30rpx;
+  position: absolute;
+  top: 12rpx;
+
+  &.left {
+    left: 8rpx;
+    transform: rotate(-25deg);
+  }
+
+  &.right {
+    right: 8rpx;
+    transform: rotate(25deg);
+  }
+}
+
+/* 眼睛 */
+.eye {
+  width: 8rpx;
+  height: 8rpx;
+  background: #5f4545;
+  border-radius: 50%;
+  position: absolute;
+  top: 48rpx;
+
+  &.left {
+    left: 36rpx;
+  }
+
+  &.right {
+    right: 36rpx;
+  }
+}
+
+/* 鼻子 */
+.nose {
+  width: 12rpx;
+  height: 10rpx;
+  background: #8b6666;
+  border-radius: 999rpx;
+  position: absolute;
+  left: 50%;
+  top: 60rpx;
+  transform: translateX(-50%);
+}
+
+/* 嘴巴 */
+.mouth {
+  width: 24rpx;
+  height: 12rpx;
+  border-bottom: 3rpx solid #8b6666;
+  border-radius: 0 0 20rpx 20rpx;
+  position: absolute;
+  left: 50%;
+  top: 72rpx;
+  transform: translateX(-50%);
+}
+
+/* =========================
+   Empty Content
+========================= */
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 56rpx;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #71585c;
+  margin-bottom: 12rpx;
+}
+
+.empty-desc {
   font-size: 28rpx;
-  color: #FFC1E9;
-  margin-bottom: 32rpx;
+  color: #b7abaa;
 }
 
-.empty-btn {
-  padding: 20rpx 60rpx;
-  background: #FFC1E9;
-  color: #FFFFFF;
-  border-radius: 24rpx;
-  font-size: 28rpx;
-  font-weight: 600;
-  
+/* =========================
+   Empty Button
+========================= */
+
+.empty-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  height: 96rpx;
+  padding: 0 56rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid #f0c3b4;
+  background: rgba(255, 255, 255, 0.8);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
   &:active {
-    transform: scale(1);
+    transform: scale(0.97);
+    box-shadow: 0 8rpx 16rpx rgba(240, 195, 180, 0.3);
   }
+}
+
+.button-icon {
+  font-size: 32rpx;
+}
+
+.button-text {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #d69783;
 }
 </style>

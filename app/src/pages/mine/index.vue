@@ -53,15 +53,24 @@
           <text class="section-title">我的宠物</text>
           <text class="more" @click="goToPetInfo">查看全部</text>
         </view>
-        <view class="pet-list">
-          <view class="pet-card">
+        <view class="pet-list" v-if="pets.length > 0">
+          <view
+            v-for="pet in pets"
+            :key="pet.id"
+            class="pet-card"
+            @click="goToPetDetail(pet)"
+          >
             <image
+              v-if="pet.avatar"
               class="pet-avatar"
-              src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400&auto=format&fit=crop"
+              :src="getFullAvatarUrl(pet.avatar)"
               mode="aspectFill"
             />
-            <text class="pet-name">芝士</text>
-            <text class="pet-info">1岁 · 柴犬</text>
+            <view v-else class="pet-avatar-placeholder">
+              <view class="placeholder-icon"></view>
+            </view>
+            <text class="pet-name">{{ pet.name }}</text>
+            <text class="pet-info">{{ pet.age }} · {{ pet.breed }}</text>
           </view>
           <view class="add-card" @click="goToPetInfo">
             <view class="add-icon">
@@ -69,6 +78,10 @@
             </view>
             <text>添加宠物</text>
           </view>
+        </view>
+        <view v-else class="empty-pet-list" @click="goToPetInfo">
+          <text class="empty-text">还没有宠物</text>
+          <text class="empty-hint">点击添加你的宠物</text>
         </view>
       </view>
 
@@ -98,13 +111,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import TabBar from "@/components/common/TabBar.vue";
 import { logout } from "@/api/auth";
 import { getUserInfo } from "@/api/user";
+import { getPetList, type Pet } from "@/api/pet";
 
-const userInfo = ref(null);
+const userInfo = ref<any>(null);
 const isLoggingOut = ref(false);
+const pets = ref<Pet[]>([]);
+const isLoadingPets = ref(false);
+const MAX_DISPLAY_PETS = 3; // 首页最多显示的宠物数量
 
 const stats = ref({
   posts: 24,
@@ -119,7 +136,37 @@ onMounted(async () => {
   } catch (error) {
     console.error("获取用户信息失败:", error);
   }
+
+  await loadPets();
+
+  uni.$on("refreshPetList", loadPets);
 });
+
+onUnmounted(() => {
+  uni.$off("refreshPetList", loadPets);
+});
+
+const loadPets = async () => {
+  isLoadingPets.value = true;
+  try {
+    const data = await getPetList();
+    pets.value = data.slice(0, MAX_DISPLAY_PETS);
+  } catch (error) {
+    console.error("获取宠物列表失败:", error);
+    uni.showToast({
+      title: "获取宠物列表失败",
+      icon: "none",
+    });
+  } finally {
+    isLoadingPets.value = false;
+  }
+};
+
+const getFullAvatarUrl = (avatar: string) => {
+  if (!avatar) return "";
+  if (avatar.startsWith("http")) return avatar;
+  return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
+};
 
 const goToSetting = () => {
   uni.navigateTo({
@@ -136,6 +183,13 @@ const goToEditInfo = () => {
 const goToPetInfo = () => {
   uni.navigateTo({
     url: "/pages/mine/myPets",
+  });
+};
+
+const goToPetDetail = (pet: Pet) => {
+  uni.vibrateShort({ type: "light" });
+  uni.navigateTo({
+    url: `/pages/mine/addPet?id=${pet.id}`,
   });
 };
 
@@ -413,6 +467,9 @@ const handleLogout = () => {
   margin-top: 32rpx;
   font-size: 36rpx;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #3d2f2f;
   display: block;
 }
@@ -420,8 +477,52 @@ const handleLogout = () => {
 .pet-info {
   margin-top: 12rpx;
   font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #9b9090;
   display: block;
+}
+
+.pet-avatar-placeholder {
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 48rpx;
+  background: rgba(107, 78, 61, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-icon {
+  width: 72rpx;
+  height: 72rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.81-1.6 4.6-1.88 5.12-1.89.11 0 .37.03.53.18.14.12.18.28.2.45-.01.06.01.24 0 .38z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.empty-pet-list {
+  min-height: 216rpx;
+  border-radius: 56rpx;
+  border: 4rpx dashed #f2d7c3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.empty-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #b8a7a7;
+  margin-bottom: 8rpx;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: #d4c4c4;
 }
 
 .add-card {
@@ -441,11 +542,9 @@ const handleLogout = () => {
   width: 108rpx;
   height: 108rpx;
   border-radius: 40rpx;
-  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 16rpx 40rpx rgba(107, 78, 61, 0.05);
   margin-bottom: 28rpx;
 }
 
