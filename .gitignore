@@ -1,18 +1,4 @@
-# Dependencies
-front/node_modules/
-front/npm-debug.log*
-front/yarn-debug.log*
-front/yarn-error.log*
-front/pnpm-debug.log*
-
-# Build outputs
-front/dist/
-front/build/
-front/unpackage/
-front/.temp/
-front/.cache/
-
-
+server/node_modules/
 app/node_modules/
 app/npm-debug.log*
 app/yarn-debug.log*
@@ -46,11 +32,6 @@ logs/
 # OS
 Thumbs.db
 .DS_Store
-
-# WeChat MiniProgram
-front/project.config.json
-front/project.private.config.json
-front/sitemap.json
 app/project.config.json
 app/project.private.config.json
 app/sitemap.json
