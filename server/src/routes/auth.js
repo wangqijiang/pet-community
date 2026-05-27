@@ -298,4 +298,38 @@ router.post('/sendCode', async (req, res) => {
   res.json(success({ code: '1234' }, '验证码已发送'))
 })
 
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: 退出登录
+ *     description: 用户退出登录，清除本地 token
+ *     tags: [认证]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 退出成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 退出成功
+ *       401:
+ *         description: 未授权
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/logout', async (req, res) => {
+  res.json(success({}, '退出成功'))
+})
+
 module.exports = router

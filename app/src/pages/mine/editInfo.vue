@@ -3,7 +3,7 @@
     <TopNavBar title="编辑资料" :showBack="true" />
 
     <view class="page-content">
-      <scroll-view class="form-scroll" scroll-y>
+      <view class="form-scroll">
         <!-- 头像 -->
         <view class="form-item" @tap="chooseAvatar">
           <text class="item-label">头像</text>
@@ -26,7 +26,7 @@
           <text class="item-label">昵称</text>
           <input
             class="item-input"
-            v-model="formData.nickname"
+            v-model="formData.username"
             placeholder="请输入昵称"
             maxlength="8"
           />
@@ -46,43 +46,61 @@
         </view>
 
         <!-- 生日 -->
-        <view class="form-item" @tap="showDatePicker">
-          <text class="item-label">生日</text>
-          <view class="item-value">
-            <text class="value-text">{{ formData.birthday || "请选择" }}</text>
-            <image
-              class="arrow-icon"
-              src="/static/images/icon-arrow-right.png"
-              mode="aspectFit"
-            ></image>
+        <picker
+          class="form-item"
+          mode="date"
+          :value="formData.birthday"
+          @change="onDateChange"
+          :start="'1900-01-01'"
+          :end="today"
+        >
+          <view class="picker-content">
+            <text class="item-label">生日</text>
+            <view class="item-value">
+              <text class="value-text">{{
+                formData.birthday || "请选择"
+              }}</text>
+              <image
+                class="arrow-icon"
+                src="/static/images/icon-arrow-right.png"
+                mode="aspectFit"
+              ></image>
+            </view>
           </view>
-        </view>
+        </picker>
 
         <!-- 地区 -->
-        <view class="form-item" @tap="showRegionPicker">
-          <text class="item-label">地区</text>
-          <view class="item-value">
-            <text class="value-text">{{ formData.region || "请选择" }}</text>
-            <image
-              class="arrow-icon"
-              src="/static/images/icon-arrow-right.png"
-              mode="aspectFit"
-            ></image>
+        <picker
+          class="form-item"
+          mode="region"
+          :value="regionArray"
+          @change="onRegionChange"
+        >
+          <view class="picker-content">
+            <text class="item-label">地区</text>
+            <view class="item-value">
+              <text class="value-text">{{ formData.region || "请选择" }}</text>
+              <image
+                class="arrow-icon"
+                src="/static/images/icon-arrow-right.png"
+                mode="aspectFit"
+              ></image>
+            </view>
           </view>
-        </view>
+        </picker>
 
         <!-- 简介 -->
         <view class="form-item textarea-item">
           <text class="item-label">简介</text>
           <textarea
             class="item-textarea"
-            v-model="formData.bio"
+            v-model="formData.signature"
             placeholder="介绍一下自己吧"
             maxlength="50"
           ></textarea>
-          <text class="char-count">{{ formData.bio.length }}/50</text>
+          <text class="char-count">{{ formData.signature.length }}/50</text>
         </view>
-      </scroll-view>
+      </view>
 
       <!-- 保存按钮 -->
       <view class="save-btn" @tap="handleSave">
@@ -95,20 +113,52 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import Loading from "@/components/common/Loading.vue";
+import { getUserInfo, updateUserInfo, uploadAvatar } from "@/api/user";
 
 const loading = ref(false);
+const isUploading = ref(false);
 
 const formData = ref({
   avatar: "/static/images/avatar-default.png",
-  nickname: "我的昵称",
-  gender: "男",
-  birthday: "1990-01-01",
-  region: "北京市 朝阳区",
-  bio: "这是一段个人简介",
+  username: "",
+  gender: "",
+  birthday: "",
+  region: "",
+  signature: "",
 });
+
+const today = computed(() => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+});
+
+const regionArray = computed(() => {
+  if (!formData.value.region) return [];
+  return formData.value.region.split(" ").filter(Boolean);
+});
+
+onMounted(() => {
+  loadUserInfo();
+});
+
+const loadUserInfo = async () => {
+  try {
+    const user = await getUserInfo();
+    formData.value = {
+      avatar: user.avatar || "/static/images/avatar-default.png",
+      username: user.username || "",
+      gender: user.gender || "",
+      birthday: user.birthday || "",
+      region: user.region || "",
+      signature: user.signature || "",
+    };
+  } catch (error) {
+    console.error("获取用户信息失败:", error);
+  }
+};
 
 const chooseAvatar = () => {
   uni.vibrateShort({ type: "light" });
@@ -117,9 +167,33 @@ const chooseAvatar = () => {
     sizeType: ["compressed"],
     sourceType: ["album", "camera"],
     success: (res) => {
-      formData.value.avatar = res.tempFilePaths[0];
+      const tempFilePath = res.tempFilePaths[0];
+      formData.value.avatar = tempFilePath;
+      uploadAvatarFile(tempFilePath);
     },
   });
+};
+
+const uploadAvatarFile = async (filePath) => {
+  if (isUploading.value) return;
+
+  isUploading.value = true;
+  try {
+    const result = await uploadAvatar(filePath);
+    formData.value.avatar = result.url;
+    uni.showToast({
+      title: "头像上传成功",
+      icon: "success",
+    });
+  } catch (error) {
+    console.error("上传头像失败:", error);
+    uni.showToast({
+      title: "上传头像失败",
+      icon: "none",
+    });
+  } finally {
+    isUploading.value = false;
+  }
 };
 
 const showGenderPicker = () => {
@@ -133,26 +207,17 @@ const showGenderPicker = () => {
   });
 };
 
-const showDatePicker = () => {
-  uni.vibrateShort({ type: "light" });
-  // 实际项目中应使用日期选择器组件
-  uni.showToast({
-    title: "日期选择功能开发中",
-    icon: "none",
-  });
+const onDateChange = (e) => {
+  formData.value.birthday = e.detail.value;
 };
 
-const showRegionPicker = () => {
-  uni.vibrateShort({ type: "light" });
-  // 实际项目中应使用地区选择器组件
-  uni.showToast({
-    title: "地区选择功能开发中",
-    icon: "none",
-  });
+const onRegionChange = (e) => {
+  const region = e.detail.value;
+  formData.value.region = region.filter(Boolean).join(" ");
 };
 
-const handleSave = () => {
-  if (!formData.value.nickname.trim()) {
+const handleSave = async () => {
+  if (!formData.value.username.trim()) {
     uni.showToast({
       title: "请输入昵称",
       icon: "none",
@@ -163,16 +228,33 @@ const handleSave = () => {
   uni.vibrateShort({ type: "medium" });
   loading.value = true;
 
-  setTimeout(() => {
-    loading.value = false;
+  try {
+    await updateUserInfo({
+      username: formData.value.username,
+      avatar: formData.value.avatar,
+      signature: formData.value.signature,
+      gender: formData.value.gender,
+      birthday: formData.value.birthday,
+      region: formData.value.region,
+    });
+
     uni.showToast({
       title: "保存成功",
       icon: "success",
     });
+
     setTimeout(() => {
       uni.navigateBack();
     }, 1500);
-  }, 1500);
+  } catch (error) {
+    console.error("保存失败:", error);
+    uni.showToast({
+      title: "保存失败",
+      icon: "none",
+    });
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
@@ -193,10 +275,8 @@ const handleSave = () => {
 }
 
 .form-scroll {
-  flex: 1;
   box-sizing: border-box;
-  padding: $spacing-page-horizontal;
-  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+  padding: 0 $spacing-page-horizontal;
 }
 
 .form-item {
@@ -268,6 +348,12 @@ const handleSave = () => {
     font-size: $font-size-helper;
     color: $color-gray-lighter;
   }
+}
+
+.picker-content {
+  width: 650rpx;
+  display: flex;
+  justify-content: space-between;
 }
 
 .save-btn {

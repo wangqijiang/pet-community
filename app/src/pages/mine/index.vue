@@ -17,30 +17,29 @@
           <view class="user-left">
             <image
               class="avatar"
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop"
+              :src="userInfo?.avatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop'"
               mode="aspectFill"
             />
             <view>
-              <text class="name">Summer Lin</text>
-              <text class="desc">和布丁一起探索城市 🐾</text>
+              <text class="name">{{ userInfo?.username || 'Summer Lin' }}</text>
             </view>
           </view>
-          <view class="edit-btn">
+          <view class="edit-btn" @click="goToEditInfo">
             <view class="edit-icon"></view>
           </view>
         </view>
 
         <view class="stats">
           <view class="stat" @click="goToMyDynamic">
-            <text class="num">24</text>
+            <text class="num">{{ stats.posts }}</text>
             <text class="label">动态</text>
           </view>
           <view class="stat" @click="goToFollow">
-            <text class="num">1.2k</text>
+            <text class="num">{{ stats.following }}</text>
             <text class="label">关注</text>
           </view>
           <view class="stat" @click="goToFans">
-            <text class="num">856</text>
+            <text class="num">{{ stats.followers }}</text>
             <text class="label">粉丝</text>
           </view>
         </view>
@@ -80,8 +79,8 @@
         </view>
       </view>
 
-      <view class="logout-btn" @click="handleLogout">
-        <text>退出登录</text>
+      <view class="logout-btn" @click="handleLogout" :class="{ loading: isLoggingOut }">
+        <text>{{ isLoggingOut ? '退出中...' : '退出登录' }}</text>
       </view>
     </scroll-view>
 
@@ -90,12 +89,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import TabBar from "@/components/common/TabBar.vue";
+import { logout } from "@/api/auth";
+import { getUserInfo } from "@/api/user";
+
+const userInfo = ref(null);
+const isLoggingOut = ref(false);
+
+const stats = ref({
+  posts: 24,
+  following: 1200,
+  followers: 856
+});
+
+onMounted(async () => {
+  try {
+    const user = await getUserInfo();
+    userInfo.value = user;
+  } catch (error) {
+    console.error("获取用户信息失败:", error);
+  }
+});
 
 const goToSetting = () => {
   uni.navigateTo({
     url: "/pages/mine/setting",
+  });
+};
+
+const goToEditInfo = () => {
+  uni.navigateTo({
+    url: "/pages/mine/editInfo",
   });
 };
 
@@ -134,17 +159,32 @@ const handleLogout = () => {
   uni.showModal({
     title: "提示",
     content: "确定要退出登录吗？",
-    success: (res) => {
+    confirmColor: "#E26D6D",
+    success: async (res) => {
       if (res.confirm) {
-        uni.showToast({
-          title: "已退出登录",
-          icon: "success",
-        });
-        setTimeout(() => {
-          uni.reLaunch({
-            url: "/pages/login/index",
+        isLoggingOut.value = true;
+        
+        try {
+          await logout();
+          
+          uni.showToast({
+            title: "已退出登录",
+            icon: "success",
           });
-        }, 1500);
+          
+          setTimeout(() => {
+            uni.reLaunch({
+              url: "/pages/login/index",
+            });
+          }, 1500);
+        } catch (error) {
+          uni.showToast({
+            title: error instanceof Error ? error.message : "退出失败",
+            icon: "error",
+          });
+        } finally {
+          isLoggingOut.value = false;
+        }
       }
     },
   });
@@ -486,5 +526,15 @@ const handleLogout = () => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 16rpx 48rpx rgba(107, 78, 61, 0.05);
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  &.loading {
+    opacity: 0.6;
+  }
 }
 </style>

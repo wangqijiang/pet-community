@@ -1,8 +1,44 @@
 const express = require('express')
 const router = express.Router()
+const multer = require('multer')
+const path = require('path')
+const fs = require('fs')
 const { query } = require('../config/db')
 const { auth } = require('../middleware/auth')
 const { success, error } = require('../utils/response')
+
+// 确保上传目录存在
+const uploadDir = path.join(__dirname, '../../uploads')
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true })
+}
+
+// 文件上传配置
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir)
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname)
+    const filename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${ext}`
+    cb(null, filename)
+  }
+})
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('只支持图片格式'))
+    }
+  }
+})
 
 /**
  * @swagger
@@ -38,7 +74,7 @@ const { success, error } = require('../utils/response')
  */
 router.get('/info', auth, async (req, res) => {
   const user = await query(
-    'SELECT id, username, phone, avatar, signature, created_at FROM users WHERE id = ?',
+    'SELECT id, username, phone, avatar, signature, gender, birthday, region, created_at FROM users WHERE id = ?',
     [req.user.id]
   )
   
@@ -67,7 +103,7 @@ router.get('/info', auth, async (req, res) => {
  *             properties:
  *               username:
  *                 type: string
- *                 description: 用户名
+ *                 description: 用户名/昵称
  *                 example: 铲屎官小红
  *               avatar:
  *                 type: string
@@ -75,8 +111,20 @@ router.get('/info', auth, async (req, res) => {
  *                 example: https://example.com/avatar.jpg
  *               signature:
  *                 type: string
- *                 description: 个性签名
+ *                 description: 个性签名/简介
  *                 example: 爱猫人士
+ *               gender:
+ *                 type: string
+ *                 description: 性别（男/女/保密）
+ *                 example: 男
+ *               birthday:
+ *                 type: string
+ *                 description: 生日（YYYY-MM-DD）
+ *                 example: 1990-01-01
+ *               region:
+ *                 type: string
+ *                 description: 地区
+ *                 example: 北京市 朝阳区
  *     responses:
  *       200:
  *         description: 更新成功
@@ -101,11 +149,19 @@ router.get('/info', auth, async (req, res) => {
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.put('/info', auth, async (req, res) => {
-  const { username, avatar, signature } = req.body
+  const { username, avatar, signature, gender, birthday, region } = req.body
+  
+  let birthdayValue = null
+  if (birthday && birthday.trim()) {
+    const date = new Date(birthday)
+    if (!isNaN(date.getTime())) {
+      birthdayValue = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    }
+  }
   
   const result = await query(
-    'UPDATE users SET username = COALESCE(?, username), avatar = COALESCE(?, avatar), signature = COALESCE(?, signature) WHERE id = ?',
-    [username, avatar, signature, req.user.id]
+    'UPDATE users SET username = COALESCE(?, username), avatar = COALESCE(?, avatar), signature = COALESCE(?, signature), gender = COALESCE(?, gender), birthday = COALESCE(?, birthday), region = COALESCE(?, region) WHERE id = ?',
+    [username, avatar, signature, gender, birthdayValue, region, req.user.id]
   )
 
   if (result.affectedRows === 0) {
@@ -113,11 +169,83 @@ router.put('/info', auth, async (req, res) => {
   }
 
   const user = await query(
-    'SELECT id, username, phone, avatar, signature FROM users WHERE id = ?',
+    'SELECT id, username, phone, avatar, signature, gender, birthday, region FROM users WHERE id = ?',
     [req.user.id]
   )
 
   res.json(success(user[0], '更新成功'))
+})
+
+/**
+ * @swagger
+ * /api/user/avatar:
+ *   post:
+ *     summary: 上传头像
+ *     description: 上传用户头像图片
+ *     tags: [用户]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: 头像图片文件
+ *     responses:
+ *       200:
+ *         description: 上传成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 上传成功
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     url:
+ *                       type: string
+ *                       example: http://localhost:3000/uploads/1234567890-abc.jpg
+ *       401:
+ *         description: 未登录或 token 无效
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: 上传失败
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json(error('请选择图片文件', 400))
+    }
+
+    const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+    
+    await query(
+      'UPDATE users SET avatar = ? WHERE id = ?',
+      [avatarUrl, req.user.id]
+    )
+
+    res.json(success({ url: avatarUrl }, '上传成功'))
+  } catch (err) {
+    res.status(500).json(error(err.message || '上传失败', 500))
+  }
 })
 
 /**

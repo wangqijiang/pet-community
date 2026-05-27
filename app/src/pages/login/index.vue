@@ -1,29 +1,18 @@
 <template>
   <view class="login-page">
-    <!-- 顶部光晕 -->
     <view class="top-light"></view>
-
-    <!-- 底部光晕 -->
     <view class="bottom-light"></view>
 
-    <!-- 内容区域 -->
     <view class="content">
-      <!-- 头部区域 -->
       <view class="hero">
-        <!-- Logo -->
         <view class="logo-wrap">
           <view class="logo-icon icon-paw"></view>
         </view>
 
-        <!-- 标题 -->
         <text class="title">萌宠朋友圈</text>
 
-        <!-- 副标题 -->
-        <text class="subtitle"
-          >记录和毛孩子的每一天<br />发现城市里的宠物友好生活 🐾</text
-        >
+        <text class="subtitle">记录和毛孩子的每一天<br />发现城市里的宠物友好生活 🐾</text>
 
-        <!-- 宠物卡片 -->
         <view class="pet-card">
           <view class="pet-row">
             <image
@@ -33,19 +22,17 @@
             />
             <view class="pet-info">
               <text class="pet-name">带上狗狗去生活</text>
-              <text class="pet-desc"
-                >分享日常 · 发现遛狗好去处 · 认识附近狗友</text
-              >
+              <text class="pet-desc">分享日常 · 发现遛狗好去处 · 认识附近狗友</text>
             </view>
           </view>
         </view>
       </view>
 
-      <!-- 登录区域 -->
       <view class="login-area">
-        <view class="wechat-btn" @click="handleLogin">
+        <view class="wechat-btn" @click="handleLogin" :class="{ loading: isLoading }">
           <view class="wechat-icon icon-heart"></view>
-          <text class="wechat-text">微信一键登录</text>
+          <text class="wechat-text">{{ isLoading ? '登录中...' : '微信一键登录' }}</text>
+          <view v-if="isLoading" class="loading-icon"></view>
         </view>
 
         <text class="agreement">
@@ -60,17 +47,38 @@
 </template>
 
 <script setup lang="ts">
-const handleLogin = () => {
-  uni.showToast({
-    title: "登录成功",
-    icon: "success",
-  });
-  setTimeout(() => {
-    uni.reLaunch({
-      url: "/pages/home/index",
-    });
-  }, 1500);
-};
+import { ref } from 'vue'
+import { loginByCode, setUserInfo } from '../../api/auth'
+
+const isLoading = ref(false)
+
+const handleLogin = async () => {
+  isLoading.value = true
+  
+  try {
+    const result = await loginByCode('13800138000', '1234')
+    
+    setUserInfo(result.user, result.token)
+    
+    uni.showToast({
+      title: '登录成功',
+      icon: 'success',
+    })
+    
+    setTimeout(() => {
+      uni.reLaunch({
+        url: '/pages/home/index',
+      })
+    }, 1500)
+  } catch (error) {
+    uni.showToast({
+      title: error instanceof Error ? error.message : '登录失败',
+      icon: 'error',
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -222,6 +230,16 @@ const handleLogin = () => {
   justify-content: center;
   gap: 20rpx;
   box-shadow: 0 24rpx 56rpx rgba(255, 179, 107, 0.32);
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  &.loading {
+    opacity: 0.7;
+  }
 }
 
 .wechat-icon {
@@ -238,6 +256,21 @@ const handleLogin = () => {
 .wechat-text {
   font-size: 34rpx;
   font-weight: 700;
+}
+
+.loading-icon {
+  width: 36rpx;
+  height: 36rpx;
+  border: 3rpx solid rgba(255, 255, 255, 0.6);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .agreement {

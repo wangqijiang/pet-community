@@ -10,8 +10,6 @@ declare module 'vue' {
     Dialog: typeof import('./src/components/common/Dialog.vue')['default']
     Empty: typeof import('./src/components/common/Empty.vue')['default']
     Loading: typeof import('./src/components/common/Loading.vue')['default']
-    ModalPlace: typeof import('./src/components/common/ModalPlace.vue')['default']
-    ModalStore: typeof import('./src/components/common/ModalStore.vue')['default']
     ModalUser: typeof import('./src/components/common/ModalUser.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
