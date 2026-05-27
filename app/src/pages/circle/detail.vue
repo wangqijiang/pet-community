@@ -85,29 +85,44 @@
               </view>
 
               <!-- 回复列表 -->
-              <view v-if="comment.replies && comment.replies.length > 0" class="reply-list">
-                <view 
-                  v-if="comment.replies.length > 5" 
+              <view
+                v-if="comment.replies && comment.replies.length > 0"
+                class="reply-list"
+              >
+                <view
+                  v-if="comment.replies.length > 5"
                   class="reply-toggle"
                   @click="toggleReplyExpand(comment)"
                 >
                   <text class="toggle-text">
-                    {{ comment.showAllReplies ? `收起${comment.replies.length - 5}条回复` : `查看全部${comment.replies.length}条回复` }}
+                    {{
+                      comment.showAllReplies
+                        ? `收起${comment.replies.length - 5}条回复`
+                        : `查看全部${comment.replies.length}条回复`
+                    }}
                   </text>
                 </view>
-                
-                <view 
-                  v-for="(reply, replyIndex) in (comment.showAllReplies ? comment.replies : comment.replies.slice(0, 5))" 
-                  :key="replyIndex" 
+
+                <view
+                  v-for="(reply, replyIndex) in comment.showAllReplies
+                    ? comment.replies
+                    : comment.replies.slice(0, 5)"
+                  :key="replyIndex"
                   class="reply-item"
                 >
                   <text class="reply-name">{{ reply.userName }}</text>
                   <text class="reply-content">{{ reply.content }}</text>
                   <view class="reply-actions">
-                    <view class="reply-action-item" @click="handleReply(comment)">
+                    <view
+                      class="reply-action-item"
+                      @click="handleReply(comment)"
+                    >
                       <text class="reply-action-text">回复</text>
                     </view>
-                    <view class="reply-action-item" @click="handleReplyLike(reply)">
+                    <view
+                      class="reply-action-item"
+                      @click="handleReplyLike(reply)"
+                    >
                       <text class="reply-action-text">{{ reply.likes }}</text>
                     </view>
                   </view>
@@ -130,7 +145,9 @@
       <input
         v-model="inputText"
         class="input-field"
-        :placeholder="replyingTo ? `回复 ${replyingTo.userName}...` : '发表评论...'"
+        :placeholder="
+          replyingTo ? `回复 ${replyingTo.userName}...` : '发表评论...'
+        "
         placeholder-class="input-placeholder"
       />
       <view class="send-btn" @click="sendComment">
@@ -179,8 +196,7 @@ const mockDynamics = [
     userName: "金毛铲屎官",
     avatarColor: "#FFD4F0",
     userTag: "金毛 · 3岁",
-    content:
-      "今天训练了新技能！握手、趴下、打滚一气呵成，奖励了超多零食～🐾",
+    content: "今天训练了新技能！握手、趴下、打滚一气呵成，奖励了超多零食～🐾",
     images: ["#FFE4E1", "#FFC1E9"],
     likes: 234,
     comments: 45,
@@ -402,8 +418,8 @@ const sendComment = () => {
     userName: "我",
     avatarColor: "#FFC1E9",
     time: "刚刚",
-    content: replyingTo.value 
-      ? `@${replyingTo.value.userName} ${inputText.value}` 
+    content: replyingTo.value
+      ? `@${replyingTo.value.userName} ${inputText.value}`
       : inputText.value,
     likes: 0,
     liked: false,
@@ -413,7 +429,7 @@ const sendComment = () => {
   comments.value.push(newComment);
   inputText.value = "";
   dynamic.value.comments++;
-  
+
   if (replyingTo.value) {
     replyingTo.value = null;
   }
@@ -421,7 +437,7 @@ const sendComment = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
+@import "@/styles/variables.scss";
 
 .detail-container {
   min-height: 100vh;
@@ -431,7 +447,7 @@ const sendComment = () => {
 
 .detail-content {
   padding: 24rpx 32rpx;
-  min-height: calc(100vh - 120rpx);
+  max-height: calc(100vh - 400rpx);
   box-sizing: border-box;
 }
 
