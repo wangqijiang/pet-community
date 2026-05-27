@@ -3,21 +3,17 @@
     <TopNavBar title="同城狗友地图" />
 
     <view class="map-container">
-      <image
-        class="map-image"
-        src="https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=1200&center=lonlat:116.397128,39.916527&zoom=11&apiKey=YOUR_API_KEY"
-        mode="aspectFill"
+      <map
+        id="map"
+        class="map-component"
+        :latitude="39.916527"
+        :longitude="116.397128"
+        :scale="13"
+        :markers="markers"
+        :show-location="true"
+        @markertap="handleMarkerTap"
+        @tap="handleMapTap"
       />
-
-      <view class="marker m1" @click="handleMarkerTap(1)">
-        <view class="marker-icon icon-paw"></view>
-      </view>
-      <view class="marker m2" @click="handleMarkerTap(2)">
-        <view class="marker-icon icon-trees"></view>
-      </view>
-      <view class="marker m3" @click="handleMarkerTap(3)">
-        <view class="marker-icon icon-coffee"></view>
-      </view>
 
       <view class="location-btn" @click="handleLocation">
         <view class="location-icon"></view>
@@ -42,17 +38,89 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
 
-const handleMarkerTap = (id: number) => {
-  console.log("Marker tapped:", id);
+const markers = ref([
+  {
+    id: 1,
+    latitude: 39.926527,
+    longitude: 116.407128,
+    iconPath: "/static/images/marker-place.png",
+    width: 48,
+    height: 48,
+    callout: {
+      content: "宠物乐园",
+      fontSize: 14,
+      borderRadius: 8,
+      bgColor: "#ffffff",
+      padding: 8,
+    },
+  },
+  {
+    id: 2,
+    latitude: 39.906527,
+    longitude: 116.417128,
+    iconPath: "/static/images/marker-store.png",
+    width: 48,
+    height: 48,
+    callout: {
+      content: "中央公园",
+      fontSize: 14,
+      borderRadius: 8,
+      bgColor: "#ffffff",
+      padding: 8,
+    },
+  },
+  {
+    id: 3,
+    latitude: 39.916527,
+    longitude: 116.387128,
+    iconPath: "/static/images/marker-user.png",
+    width: 48,
+    height: 48,
+    callout: {
+      content: "宠物咖啡馆",
+      fontSize: 14,
+      borderRadius: 8,
+      bgColor: "#ffffff",
+      padding: 8,
+    },
+  },
+]);
+
+const handleMarkerTap = (e: any) => {
+  const markerId = e.detail.markerId;
+  const marker = markers.value.find((m) => m.id === markerId);
+  if (marker) {
+    uni.navigateTo({
+      url: `/pages/home/storeDetail?id=${markerId}`,
+    });
+  }
+};
+
+const handleMapTap = () => {
+  console.log("Map tapped");
 };
 
 const handleLocation = () => {
-  uni.showToast({
-    title: "定位中...",
-    icon: "loading",
+  uni.getLocation({
+    type: "gcj02",
+    success: (res) => {
+      const mapContext = uni.createMapContext("map");
+      mapContext.moveToLocation();
+      uni.showToast({
+        title: "定位成功",
+        icon: "success",
+      });
+    },
+    fail: () => {
+      uni.showToast({
+        title: "定位失败",
+        icon: "none",
+      });
+    },
   });
 };
 
@@ -66,7 +134,7 @@ const goToPlaceList = () => {
 <style lang="scss" scoped>
 .page-container {
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   background: #FFF7F1;
   position: relative;
   display: flex;
@@ -78,74 +146,15 @@ const goToPlaceList = () => {
   width: 100%;
   position: relative;
   overflow: hidden;
+  min-height: 0;
 }
 
-.map-image {
+.map-component {
   width: 100%;
   height: 100%;
-  filter: saturate(0.88) brightness(1.02);
-}
-
-.marker {
   position: absolute;
-  width: 108rpx;
-  height: 108rpx;
-  border-radius: 999rpx;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 20rpx 48rpx rgba(255, 179, 107, 0.18);
-  z-index: 5;
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -12rpx;
-    width: 36rpx;
-    height: 36rpx;
-    background: #ffffff;
-    transform: rotate(45deg);
-    z-index: -1;
-  }
-}
-
-.marker-icon {
-  width: 48rpx;
-  height: 48rpx;
-
-  &.icon-paw {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-
-  &.icon-trees {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235BA85B'%3E%3Cpath d='M12 22c2.76 0 5-2.24 5-5 0-.62-.13-1.21-.34-1.76l1.45 1.45c.39.39 1.03.39 1.42 0 .38-.39.39-1.03 0-1.42l-1.45-1.45C18.79 14.13 19 13.54 19 13c0-3.86-3.14-7-7-7s-7 3.14-7 7c0 .54.21 1.13.54 1.61l-1.45 1.45c-.39.39-.38 1.03 0 1.42.39.39 1.03.39 1.42 0l1.45-1.45c-.21.55-.34 1.14-.34 1.76 0 2.76 2.24 5 5 5zm-3-8c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3-3-1.34-3-3z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-
-  &.icon-coffee {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238B6914'%3E%3Cpath d='M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-}
-
-.m1 {
-  top: 240rpx;
-  left: 180rpx;
-}
-
-.m2 {
-  top: 520rpx;
-  right: 120rpx;
-}
-
-.m3 {
-  bottom: 360rpx;
-  left: 140rpx;
+  top: 0;
+  left: 0;
 }
 
 .location-btn {
