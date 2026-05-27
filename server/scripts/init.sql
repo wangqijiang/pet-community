@@ -132,8 +132,18 @@ CREATE TABLE IF NOT EXISTS pets (
   type VARCHAR(20) COMMENT '类型：dog/cat/etc',
   breed VARCHAR(50) COMMENT '品种',
   age VARCHAR(20) COMMENT '年龄',
+  gender VARCHAR(10) COMMENT '性别：male/female',
+  color VARCHAR(50) COMMENT '毛色',
+  weight DECIMAL(5,2) COMMENT '体重(kg)',
+  size VARCHAR(20) COMMENT '体型：small/medium/large',
+  neutered TINYINT(1) DEFAULT 0 COMMENT '是否绝育：0否/1是',
+  vaccinated VARCHAR(20) COMMENT '疫苗接种情况',
+  health_certificate TINYINT(1) DEFAULT 0 COMMENT '是否有健康证明：0否/1是',
+  personality VARCHAR(200) COMMENT '性格特点（逗号分隔）',
+  habits TEXT COMMENT '特殊习惯',
   avatar VARCHAR(255) COMMENT '头像',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_pets_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='宠物表';

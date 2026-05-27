@@ -17,11 +17,14 @@
           <view class="user-left">
             <image
               class="avatar"
-              :src="userInfo?.avatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop'"
+              :src="
+                userInfo?.avatar ||
+                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop'
+              "
               mode="aspectFill"
             />
             <view>
-              <text class="name">{{ userInfo?.username || 'Summer Lin' }}</text>
+              <text class="name">{{ userInfo?.username || "Summer Lin" }}</text>
             </view>
           </view>
           <view class="edit-btn" @click="goToEditInfo">
@@ -48,7 +51,7 @@
       <view class="section">
         <view class="section-header">
           <text class="section-title">我的宠物</text>
-          <text class="more">查看全部</text>
+          <text class="more" @click="goToPetInfo">查看全部</text>
         </view>
         <view class="pet-list">
           <view class="pet-card">
@@ -72,15 +75,21 @@
       <view class="ai-card">
         <view class="ai-light"></view>
         <text class="ai-title">需要养宠建议吗？</text>
-        <text class="ai-desc">AI 为你生成今日遛狗推荐、天气提醒和宠物陪伴建议 ✨</text>
+        <text class="ai-desc"
+          >AI 为你生成今日遛狗推荐、天气提醒和宠物陪伴建议 ✨</text
+        >
         <view class="ai-btn" @click="handleGenerateTips">
           <view class="ai-btn-icon"></view>
           <text>一键生成建议</text>
         </view>
       </view>
 
-      <view class="logout-btn" @click="handleLogout" :class="{ loading: isLoggingOut }">
-        <text>{{ isLoggingOut ? '退出中...' : '退出登录' }}</text>
+      <view
+        class="logout-btn"
+        @click="handleLogout"
+        :class="{ loading: isLoggingOut }"
+      >
+        <text>{{ isLoggingOut ? "退出中..." : "退出登录" }}</text>
       </view>
     </scroll-view>
 
@@ -100,7 +109,7 @@ const isLoggingOut = ref(false);
 const stats = ref({
   posts: 24,
   following: 1200,
-  followers: 856
+  followers: 856,
 });
 
 onMounted(async () => {
@@ -163,15 +172,15 @@ const handleLogout = () => {
     success: async (res) => {
       if (res.confirm) {
         isLoggingOut.value = true;
-        
+
         try {
           await logout();
-          
+
           uni.showToast({
             title: "已退出登录",
             icon: "success",
           });
-          
+
           setTimeout(() => {
             uni.reLaunch({
               url: "/pages/login/index",
@@ -195,7 +204,7 @@ const handleLogout = () => {
 .page-container {
   width: 100%;
   min-height: 100vh;
-  background: #FFF7F1;
+  background: #fff7f1;
   position: relative;
 }
 
@@ -252,7 +261,11 @@ const handleLogout = () => {
 }
 
 .profile-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 246, 0.92));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.92),
+    rgba(255, 250, 246, 0.92)
+  );
   border-radius: 64rpx;
   padding: 48rpx;
   box-shadow: 0 24rpx 64rpx rgba(107, 78, 61, 0.06);
@@ -281,13 +294,13 @@ const handleLogout = () => {
 .name {
   font-size: 56rpx;
   font-weight: 700;
-  color: #3D2F2F;
+  color: #3d2f2f;
   display: block;
 }
 
 .desc {
   margin-top: 16rpx;
-  color: #8A7F7F;
+  color: #8a7f7f;
   font-size: 28rpx;
   display: block;
 }
@@ -296,7 +309,7 @@ const handleLogout = () => {
   width: 84rpx;
   height: 84rpx;
   border-radius: 32rpx;
-  background: #FFF0E0;
+  background: #fff0e0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -326,28 +339,28 @@ const handleLogout = () => {
   position: relative;
 
   &:not(:last-child)::after {
-    content: '';
+    content: "";
     position: absolute;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
     width: 2rpx;
     height: 84rpx;
-    background: #F2E7E0;
+    background: #f2e7e0;
   }
 }
 
 .num {
   font-size: 48rpx;
   font-weight: 700;
-  color: #6B4E3D;
+  color: #6b4e3d;
   display: block;
 }
 
 .label {
   margin-top: 12rpx;
   font-size: 24rpx;
-  color: #9B9090;
+  color: #9b9090;
   display: block;
 }
 
@@ -365,12 +378,12 @@ const handleLogout = () => {
 .section-title {
   font-size: 52rpx;
   font-weight: 700;
-  color: #3D2F2F;
+  color: #3d2f2f;
 }
 
 .more {
   font-size: 26rpx;
-  color: #A49797;
+  color: #a49797;
 }
 
 .pet-list {
@@ -400,27 +413,27 @@ const handleLogout = () => {
   margin-top: 32rpx;
   font-size: 36rpx;
   font-weight: 700;
-  color: #3D2F2F;
+  color: #3d2f2f;
   display: block;
 }
 
 .pet-info {
   margin-top: 12rpx;
   font-size: 26rpx;
-  color: #9B9090;
+  color: #9b9090;
   display: block;
 }
 
 .add-card {
   min-width: 300rpx;
   border-radius: 56rpx;
-  border: 4rpx dashed #F2D7C3;
+  border: 4rpx dashed #f2d7c3;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 36rpx;
-  color: #B8A7A7;
+  color: #b8a7a7;
   background: rgba(255, 255, 255, 0.4);
 }
 
@@ -448,7 +461,7 @@ const handleLogout = () => {
   margin-top: 48rpx;
   border-radius: 64rpx;
   padding: 48rpx;
-  background: linear-gradient(135deg, #FFEFE4, #FFF9E9);
+  background: linear-gradient(135deg, #ffefe4, #fff9e9);
   position: relative;
   overflow: hidden;
 }
@@ -458,7 +471,11 @@ const handleLogout = () => {
   width: 360rpx;
   height: 360rpx;
   border-radius: 999rpx;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
   top: -160rpx;
   right: -120rpx;
 }
@@ -466,7 +483,7 @@ const handleLogout = () => {
 .ai-title {
   font-size: 48rpx;
   font-weight: 700;
-  color: #5E4636;
+  color: #5e4636;
   display: block;
   position: relative;
   z-index: 2;
@@ -475,7 +492,7 @@ const handleLogout = () => {
 .ai-desc {
   margin-top: 20rpx;
   line-height: 1.8;
-  color: #8A7F7F;
+  color: #8a7f7f;
   font-size: 28rpx;
   display: block;
   position: relative;
@@ -487,7 +504,7 @@ const handleLogout = () => {
   width: 100%;
   height: 104rpx;
   border-radius: 999rpx;
-  background: #8B6D73;
+  background: #8b6d73;
   color: #ffffff;
   font-size: 30rpx;
   font-weight: 700;
@@ -519,7 +536,7 @@ const handleLogout = () => {
   height: 112rpx;
   border-radius: 999rpx;
   background: #ffffff;
-  color: #E26D6D;
+  color: #e26d6d;
   font-size: 32rpx;
   font-weight: 700;
   display: flex;

@@ -13,7 +13,7 @@
       <view class="pet-list">
         <view
           v-for="(pet, index) in pets"
-          :key="index"
+          :key="pet.id || index"
           class="pet-card"
           @tap="goToPetDetail(pet)"
         >
@@ -21,14 +21,14 @@
             <image
               v-if="pet.avatar"
               class="pet-avatar"
-              :src="pet.avatar"
+              :src="getFullAvatarUrl(pet.avatar)"
               mode="aspectFill"
             />
             <view v-else class="pet-avatar-placeholder">
               <view class="placeholder-icon"></view>
             </view>
-            <view class="gender-badge" :class="pet.gender">
-              <view class="gender-icon" :class="pet.gender"></view>
+            <view class="gender-badge" :class="getGenderClass(pet.gender)">
+              <view class="gender-icon" :class="getGenderClass(pet.gender)"></view>
             </view>
           </view>
           <view class="pet-info">
@@ -47,9 +47,9 @@
       </view>
 
       <!-- Empty State -->
-      <view class="empty-state">
+      <view class="empty-state" v-if="pets.length === 0 && !loading">
         <view class="empty-icon"></view>
-        <text class="empty-text">共有 {{ pets.length }} 位毛孩子</text>
+        <text class="empty-text">还没有添加宠物哦</text>
       </view>
     </scroll-view>
 
@@ -67,39 +67,49 @@
 
 <script setup lang="ts">
 import TopNavBar from "@/components/common/TopNavBar.vue";
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import Loading from "@/components/common/Loading.vue";
+import { getPetList, deletePet, type Pet } from "@/api/pet";
 
 const loading = ref(false);
+const pets = ref<Pet[]>([]);
 
-const pets = ref([
-  {
-    id: 1,
-    name: "糯米 (Nuomi)",
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDMmXcenD7Vy5QjV1G_Xfi06jc81Yj88lORiEZbjjGYJpxAvIDZsNW6yqbtuORO1WkdL7Su7uobXV36nRKLAStG4Ml5z-LtZydoX6eRrV0LcTbxh3abh4oaJ88f-c78qkSB5pPbpp9hhDXOBHdCXiYr2gH96E6Hlk-PlzDv10lu3eAjH4NTqwsUN5CA7Xsf3kJw-g5mZW62CP2uF0ACl0weoZfPfUY_j3eo0S07Ajnb4nWbfxy_9_dFiwqtcTP1sj9CfZ5ZEDdJXxmR",
-    breed: "柯基",
-    age: "2岁",
-    gender: "male",
-  },
-  {
-    id: 2,
-    name: "棉花糖 (Mallow)",
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDneJ5mqf9sduF26KfmBBTFnkg1XZoVEZwlUCqoWXsFn70dCuRmk0qEi03LWyqVA1PjrIYmb1LPLQEizRWDCspGqCHlmpiTewZQSNRz07XEXKZG2PZw68kWWsq9kfCR5FjpA5om26l1eRxh0hT2q8ylq6USyz_dV3m665vHCHADPSng-NFwk3HLWUx3qNV4Hgaq4GvXLz4OLolOpTzMHMyvO591eRYXkr87ikyAXLDkntBu4KNQbzHVtPSI9BauMMSPg3TnROk4m_GD",
-    breed: "波斯猫",
-    age: "1.5岁",
-    gender: "female",
-  },
-  {
-    id: 3,
-    name: "大金 (Golden)",
-    avatar: "",
-    breed: "金毛寻回犬",
-    age: "3岁",
-    gender: "male",
-  },
-]);
+const getFullAvatarUrl = (avatar: string) => {
+  if (!avatar) return "";
+  if (avatar.startsWith("http")) return avatar;
+  return `${process.env.VUE_APP_API_BASE}${avatar}`;
+};
+
+const getGenderClass = (gender: string) => {
+  return gender === "male" ? "male" : gender === "female" ? "female" : "male";
+};
+
+onMounted(async () => {
+  await loadPets();
+  // 监听刷新宠物列表事件
+  uni.$on('refreshPetList', loadPets);
+});
+
+onUnmounted(() => {
+  // 移除事件监听
+  uni.$off('refreshPetList', loadPets);
+});
+
+const loadPets = async () => {
+  loading.value = true;
+  try {
+    const data = await getPetList();
+    pets.value = data;
+  } catch (error) {
+    console.error("获取宠物列表失败:", error);
+    uni.showToast({
+      title: "获取宠物列表失败",
+      icon: "none",
+    });
+  } finally {
+    loading.value = false;
+  }
+};
 
 const goBack = () => {
   uni.vibrateShort({ type: "light" });
@@ -113,17 +123,41 @@ const goToAddPet = () => {
   });
 };
 
-const goToPetDetail = (pet) => {
+const goToPetDetail = (pet: Pet) => {
   uni.vibrateShort({ type: "light" });
   uni.navigateTo({
     url: `/pages/mine/addPet?id=${pet.id}`,
   });
 };
 
-const editPet = (pet) => {
+const editPet = (pet: Pet) => {
   uni.vibrateShort({ type: "light" });
   uni.navigateTo({
     url: `/pages/mine/addPet?id=${pet.id}`,
+  });
+};
+
+const handleDelete = async (pet: Pet) => {
+  uni.showModal({
+    title: "提示",
+    content: `确定要删除 "${pet.name}" 吗？`,
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await deletePet(pet.id);
+          uni.showToast({
+            title: "删除成功",
+            icon: "success",
+          });
+          await loadPets();
+        } catch (error) {
+          uni.showToast({
+            title: "删除失败",
+            icon: "none",
+          });
+        }
+      }
+    },
   });
 };
 </script>

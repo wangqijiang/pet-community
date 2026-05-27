@@ -11,7 +11,7 @@
           <image
             v-if="formData.avatar"
             class="avatar"
-            :src="formData.avatar"
+            :src="getFullAvatarUrl(formData.avatar)"
             mode="aspectFill"
           />
           <view v-else class="avatar-placeholder">
@@ -49,7 +49,7 @@
             <text class="label-text">宠物种类</text>
           </view>
           <view class="item-value">
-            <text class="value-text">{{ formData.species || "请选择" }}</text>
+            <text class="value-text">{{ formData.type || "请选择" }}</text>
             <view class="arrow-icon"></view>
           </view>
         </view>
@@ -78,16 +78,18 @@
           </view>
         </view>
 
-        <!-- 生日 -->
-        <view class="form-item" @tap="showDatePicker">
+        <!-- 年龄 -->
+        <view class="form-item">
           <view class="item-label">
             <view class="label-icon icon-birthday"></view>
-            <text class="label-text">生日</text>
+            <text class="label-text">年龄</text>
           </view>
-          <view class="item-value">
-            <text class="value-text">{{ formData.birthday || "请选择" }}</text>
-            <view class="arrow-icon"></view>
-          </view>
+          <input
+            class="item-input"
+            v-model="formData.age"
+            placeholder="例如：2岁"
+            maxlength="10"
+          />
         </view>
       </view>
 
@@ -262,13 +264,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import Loading from "@/components/common/Loading.vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import {
+  getPetDetail,
+  addPet,
+  updatePet,
+  deletePet,
+  type Pet,
+} from "@/api/pet";
 
 const loading = ref(false);
 const isEdit = ref(false);
 const petId = ref<number | null>(null);
+
+const getFullAvatarUrl = (avatar: string) => {
+  if (!avatar) return "";
+  if (avatar.startsWith("http")) return avatar;
+  return `${process.env.VUE_APP_API_BASE}${avatar}`;
+};
 
 // 页面加载时检查是否是编辑模式
 onMounted(() => {
@@ -279,36 +294,42 @@ onMounted(() => {
   if (options && options.id) {
     petId.value = parseInt(options.id);
     isEdit.value = true;
-    // 模拟加载宠物数据
     loadPetData();
   }
 });
 
-const loadPetData = () => {
+const loadPetData = async () => {
   loading.value = true;
-  // 模拟加载数据
-  setTimeout(() => {
+  try {
+    if (petId.value) {
+      const data = await getPetDetail(petId.value);
+      formData.value = {
+        avatar: data.avatar || "",
+        name: data.name || "",
+        type: data.type || "",
+        breed: data.breed || "",
+        gender: "",
+        age: data.age || "",
+        color: "",
+        weight: "",
+        size: "",
+        neutered: false,
+        vaccinated: "",
+        healthCertificate: false,
+        personality: [],
+        habits: "",
+        photos: [],
+      };
+    }
+  } catch (error) {
+    console.error("获取宠物详情失败:", error);
+    uni.showToast({
+      title: "获取宠物详情失败",
+      icon: "none",
+    });
+  } finally {
     loading.value = false;
-    // 这里应该从 API 加载数据，现在填充示例数据
-    formData.value = {
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuDMmXcenD7Vy5QjV1G_Xfi06jc81Yj88lORiEZbjjGYJpxAvIDZsNW6yqbtuORO1WkdL7Su7uobXV36nRKLAStG4Ml5z-LtZydoX6eRrV0LcTbxh3abh4oaJ88f-c78qkSB5pPbpp9hhDXOBHdCXiYr2gH96E6Hlk-PlzDv10lu3eAjH4NTqwsUN5CA7Xsf3kJw-g5mZW62CP2uF0ACl0weoZfPfUY_j3eo0S07Ajnb4nWbfxy_9_dFiwqtcTP1sj9CfZ5ZEDdJXxmR",
-      name: "糯米 (Nuomi)",
-      species: "狗狗",
-      breed: "柯基",
-      gender: "公",
-      birthday: "2022-01-15",
-      color: "金色",
-      weight: "12.5",
-      size: "小型",
-      neutered: false,
-      vaccinated: "已接种",
-      healthCertificate: true,
-      personality: ["active", "smart", "friendly"],
-      habits: "喜欢玩球，每天傍晚特别活跃",
-      photos: [],
-    };
-  }, 1000);
+  }
 };
 
 // 性格标签选项
@@ -327,10 +348,10 @@ const personalityTags = ref([
 const formData = ref({
   avatar: "",
   name: "",
-  species: "",
+  type: "",
   breed: "",
   gender: "",
-  birthday: "",
+  age: "",
   color: "",
   weight: "",
   size: "",
@@ -341,27 +362,6 @@ const formData = ref({
   habits: "",
   photos: [] as string[],
 });
-
-// 计算年龄
-const calculateAge = (birthday: string) => {
-  if (!birthday) return "";
-  const birth = new Date(birthday);
-  const now = new Date();
-  const months =
-    (now.getFullYear() - birth.getFullYear()) * 12 +
-    now.getMonth() -
-    birth.getMonth();
-
-  if (months < 12) {
-    return `${months}个月`;
-  } else {
-    const years = Math.floor(months / 12);
-    const remainingMonths = months % 12;
-    return remainingMonths > 0
-      ? `${years}岁${remainingMonths}个月`
-      : `${years}岁`;
-  }
-};
 
 const goBack = () => {
   uni.vibrateShort({ type: "light" });
@@ -433,43 +433,58 @@ const deletePhoto = (index: number) => {
 // 种类选择器
 const showSpeciesPicker = () => {
   uni.vibrateShort({ type: "light" });
+  console.log("showSpeciesPicker called");
   const speciesList = ["狗狗", "猫咪", "其他"];
   uni.showActionSheet({
     itemList: speciesList,
-    success: (res) => {
-      formData.value.species = speciesList[res.tapIndex];
+    success: function(res) {
+      console.log("species selected:", speciesList[res.tapIndex]);
+      formData.value.type = speciesList[res.tapIndex];
+      console.log("formData.type set to:", formData.value.type);
     },
+    fail: function(err) {
+      console.log("showActionSheet fail:", err);
+    }
   });
 };
 
 // 品种选择器
 const showBreedPicker = () => {
   uni.vibrateShort({ type: "light" });
+  console.log("showBreedPicker called, type:", formData.value.type);
+  
   const breedMap: Record<string, string[]> = {
-    狗狗: [
+    "狗狗": [
       "金毛",
       "哈士奇",
       "泰迪",
       "柯基",
-      "萨摩耶",
-      "边牧",
-      "拉布拉多",
-      "柴犬",
-      "博美",
       "其他",
     ],
-    猫咪: ["英短", "美短", "布偶", "波斯猫", "暹罗猫", "缅因猫", "其他"],
-    其他: ["兔子", "仓鼠", "龙猫", "其他"],
+    "猫咪": ["英短", "美短", "布偶", "缅因猫", "其他"],
+    "其他": ["兔子", "仓鼠", "龙猫", "其他"],
   };
 
-  const breeds = formData.value.species
-    ? breedMap[formData.value.species]
-    : ["请先选择种类"];
+  let breeds = ["请先选择种类"];
+  if (formData.value.type && breedMap[formData.value.type]) {
+    breeds = breedMap[formData.value.type];
+  }
+  
+  console.log("breeds:", breeds);
+  
   uni.showActionSheet({
     itemList: breeds,
-    success: (res) => {
+    success: function(res) {
+      console.log("success callback called, tapIndex:", res.tapIndex);
       formData.value.breed = breeds[res.tapIndex];
+      console.log("breed set to:", formData.value.breed);
     },
+    fail: function(err) {
+      console.log("showActionSheet fail:", err);
+    },
+    complete: function() {
+      console.log("showActionSheet complete");
+    }
   });
 };
 
@@ -481,30 +496,6 @@ const showGenderPicker = () => {
     itemList: genders,
     success: (res) => {
       formData.value.gender = genders[res.tapIndex];
-    },
-  });
-};
-
-// 日期选择器
-const showDatePicker = () => {
-  uni.vibrateShort({ type: "light" });
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth() + 1;
-  const currentDay = currentDate.getDate();
-
-  uni.showDatePicker({
-    startDate: "2010-01-01",
-    endDate: `${currentYear}-${currentMonth}-${currentDay}`,
-    success: (res) => {
-      formData.value.birthday = res.dateString;
-      // 自动计算并提示年龄
-      const age = calculateAge(res.dateString);
-      uni.showToast({
-        title: `已选择 ${res.dateString}，约${age}`,
-        icon: "none",
-        duration: 2000,
-      });
     },
   });
 };
@@ -573,28 +564,85 @@ const handleSave = () => {
     return;
   }
 
-  if (!formData.value.species) {
-    uni.showToast({
-      title: "请选择宠物种类",
-      icon: "none",
-    });
-    return;
-  }
-
   uni.vibrateShort({ type: "medium" });
   loading.value = true;
 
-  // 模拟保存
-  setTimeout(() => {
-    loading.value = false;
-    uni.showToast({
-      title: "保存成功",
-      icon: "success",
-    });
-    setTimeout(() => {
-      uni.navigateBack();
-    }, 1500);
-  }, 1500);
+  // 创建表单数据（保存所有填写的字段）
+  const data: Record<string, any> = {
+    name: formData.value.name,
+    type: formData.value.type || null,
+    breed: formData.value.breed || null,
+    age: formData.value.age || null,
+    gender: formData.value.gender || null,
+    color: formData.value.color || null,
+    weight: formData.value.weight || null,
+    size: formData.value.size || null,
+    neutered: formData.value.neutered,
+    vaccinated: formData.value.vaccinated || null,
+    healthCertificate: formData.value.healthCertificate,
+    personality: formData.value.personality.length > 0 ? formData.value.personality.join(',') : null,
+    habits: formData.value.habits || null,
+    avatar: formData.value.avatar || null,
+    photos: formData.value.photos.length > 0 ? JSON.stringify(formData.value.photos) : null,
+  };
+
+  if (isEdit.value && petId.value) {
+    // 更新宠物
+    updatePet(petId.value, data)
+      .then(() => {
+        uni.showToast({
+          title: "更新成功",
+          icon: "success",
+        });
+        setTimeout(() => {
+          uni.navigateBack({
+            delta: 1,
+            success: () => {
+              // 通知上一页刷新数据
+              uni.$emit('refreshPetList');
+            }
+          });
+        }, 1500);
+      })
+      .catch((error) => {
+        console.error("更新宠物失败:", error);
+        uni.showToast({
+          title: "更新失败",
+          icon: "none",
+        });
+      })
+      .finally(() => {
+        loading.value = false;
+      });
+  } else {
+    // 添加宠物
+    addPet(data)
+      .then(() => {
+        uni.showToast({
+          title: "添加成功",
+          icon: "success",
+        });
+        setTimeout(() => {
+          uni.navigateBack({
+            delta: 1,
+            success: () => {
+              // 通知上一页刷新数据
+              uni.$emit('refreshPetList');
+            }
+          });
+        }, 1500);
+      })
+      .catch((error) => {
+        console.error("添加宠物失败:", error);
+        uni.showToast({
+          title: "添加失败",
+          icon: "none",
+        });
+      })
+      .finally(() => {
+        loading.value = false;
+      });
+  }
 };
 
 // 删除
@@ -605,18 +653,28 @@ const handleDelete = () => {
     content: "确定要删除这个宠物信息吗？此操作不可恢复",
     confirmColor: "#ba1a1a",
     success: (res) => {
-      if (res.confirm) {
+      if (res.confirm && petId.value) {
         loading.value = true;
-        setTimeout(() => {
-          loading.value = false;
-          uni.showToast({
-            title: "删除成功",
-            icon: "success",
+        deletePet(petId.value)
+          .then(() => {
+            uni.showToast({
+              title: "删除成功",
+              icon: "success",
+            });
+            setTimeout(() => {
+              uni.navigateBack();
+            }, 1500);
+          })
+          .catch((error) => {
+            console.error("删除宠物失败:", error);
+            uni.showToast({
+              title: "删除失败",
+              icon: "none",
+            });
+          })
+          .finally(() => {
+            loading.value = false;
           });
-          setTimeout(() => {
-            uni.navigateBack();
-          }, 1500);
-        }, 1000);
       }
     },
   });
@@ -625,534 +683,614 @@ const handleDelete = () => {
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
+/* =========================
+   Add Pet Page - 2026 Premium UI
+   UniApp + rpx
+   治愈系奶油宠物社区风格
+========================= */
 
 .add-pet-page {
   min-height: 100vh;
-  background: $color-bg-primary;
+  background:
+    radial-gradient(circle at top left, #fff4ef 0%, transparent 40%),
+    radial-gradient(circle at bottom right, #f7f2ff 0%, transparent 35%),
+    linear-gradient(180deg, #fffaf7 0%, #fffdfb 100%);
   display: flex;
   flex-direction: column;
 }
 
-/* Page Content */
+/* =========================
+   Scroll
+========================= */
+
 .page-content {
-  box-sizing: border-box;
   flex: 1;
-  padding: 40rpx 40rpx calc(200rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  padding:
+    32rpx
+    32rpx
+    calc(220rpx + env(safe-area-inset-bottom));
 }
 
-/* Avatar Section */
+/* =========================
+   Avatar Area
+========================= */
+
 .avatar-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 48rpx;
+  margin-bottom: 56rpx;
+  padding-top: 12rpx;
 }
 
 .avatar-wrapper {
   position: relative;
-  margin-bottom: 32rpx;
+}
+
+.avatar,
+.avatar-placeholder {
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 50%;
 }
 
 .avatar {
-  width: 256rpx;
-  height: 256rpx;
-  border-radius: 50%;
   object-fit: cover;
-  border: 8rpx solid #ffffff;
-  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
+
+  border: 8rpx solid rgba(255,255,255,.95);
+
+  box-shadow:
+    0 12rpx 40rpx rgba(255, 192, 203, 0.18),
+    0 2rpx 10rpx rgba(0,0,0,.05);
 }
 
 .avatar-placeholder {
-  width: 256rpx;
-  height: 256rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ffdde2 0%, #ede2c0 100%);
+  background:
+    linear-gradient(
+      135deg,
+      #ffe6eb 0%,
+      #fff0dc 100%
+    );
+
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 8rpx solid #ffffff;
-  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
+
+  border: 8rpx solid rgba(255,255,255,.95);
+
+  box-shadow:
+    0 12rpx 40rpx rgba(255, 192, 203, 0.18),
+    0 2rpx 10rpx rgba(0,0,0,.05);
 }
 
 .avatar-icon {
-  width: 128rpx;
-  height: 128rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.81-1.6 4.6-1.88 5.12-1.89.11 0 .37.03.53.18.14.12.18.28.2.45-.01.06.01.24 0 .38z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-  opacity: 0.5;
+  width: 96rpx;
+  height: 96rpx;
+  opacity: .5;
 }
 
 .upload-btn {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 80rpx;
-  height: 80rpx;
+  right: 8rpx;
+  bottom: 8rpx;
+
+  width: 72rpx;
+  height: 72rpx;
+
   border-radius: 50%;
-  background: #71585c;
+
+  background: linear-gradient(
+    135deg,
+    #ffb8c8 0%,
+    #ff9db5 100%
+  );
+
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 8rpx solid #ffffff;
-  box-shadow: 0 4rpx 16rpx rgba(113, 88, 92, 0.3);
-  transition: transform 0.2s ease;
 
-  &:active {
-    transform: scale(1);
-  }
+  border: 6rpx solid #fff;
+
+  box-shadow:
+    0 8rpx 20rpx rgba(255, 157, 181, .35);
+
+  transition: .2s;
 }
 
-.upload-icon {
-  width: 40rpx;
-  height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
+.upload-btn:active {
+  transform: scale(.95);
 }
 
 .avatar-tip {
+  margin-top: 28rpx;
+
   font-size: 24rpx;
-  font-weight: 700;
-  color: #4f4446;
-  letter-spacing: 0.05em;
-  opacity: 0.7;
+  color: #8d7b7d;
+
+  letter-spacing: 1rpx;
 }
 
-/* Form Section */
+/* =========================
+   Section
+========================= */
+
 .form-section {
-  margin-bottom: 48rpx;
+  margin-bottom: 44rpx;
 }
 
 .section-title {
-  display: block;
-  font-size: 24rpx;
+  padding-left: 10rpx;
+  margin-bottom: 24rpx;
+
+  font-size: 26rpx;
   font-weight: 700;
-  color: #71585c;
-  letter-spacing: 0.05em;
-  padding: 0 16rpx 24rpx;
+
+  color: #7c6769;
+
+  letter-spacing: 1rpx;
 }
 
+/* =========================
+   Card
+========================= */
+
 .form-item {
+  position: relative;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 32rpx;
-  background: #ffffff;
+
+  padding: 30rpx;
+
+  margin-bottom: 22rpx;
+
   border-radius: 32rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  transition: background 0.2s ease;
 
-  &:active {
-    background: rgba(255, 221, 226, 0.1);
-  }
+  background: rgba(255,255,255,.75);
 
-  &.switch-item {
-    justify-content: space-between;
-  }
+  backdrop-filter: blur(30rpx);
 
-  &.textarea-item {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  box-shadow:
+    0 10rpx 30rpx rgba(255, 209, 220, 0.14),
+    inset 0 1rpx 0 rgba(255,255,255,.8);
+
+  transition: .2s;
 }
+
+.form-item:active {
+  transform: scale(.99);
+}
+
+.form-item::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  border-radius: inherit;
+
+  border: 1rpx solid rgba(255,255,255,.65);
+
+  pointer-events: none;
+}
+
+/* =========================
+   Label
+========================= */
 
 .item-label {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  flex: 1;
+  gap: 18rpx;
+
+  flex-shrink: 0;
 }
 
 .label-icon {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  background: rgba(255, 221, 226, 0.3);
+  width: 52rpx;
+  height: 52rpx;
+
+  border-radius: 18rpx;
+
+  background: linear-gradient(
+    135deg,
+    #ffe5ec 0%,
+    #fff2d8 100%
+  );
+
+  box-shadow:
+    inset 0 1rpx 2rpx rgba(255,255,255,.9),
+    0 4rpx 10rpx rgba(255, 205, 220, .18);
+
   display: flex;
   align-items: center;
   justify-content: center;
-
-  &.icon-name {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(255, 221, 226, 0.5);
-  }
-
-  &.icon-species,
-  &.icon-breed {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.81-1.6 4.6-1.88 5.12-1.89.11 0 .37.03.53.18.14.12.18.28.2.45-.01.06.01.24 0 .38z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(218, 234, 216, 0.5);
-  }
-
-  &.icon-gender {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm3-7a1 1 0 11-2 0 1 1 0 012 0zm-3 3a1 1 0 01-1-1v-3a1 1 0 012 0v3a1 1 0 01-1 1z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(255, 221, 226, 0.5);
-  }
-
-  &.icon-birthday {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(234, 223, 189, 0.5);
-  }
-
-  &.icon-color {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(224, 247, 255, 0.5);
-  }
-
-  &.icon-weight {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(255, 235, 205, 0.5);
-  }
-
-  &.icon-size {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M3 17h18v-2H3v2zm0 3h18v-1H3v1zm0-7h18v-3H3v3zm0-9v4h18V4H3z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(218, 234, 216, 0.5);
-  }
-
-  &.icon-neutered {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M9 16l2.24-2.24c.39-.39.39-1.02 0-1.41L9 10.17 4.83 14.34c-.39.39-.39 1.02 0 1.41l4.17 4.17c.39.39 1.02.39 1.41 0L14.83 16H9zm10.12-3.41l-3.71-3.71c-.39-.39-1.02-.39-1.41 0L12.59 10.29c-.39.39-.39 1.02 0 1.41l3.71 3.71c.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.03 0-1.42z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(255, 218, 214, 0.5);
-  }
-
-  &.icon-vaccine {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4h2v4zm0-6h-2V7h2v4z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(224, 247, 255, 0.5);
-  }
-
-  &.icon-health {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(255, 182, 193, 0.5);
-  }
-
-  &.icon-habits {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-    background-color: rgba(234, 223, 189, 0.5);
-  }
 }
 
 .label-text {
-  font-size: 32rpx;
-  font-weight: 500;
-  color: #1e1b1b;
+  font-size: 30rpx;
+  font-weight: 600;
+
+  color: #473c3d;
 }
+
+/* =========================
+   Input
+========================= */
 
 .item-input {
   flex: 1;
-  font-size: 32rpx;
-  color: #1e1b1b;
+
   text-align: right;
+
+  font-size: 30rpx;
+  font-weight: 500;
+
+  color: #4f4446;
 }
+
+.item-input::placeholder {
+  color: #b5a8aa;
+}
+
+/* =========================
+   Value
+========================= */
 
 .item-value {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: 10rpx;
 }
 
 .value-text {
-  font-size: 32rpx;
-  color: #807476;
+  font-size: 30rpx;
+  color: #887b7d;
 }
 
 .arrow-icon {
-  width: 32rpx;
-  height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-  opacity: 0.5;
+  width: 28rpx;
+  height: 28rpx;
+
+  opacity: .45;
+}
+
+/* =========================
+   Switch
+========================= */
+
+.switch-item {
+  min-height: 112rpx;
+}
+
+/* =========================
+   Textarea
+========================= */
+
+.textarea-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .item-textarea {
   width: 100%;
-  min-height: 200rpx;
-  background: rgba(243, 236, 236, 0.5);
-  border-radius: 24rpx;
+  min-height: 220rpx;
+
+  margin-top: 24rpx;
+
+  padding: 24rpx;
+
+  box-sizing: border-box;
+
+  border-radius: 28rpx;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.9),
+      rgba(255,248,248,.8)
+    );
+
   font-size: 28rpx;
-  color: #1e1b1b;
-  line-height: 1.6;
-  margin-top: 16rpx;
+  line-height: 1.7;
+
+  color: #4f4446;
 }
 
 .char-count {
+  margin-top: 14rpx;
+
   text-align: right;
-  margin-top: 16rpx;
-  font-size: 24rpx;
-  color: #807476;
-  opacity: 0.6;
+
+  font-size: 22rpx;
+  color: #b0a5a7;
 }
 
-/* Tags Container */
+/* =========================
+   Tags
+========================= */
+
 .tags-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20rpx;
-  padding: 0 16rpx 24rpx;
+
+  gap: 18rpx;
 }
 
 .tag-item {
+  padding: 24rpx 12rpx;
+
+  border-radius: 28rpx;
+
+  background: rgba(255,255,255,.8);
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
-  padding: 24rpx 16rpx;
-  background: #ffffff;
-  border-radius: 32rpx;
-  box-shadow: 0 4rpx 16rpx rgba(168, 155, 157, 0.08);
-  transition: all 0.2s ease;
+  justify-content: center;
 
-  &:active {
-    transform: scale(1);
-  }
+  gap: 14rpx;
 
-  &.active {
-    background: linear-gradient(135deg, #ffdde2 0%, #ede2c0 100%);
-    box-shadow: 0 8rpx 24rpx rgba(113, 88, 92, 0.2);
+  transition: .22s;
 
-    .tag-text {
-      color: #ffffff;
-      font-weight: 700;
-    }
+  box-shadow:
+    0 6rpx 20rpx rgba(255, 215, 224, .12);
+}
 
-    .tag-icon {
-      opacity: 1;
-    }
-  }
+.tag-item:active {
+  transform: scale(.96);
+}
+
+.tag-item.active {
+  background:
+    linear-gradient(
+      135deg,
+      #ffc7d5 0%,
+      #ffdca8 100%
+    );
+
+  box-shadow:
+    0 12rpx 28rpx rgba(255, 182, 193, .28);
+}
+
+.tag-item.active .tag-text {
+  color: #fff;
 }
 
 .tag-icon {
   width: 48rpx;
   height: 48rpx;
-  border-radius: 50%;
-  background: rgba(255, 221, 226, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.5;
-  transition: opacity 0.2s ease;
 
-  &.icon-active {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M13 10V3L4 14h7v7l9-11h-7z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-  }
-
-  &.icon-gentle {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-  }
-
-  &.icon-clingy {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-  }
-
-  &.icon-independent {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-  }
-
-  &.icon-smart {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-  }
-
-  &.icon-naughty {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-  }
-
-  &.icon-quiet {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-  }
-
-  &.icon-friendly {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 60%;
-  }
+  opacity: .75;
 }
 
 .tag-text {
   font-size: 24rpx;
-  color: #4f4446;
-  font-weight: 500;
+  font-weight: 600;
+
+  color: #66595b;
 }
 
-/* Photos Grid */
+/* =========================
+   Photos
+========================= */
+
 .photos-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20rpx;
-  padding: 0 16rpx;
+
+  gap: 18rpx;
 }
 
 .photo-item {
   position: relative;
+
   aspect-ratio: 1;
-  border-radius: 24rpx;
+
   overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(168, 155, 157, 0.12);
+
+  border-radius: 26rpx;
+
+  background: #fff;
+
+  box-shadow:
+    0 8rpx 24rpx rgba(255, 210, 220, .16);
 }
 
 .photo {
   width: 100%;
   height: 100%;
+
   object-fit: cover;
 }
 
 .delete-photo {
   position: absolute;
-  top: 8rpx;
-  right: 8rpx;
-  width: 48rpx;
-  height: 48rpx;
+
+  top: 10rpx;
+  right: 10rpx;
+
+  width: 46rpx;
+  height: 46rpx;
+
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
+
+  background: rgba(255,255,255,.88);
+
+  backdrop-filter: blur(12rpx);
+
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  transition: transform 0.2s ease;
-
-  &:active {
-    transform: scale(1);
-  }
 }
 
 .delete-icon {
-  width: 32rpx;
-  height: 32rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ba1a1a'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
+  width: 24rpx;
+  height: 24rpx;
 }
 
 .add-photo {
   aspect-ratio: 1;
-  border-radius: 24rpx;
-  border: 4rpx dashed rgba(113, 88, 92, 0.3);
+
+  border-radius: 26rpx;
+
+  border: 3rpx dashed rgba(255, 192, 203, .55);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.8),
+      rgba(255,244,244,.75)
+    );
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
-  background: rgba(255, 221, 226, 0.1);
-  transition: all 0.2s ease;
 
-  &:active {
-    background: rgba(255, 221, 226, 0.2);
-    transform: scale(1);
-  }
+  gap: 14rpx;
+
+  transition: .2s;
+}
+
+.add-photo:active {
+  transform: scale(.97);
 }
 
 .add-photo-icon {
-  width: 64rpx;
-  height: 64rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-  opacity: 0.5;
+  width: 52rpx;
+  height: 52rpx;
+
+  opacity: .5;
 }
 
 .add-photo-text {
   font-size: 24rpx;
-  color: #71585c;
-  opacity: 0.7;
+  color: #8d7b7d;
 }
 
-/* Footer */
+/* =========================
+   Footer
+========================= */
+
 .footer {
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
-  padding: 32rpx 40rpx calc(32rpx + env(safe-area-inset-bottom));
-  background: #fff8f7;
+  bottom: 0;
+
+  padding:
+    24rpx
+    32rpx
+    calc(24rpx + env(safe-area-inset-bottom));
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0),
+      rgba(255,250,248,.96) 30%
+    );
+
+  backdrop-filter: blur(40rpx);
+
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+
+  gap: 18rpx;
 }
 
+/* =========================
+   Delete Button
+========================= */
+
 .delete-btn {
-  height: 96rpx;
-  background: #ffffff;
-  border: 4rpx solid #ba1a1a;
-  border-radius: 48rpx;
+  height: 92rpx;
+
+  border-radius: 999rpx;
+
+  background: rgba(255,255,255,.92);
+
+  border: 2rpx solid rgba(255,120,120,.18);
+
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  transition: transform 0.2s ease;
 
-  &:active {
-    transform: scale(1);
-  }
+  box-shadow:
+    0 8rpx 20rpx rgba(255,120,120,.08);
 }
 
 .delete-text {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #ba1a1a;
+  font-size: 30rpx;
+  font-weight: 700;
+
+  color: #d96c6c;
 }
 
+/* =========================
+   Save Button
+========================= */
+
 .save-btn {
+  height: 100rpx;
+
+  border-radius: 999rpx;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffb7c9 0%,
+      #ffc89f 100%
+    );
+
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
-  height: 96rpx;
-  background: #71585c;
-  border-radius: 48rpx;
-  box-shadow: 0 8rpx 32rpx rgba(113, 88, 92, 0.2);
-  transition: transform 0.2s ease;
 
-  &:active {
-    transform: scale(1);
-  }
+  gap: 14rpx;
+
+  box-shadow:
+    0 14rpx 34rpx rgba(255, 183, 201, .28);
+
+  transition: .2s;
+}
+
+.save-btn:active {
+  transform: scale(.98);
 }
 
 .save-text {
   font-size: 32rpx;
-  font-weight: 600;
-  color: #ffffff;
+  font-weight: 700;
+
+  color: #fff;
 }
 
 .save-icon {
-  width: 40rpx;
-  height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
+  width: 34rpx;
+  height: 34rpx;
+}
+
+/* =========================
+   Safe Area
+========================= */
+
+.header-safe {
+  height: env(safe-area-inset-top);
+}
+
+/* =========================
+   Animation
+========================= */
+
+.form-item,
+.tag-item,
+.photo-item,
+.save-btn,
+.delete-btn {
+  will-change: transform;
 }
 </style>

@@ -19,12 +19,14 @@ const userRouter = require('./routes/user')
 const postRouter = require('./routes/post')
 const messageRouter = require('./routes/message')
 const placeRouter = require('./routes/place')
+const petRouter = require('./routes/pet')
 
 app.use('/api/auth', authRouter)
 app.use('/api/user', userRouter)
 app.use('/api/post', postRouter)
 app.use('/api/message', messageRouter)
 app.use('/api/place', placeRouter)
+app.use('/api/pet', petRouter)
 
 // Swagger 文档
 const { setupSwagger } = require('./config/swagger')
