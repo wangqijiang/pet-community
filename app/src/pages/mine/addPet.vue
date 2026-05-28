@@ -29,12 +29,17 @@
                 <view class="icon"></view>
                 <text class="label">宠物名字</text>
               </view>
-              <input
-                class="input-field"
-                v-model="formData.name"
-                placeholder="请输入"
-                maxlength="20"
-              />
+              <view class="right-input">
+                <input
+                  class="input-field"
+                  :value="formData.name"
+                  @input="(e: any) => handleInput('name', e.detail.value)"
+                  @blur="handleBlur('name')"
+                  placeholder="请输入"
+                  maxlength="20"
+                />
+                <text v-if="errors.name" class="error-text">{{ errors.name }}</text>
+              </view>
             </view>
 
             <view class="item" @tap="openModal('speciesModal')">
@@ -75,12 +80,17 @@
                 <view class="icon"></view>
                 <text class="label">年龄</text>
               </view>
-              <input
-                class="input-field"
-                v-model="formData.age"
-                placeholder="请输入"
-                maxlength="10"
-              />
+              <view class="right-input">
+                <input
+                  class="input-field"
+                  :value="formData.age"
+                  @input="(e: any) => handleInput('age', e.detail.value)"
+                  @blur="handleBlur('age')"
+                  placeholder="请输入"
+                  maxlength="10"
+                />
+                <text v-if="errors.age" class="error-text">{{ errors.age }}</text>
+              </view>
             </view>
           </view>
         </view>
@@ -93,12 +103,17 @@
                 <view class="icon"></view>
                 <text class="label">毛色</text>
               </view>
-              <input
-                class="input-field"
-                v-model="formData.color"
-                placeholder="请输入"
-                maxlength="20"
-              />
+              <view class="right-input">
+                <input
+                  class="input-field"
+                  :value="formData.color"
+                  @input="(e: any) => handleInput('color', e.detail.value)"
+                  @blur="handleBlur('color')"
+                  placeholder="请输入"
+                  maxlength="20"
+                />
+                <text v-if="errors.color" class="error-text">{{ errors.color }}</text>
+              </view>
             </view>
 
             <view class="item">
@@ -106,12 +121,17 @@
                 <view class="icon"></view>
                 <text class="label">体重 (kg)</text>
               </view>
-              <input
-                class="input-field"
-                v-model="formData.weight"
-                type="digit"
-                placeholder="请输入"
-              />
+              <view class="right-input">
+                <input
+                  class="input-field"
+                  :value="formData.weight"
+                  @input="(e: any) => handleInput('weight', e.detail.value)"
+                  @blur="handleBlur('weight')"
+                  type="digit"
+                  placeholder="请输入"
+                />
+                <text v-if="errors.weight" class="error-text">{{ errors.weight }}</text>
+              </view>
             </view>
 
             <view class="item" @tap="openModal('sizeModal')">
@@ -463,6 +483,60 @@ const formData = ref({
   photos: [] as string[],
 });
 
+const errors = ref<Record<string, string>>({});
+
+const fieldRules = {
+  name: { min: 1, max: 20, message: "宠物名字长度应在1-20个字符之间" },
+  age: { min: 1, max: 10, message: "年龄长度应在1-10个字符之间" },
+  color: { min: 1, max: 20, message: "毛色长度应在1-20个字符之间" },
+  breed: { min: 1, max: 20, message: "品种长度应在1-20个字符之间" },
+  weight: { min: 0.1, max: 200, message: "体重应在0.1-200kg之间", isNumber: true },
+};
+
+const validateField = (field: string, value: string): boolean => {
+  const rule = fieldRules[field as keyof typeof fieldRules];
+  if (!rule) return true;
+
+  if (rule.isNumber) {
+    const numValue = parseFloat(value);
+    if (value && (isNaN(numValue) || numValue < rule.min || numValue > rule.max)) {
+      errors.value[field] = rule.message;
+      return false;
+    }
+  } else {
+    if (value.length < rule.min || value.length > rule.max) {
+      errors.value[field] = rule.message;
+      return false;
+    }
+  }
+
+  delete errors.value[field];
+  return true;
+};
+
+const handleInput = (field: string, value: string) => {
+  if (field === 'weight') {
+    const cleaned = value.replace(/[^\d.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+      (formData.value as any)[field] = parts[0] + '.' + parts.slice(1).join('');
+    } else {
+      (formData.value as any)[field] = cleaned;
+    }
+  } else {
+    (formData.value as any)[field] = value;
+  }
+  
+  validateField(field, (formData.value as any)[field]);
+};
+
+const handleBlur = (field: string) => {
+  const value = (formData.value as any)[field];
+  if (value) {
+    validateField(field, value);
+  }
+};
+
 const openModal = (modalName: string) => {
   uni.vibrateShort({ type: "light" });
   activeModal.value = modalName;
@@ -580,6 +654,22 @@ const togglePersonality = (tagId: string) => {
 };
 
 const handleSave = () => {
+  let isValid = true;
+  
+  validateField('name', formData.value.name);
+  validateField('age', formData.value.age);
+  validateField('color', formData.value.color);
+  validateField('weight', formData.value.weight);
+  
+  if (Object.keys(errors.value).length > 0) {
+    isValid = false;
+    uni.showToast({
+      title: "请检查输入内容",
+      icon: "none",
+    });
+    return;
+  }
+
   if (!formData.value.name.trim()) {
     uni.showToast({
       title: "请输入宠物名字",
@@ -789,6 +879,26 @@ const handleDelete = () => {
 .section {
   padding: 0 32rpx;
   margin-bottom: 56rpx;
+}
+
+.right-input {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.error-text {
+  font-size: 22rpx;
+  color: #ff6b6b;
+  margin-top: 8rpx;
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4rpx); }
+  75% { transform: translateX(4rpx); }
 }
 
 .section-title {
