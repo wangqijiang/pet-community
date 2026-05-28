@@ -106,21 +106,21 @@ const getGenderClass = (gender: string) => {
 };
 
 // 滑动删除相关函数
-const handleTouchStart = (e: TouchEvent, index: number) =&gt; {
+const handleTouchStart = (e: TouchEvent, index: number) => {
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
-  if (swipedIndex.value !== null &amp;&amp; swipedIndex.value !== index) {
+  if (swipedIndex.value !== null && swipedIndex.value !== index) {
     swipedIndex.value = null;
   }
 };
 
-const handleTouchMove = (e: TouchEvent, _index: number) =&gt; {
+const handleTouchMove = (e: TouchEvent, _index: number) => {
   const touchMoveX = e.touches[0].clientX;
   const touchMoveY = e.touches[0].clientY;
   const diffX = touchMoveX - touchStartX;
   const diffY = touchMoveY - touchStartY;
 
-  if (Math.abs(diffX) &gt; Math.abs(diffY)) {
+  if (Math.abs(diffX) > Math.abs(diffY)) {
     e.preventDefault();
   }
 };

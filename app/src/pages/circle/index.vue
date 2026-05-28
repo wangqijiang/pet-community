@@ -1,6 +1,10 @@
 <template>
   <view class="circle-container">
-    <TopNavBar title="萌宠朋友圈 🐾" :showBack="false" rightIcon="icon-ellipsis" />
+    <TopNavBar
+      title="萌宠朋友圈 🐾"
+      :showBack="false"
+      rightIcon="icon-ellipsis"
+    />
 
     <view class="category-tabs">
       <scroll-view scroll-x class="tab-scroll">
@@ -18,10 +22,22 @@
       </scroll-view>
     </view>
 
-    <scroll-view scroll-y class="feed-list">
+    <scroll-view 
+      scroll-y 
+      class="feed-list"
+      :refresher-enabled="true"
+      :refresher-triggered="refreshing"
+      @refresherrefresh="onRefresh"
+      @scrolltolower="onLoadMore"
+    >
+      <view v-if="feedList.length === 0 && !loading" class="empty-state">
+        <view class="empty-icon"></view>
+        <text class="empty-text">暂无动态，快来发布第一条吧～</text>
+      </view>
+      
       <view
         v-for="(item, index) in filteredList"
-        :key="index"
+        :key="item.id"
         class="feed-card"
         @click="goToDetail(item)"
       >
@@ -29,33 +45,37 @@
           <view class="user-row">
             <view class="user-left">
               <view class="user-avatar" @tap="goToUserProfile(item)">
-                <view
-                  class="avatar-bg"
-                  :style="{ background: item.avatarColor }"
-                ></view>
+                <image v-if="item.avatar" :src="getAvatarUrl(item.avatar)" mode="aspectFill" />
+                <view v-else class="avatar-placeholder"></view>
               </view>
               <view class="user-info">
                 <view class="user-name-row">
-                  <text class="user-name">{{ item.userName }}</text>
+                  <text class="user-name">{{ item.username }}</text>
                   <text class="level">Lv.2</text>
                 </view>
-                <text class="user-meta">20分钟前 · 杭州</text>
+                <text class="user-meta">{{ formatTime(item.created_at) }}</text>
               </view>
             </view>
-            <view class="more-icon"></view>
+            <view class="header-right">
+              <view v-if="isOwnPost(item)" class="delete-btn" @click.stop="handleDelete(item)">
+                <view class="delete-icon"></view>
+              </view>
+              <view v-else class="more-icon"></view>
+            </view>
           </view>
         </view>
 
         <text class="card-content">{{ item.content }}</text>
 
-        <view class="card-images" v-if="item.images.length > 0">
-          <view
+        <view class="card-images" v-if="item.images && item.images.length > 0">
+          <image
             v-for="(img, imgIndex) in item.images"
             :key="imgIndex"
             class="image-item"
-            :style="{ background: img.color }"
+            :src="img"
+            mode="aspectFill"
             @click.stop="previewImage(item, imgIndex)"
-          ></view>
+          />
         </view>
 
         <view class="location" v-if="item.location">
@@ -63,7 +83,6 @@
             <view class="location-icon"></view>
             <text class="location-text">{{ item.location }}</text>
           </view>
-          <text class="location-distance">{{ item.distance }}</text>
         </view>
 
         <view class="card-footer">
@@ -86,6 +105,14 @@
           </view>
         </view>
       </view>
+
+      <view v-if="loading" class="loading-more">
+        <text>加载中...</text>
+      </view>
+      
+      <view v-if="!loading && !hasMore && feedList.length > 0" class="no-more">
+        <text>没有更多了</text>
+      </view>
     </scroll-view>
 
     <view class="fab" @click="goToPublish">
@@ -99,15 +126,18 @@
 <script setup lang="ts">
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { getPostList, likePost, unlikePost, deletePost, checkLiked, type Post } from "@/api/post";
+import { getUserInfo } from "@/api/auth";
 
 const currentTab = ref(0);
-
-const goToUserProfile = (item: any) => {
-  uni.navigateTo({
-    url: `/pages/mine/userProfile?id=${item.id}&name=${encodeURIComponent(item.userName)}`,
-  });
-};
+const feedList = ref<(Post & { images: string[]; liked: boolean })[]>([]);
+const loading = ref(false);
+const refreshing = ref(false);
+const page = ref(1);
+const size = ref(10);
+const hasMore = ref(true);
+const currentUser = ref(getUserInfo());
 
 const tabs = [
   { label: "全部动态", key: "all" },
@@ -118,94 +148,26 @@ const tabs = [
   { label: "养宠种草", key: "share" },
 ];
 
-const feedList = ref([
-  {
-    id: 1,
-    userName: "布丁麻麻",
-    avatarColor: "#FFC1E9",
-    userTag: "柯基 · 2岁",
-    content:
-      "今天带布丁去公园撒欢啦！\n秋天的草地太舒服了，它开心得像个小疯子～🍂🐶",
-    images: [
-      { color: "#FFE4E1" },
-      { color: "#FFD4F0" },
-      { color: "#FFC1E9" },
-      { color: "#FFB6C1" },
-    ],
-    location: "西湖边 · 太子湾公园",
-    distance: "2.3km",
-    category: "daily",
-    likes: 96,
-    comments: 18,
-    liked: false,
-  },
-  {
-    id: 2,
-    userName: "喵星人领养中心",
-    avatarColor: "#E8F5E9",
-    userTag: "志愿者",
-    content:
-      "新来的小橘太粘人啦！一进门就开始蹭腿，求一个有缘的家庭带它回家～ 坐标上海。🍊",
-    images: [{ color: "#FFF4D2" }],
-    location: "上海市 · 徐汇区",
-    distance: "5.6km",
-    category: "lost",
-    likes: 456,
-    comments: 89,
-    liked: true,
-  },
-  {
-    id: 3,
-    userName: "金毛铲屎官",
-    avatarColor: "#FFD4F0",
-    userTag: "金毛 · 3岁",
-    content:
-      "今天训练了新技能！握手、趴下、打滚一气呵成，奖励了超多零食～🐾",
-    images: [{ color: "#FFE4E1" }, { color: "#FFC1E9" }],
-    location: "北京 · 奥林匹克公园",
-    distance: "1.2km",
-    category: "skill",
-    likes: 234,
-    comments: 45,
-    liked: false,
-  },
-  {
-    id: 4,
-    userName: "遛狗达人",
-    avatarColor: "#FFB6C1",
-    userTag: "哈士奇 · 1岁",
-    content:
-      "有没有住在朝阳区的小伙伴？每天晚上7点左右在望京公园遛狗，想找个搭子一起～",
-    images: [{ color: "#FFD4F0" }],
-    location: "北京 · 望京公园",
-    distance: "3.8km",
-    category: "walk",
-    likes: 89,
-    comments: 23,
-    liked: false,
-  },
-  {
-    id: 5,
-    userName: "养宠新手",
-    avatarColor: "#FFC0CB",
-    userTag: "泰迪 · 6个月",
-    content:
-      "推荐这款狗粮！我家宝贝吃了三个月，毛发明显变亮了，而且消化也很好～",
-    images: [{ color: "#E8F5E9" }, { color: "#FFF4D2" }, { color: "#FFE4E1" }],
-    location: "广州 · 天河公园",
-    distance: "0.8km",
-    category: "share",
-    likes: 156,
-    comments: 38,
-    liked: true,
-  },
-]);
-
 const filteredList = computed(() => {
   if (currentTab.value === 0) return feedList.value;
-  const categoryKey = tabs[currentTab.value].key;
-  return feedList.value.filter((item) => item.category === categoryKey);
+  return feedList.value;
 });
+
+const isOwnPost = (item: any) => {
+  return currentUser.value && currentUser.value.id === item.user_id;
+};
+
+const getAvatarUrl = (avatar: string) => {
+  if (!avatar) return "";
+  if (avatar.startsWith("http")) return avatar;
+  return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
+};
+
+const goToUserProfile = (item: any) => {
+  uni.navigateTo({
+    url: `/pages/mine/userProfile?id=${item.user_id}&name=${encodeURIComponent(item.username)}`,
+  });
+};
 
 const goToPublish = () => {
   uni.navigateTo({
@@ -219,11 +181,80 @@ const goToDetail = (item: any) => {
   });
 };
 
-const handleLike = (item: any) => {
-  if (!item.liked) {
-    item.liked = true;
-    item.likes += 1;
-    uni.vibrateShort({ type: "light" });
+const loadPosts = async (pageNum: number, isRefresh = false) => {
+  if (loading.value) return;
+  
+  loading.value = true;
+  try {
+    const response = await getPostList(pageNum, size.value);
+    const list = await Promise.all(response.list.map(async (post) => {
+      const postData = {
+        ...post,
+        images: typeof post.images === 'string' ? JSON.parse(post.images) : post.images,
+        liked: false
+      };
+      
+      if (currentUser.value) {
+        try {
+          const likedResult = await checkLiked(post.id);
+          postData.liked = likedResult.liked;
+        } catch (error) {
+          console.warn("检查点赞状态失败:", error);
+        }
+      }
+      
+      return postData;
+    }));
+    
+    if (isRefresh) {
+      feedList.value = list;
+    } else {
+      feedList.value = [...feedList.value, ...list];
+    }
+    
+    hasMore.value = response.pagination.page < response.pagination.pages;
+  } catch (error) {
+    console.error("获取动态列表失败:", error);
+    uni.showToast({ title: "加载失败", icon: "none" });
+  } finally {
+    loading.value = false;
+    refreshing.value = false;
+  }
+};
+
+const onRefresh = () => {
+  refreshing.value = true;
+  page.value = 1;
+  loadPosts(1, true);
+};
+
+const onLoadMore = () => {
+  if (!hasMore.value || loading.value) return;
+  page.value++;
+  loadPosts(page.value);
+};
+
+const handleLike = async (item: any) => {
+  uni.vibrateShort({ type: "light" });
+  
+  if (item.liked) {
+    try {
+      await unlikePost(item.id);
+      item.liked = false;
+      item.likes--;
+    } catch (error) {
+      console.error("取消点赞失败:", error);
+      uni.showToast({ title: "操作失败", icon: "none" });
+    }
+  } else {
+    try {
+      await likePost(item.id);
+      item.liked = true;
+      item.likes++;
+    } catch (error) {
+      console.error("点赞失败:", error);
+      uni.showToast({ title: "操作失败", icon: "none" });
+    }
   }
 };
 
@@ -233,17 +264,66 @@ const handleShare = () => {
   });
 };
 
-const previewImage = (item: any, index: number) => {
-  const imageUrls = item.images.map((img: any) => {
-    return `https://via.placeholder.com/400x400/${img.color.replace("#", "")}`;
+const handleDelete = async (item: any) => {
+  uni.showModal({
+    title: "确认删除",
+    content: "确定要删除这条动态吗？",
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await deletePost(item.id);
+          uni.showToast({ title: "删除成功", icon: "success" });
+          const index = feedList.value.findIndex(p => p.id === item.id);
+          if (index > -1) {
+            feedList.value.splice(index, 1);
+          }
+        } catch (error) {
+          console.error("删除失败:", error);
+          uni.showToast({ title: "删除失败", icon: "none" });
+        }
+      }
+    }
   });
+};
+
+const previewImage = (item: any, index: number) => {
+  if (!item.images || item.images.length === 0) return;
+  
   uni.previewImage({
-    urls: imageUrls,
+    urls: item.images,
     current: index,
   });
 };
 
+const formatTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return "刚刚";
+  if (minutes < 60) return `${minutes}分钟前`;
+  if (hours < 24) return `${hours}小时前`;
+  if (days < 7) return `${days}天前`;
+  
+  return `${date.getMonth() + 1}月${date.getDate()}日`;
+};
 
+const handlePostCreated = () => {
+  onRefresh();
+};
+
+onMounted(() => {
+  loadPosts(1);
+  uni.$on('postCreated', handlePostCreated);
+});
+
+onUnmounted(() => {
+  uni.$off('postCreated', handlePostCreated);
+});
 </script>
 
 <style lang="scss" scoped>
@@ -277,12 +357,12 @@ const previewImage = (item: any, index: number) => {
   background: $color-bg-white;
   border-radius: 999rpx;
   font-size: 26rpx;
-  color: #7A6E6E;
+  color: #7a6e6e;
   transition: all $transition-base;
 
   &.active {
-    background: #FFE2C2;
-    color: #D97D2F;
+    background: #ffe2c2;
+    color: #d97d2f;
     font-weight: 600;
   }
 }
@@ -323,12 +403,20 @@ const previewImage = (item: any, index: number) => {
   width: 96rpx;
   height: 96rpx;
   border-radius: 50%;
+  overflow: hidden;
 }
 
 .avatar-bg {
   width: 100%;
   height: 100%;
   border-radius: 50%;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFC1E9, #FFD4F0);
 }
 
 .user-info {
@@ -347,12 +435,12 @@ const previewImage = (item: any, index: number) => {
 .user-name {
   font-size: 32rpx;
   font-weight: 700;
-  color: #3D2F2F;
+  color: #3d2f2f;
 }
 
 .level {
-  background: #FFF0D9;
-  color: #E49743;
+  background: #fff0d9;
+  color: #e49743;
   font-size: 22rpx;
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
@@ -361,7 +449,12 @@ const previewImage = (item: any, index: number) => {
 
 .user-meta {
   font-size: 24rpx;
-  color: #9B9090;
+  color: #9b9090;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
 }
 
 .more-icon {
@@ -372,9 +465,31 @@ const previewImage = (item: any, index: number) => {
   background-size: 100%;
 }
 
+.delete-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff0f0;
+  border-radius: 50%;
+  
+  &:active {
+    background: #ffe0e0;
+  }
+}
+
+.delete-icon {
+  width: 32rpx;
+  height: 32rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23E53935'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
 .card-content {
   font-size: 30rpx;
-  color: #4D3E3E;
+  color: #4d3e3e;
   line-height: 1.8;
   margin-bottom: 28rpx;
 }
@@ -392,7 +507,7 @@ const previewImage = (item: any, index: number) => {
 }
 
 .location {
-  background: #FFF5EA;
+  background: #fff5ea;
   border-radius: 16rpx;
   padding: 24rpx;
   display: flex;
@@ -417,12 +532,12 @@ const previewImage = (item: any, index: number) => {
 
 .location-text {
   font-size: 28rpx;
-  color: #7B5B45;
+  color: #7b5b45;
 }
 
 .location-distance {
   font-size: 28rpx;
-  color: #7B5B45;
+  color: #7b5b45;
 }
 
 .card-footer {
@@ -482,29 +597,63 @@ const previewImage = (item: any, index: number) => {
 
 .footer-count {
   font-size: 28rpx;
-  color: #7A6E6E;
+  color: #7a6e6e;
 }
 
 .fab {
   position: fixed;
-  bottom: 220rpx;
-  right: 40rpx;
-  width: 116rpx;
-  height: 116rpx;
-  background: linear-gradient(135deg, #FFB36B, #FFA552);
+  right: 48rpx;
+  bottom: calc(180rpx + env(safe-area-inset-bottom));
+  width: 120rpx;
+  height: 120rpx;
+  background: linear-gradient(135deg, #FFB6C1, #FFC1E9);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 20rpx 48rpx rgba(255, 179, 107, 0.4);
-  z-index: 9999;
+  box-shadow: 0 16rpx 48rpx rgba(255, 182, 193, 0.4);
+  z-index: 100;
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .fab-icon {
-  width: 48rpx;
-  height: 48rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E")
+  width: 56rpx;
+  height: 56rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+  gap: 32rpx;
+}
+
+.empty-icon {
+  width: 200rpx;
+  height: 200rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23D4C8C9'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #9B9090;
+}
+
+.loading-more,
+.no-more {
+  text-align: center;
+  padding: 32rpx 0;
+  font-size: 26rpx;
+  color: #9B9090;
 }
 </style>

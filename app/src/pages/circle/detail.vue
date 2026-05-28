@@ -1,373 +1,413 @@
 <template>
-  <view class="page-container">
-    <TopNavBar :showBack="true" title="动态详情" />
-
-    <scroll-view scroll-y class="detail-content">
-      <view class="feed-card">
-        <view class="card-header">
-          <view class="user-avatar">
-            <view
-              class="avatar-bg"
-              :style="{ background: dynamic.avatarColor }"
-            ></view>
-          </view>
-          <view class="user-info">
-            <text class="user-name">{{ dynamic.userName }}</text>
-            <view class="user-tags">
-              <text class="tag">{{ dynamic.userTag }}</text>
-            </view>
-          </view>
-          <view class="more-btn">
-            <view class="more-icon"></view>
-          </view>
-        </view>
-
-        <text class="card-content">{{ dynamic.content }}</text>
-
-        <view class="card-images" v-if="dynamic.images.length > 0">
-          <view
-            v-for="(img, imgIndex) in dynamic.images"
-            :key="imgIndex"
-            class="image-item"
-            :style="{ background: img }"
-            @click="previewImage(imgIndex)"
-          ></view>
-        </view>
-
-        <view class="card-footer">
-          <view class="footer-item" @click="handleLike">
-            <view class="footer-icon" :class="{ liked: dynamic.liked }">
-              <view class="like-icon"></view>
-            </view>
-            <text class="footer-count">{{ dynamic.likes }}</text>
-          </view>
-          <view class="footer-item">
-            <view class="footer-icon">
-              <view class="comment-icon"></view>
-            </view>
-            <text class="footer-count">{{ dynamic.comments }}</text>
-          </view>
-        </view>
+  <view class="detail-container">
+    <TopNavBar :title="''" :showBack="true" />
+    
+    <scroll-view scroll-y class="detail-scroll">
+      <view v-if="loading" class="loading-container">
+        <Loading />
       </view>
-
-      <view class="comment-section">
-        <text class="section-title">评论 ({{ comments.length }})</text>
-
-        <view class="comment-list">
-          <view
-            v-for="(comment, index) in comments"
-            :key="index"
-            class="comment-item"
-          >
-            <view class="comment-avatar">
-              <view
-                class="avatar-bg"
-                :style="{ background: comment.avatarColor }"
-              ></view>
+      
+      <view v-else class="detail-content">
+        <view class="detail-card">
+          <view class="card-header">
+            <view class="user-left">
+              <view class="user-avatar">
+                <image v-if="post.avatar" :src="getAvatarUrl(post.avatar)" mode="aspectFill" />
+                <view v-else class="avatar-placeholder"></view>
+              </view>
+              <view class="user-info">
+                <text class="user-name">{{ post.username }}</text>
+                <text class="user-meta">{{ formatTime(post.created_at) }}</text>
+              </view>
             </view>
-            <view class="comment-content">
-              <view class="comment-header">
-                <text class="comment-name">{{ comment.userName }}</text>
-                <text class="comment-time">{{ comment.time }}</text>
+            <view class="header-right">
+              <view v-if="isOwnPost()" class="delete-btn" @click="handleDelete">
+                <view class="delete-icon"></view>
               </view>
-              <text class="comment-text">{{ comment.content }}</text>
-              <view class="comment-actions">
-                <view class="action-item" @click="handleReply(comment)">
-                  <text class="action-text">回复</text>
+              <view v-else class="more-icon"></view>
+            </view>
+          </view>
+
+          <text class="card-content">{{ post.content }}</text>
+
+          <view class="card-images" v-if="post.images && post.images.length > 0">
+            <image
+              v-for="(img, imgIndex) in post.images"
+              :key="imgIndex"
+              class="image-item"
+              :src="img"
+              mode="aspectFill"
+              @click="previewImage(post, imgIndex)"
+            />
+          </view>
+
+          <view class="card-footer">
+            <view class="footer-left">
+              <view class="footer-item" @click="handleLike">
+                <view class="footer-icon" :class="{ liked: liked }">
+                  <text class="like-icon">{{ liked ? '♥' : '♡' }}</text>
                 </view>
-                <view class="action-item" @click="handleCommentLike(comment)">
-                  <view
-                    class="action-icon"
-                    :class="{ liked: comment.liked }"
-                  ></view>
-                  <text class="action-text">{{ comment.likes }}</text>
-                </view>
+                <text class="footer-count">{{ likes }}</text>
               </view>
-
-              <!-- 回复列表 -->
-              <view
-                v-if="comment.replies && comment.replies.length > 0"
-                class="reply-list"
-              >
-                <view
-                  v-if="comment.replies.length > 5"
-                  class="reply-toggle"
-                  @click="toggleReplyExpand(comment)"
-                >
-                  <text class="toggle-text">
-                    {{
-                      comment.showAllReplies
-                        ? `收起${comment.replies.length - 5}条回复`
-                        : `查看全部${comment.replies.length}条回复`
-                    }}
-                  </text>
+              <view class="footer-item">
+                <view class="footer-icon">
+                  <text class="comment-icon">💬</text>
                 </view>
+                <text class="footer-count">{{ comments }}</text>
+              </view>
+            </view>
+            <view class="footer-item" @click="handleShare">
+              <text class="share-icon">↗</text>
+            </view>
+          </view>
+        </view>
 
-                <view
-                  v-for="(reply, replyIndex) in comment.showAllReplies
-                    ? comment.replies
-                    : comment.replies.slice(0, 5)"
-                  :key="replyIndex"
-                  class="reply-item"
-                >
-                  <text class="reply-name">{{ reply.userName }}</text>
-                  <text class="reply-content">{{ reply.content }}</text>
-                  <view class="reply-actions">
-                    <view
-                      class="reply-action-item"
-                      @click="handleReply(comment)"
-                    >
-                      <text class="reply-action-text">回复</text>
-                    </view>
-                    <view
-                      class="reply-action-item"
-                      @click="handleReplyLike(reply)"
-                    >
-                      <text class="reply-action-text">{{ reply.likes }}</text>
-                    </view>
+        <view class="comment-section">
+          <view class="section-header">
+            <text class="section-title">评论 ({{ comments }})</text>
+          </view>
+
+          <view v-if="commentsList.length === 0" class="no-comment">
+            <text>暂无评论，快来发表第一条评论吧</text>
+          </view>
+
+          <template v-for="comment in nestedComments" :key="comment.id">
+            <view
+              class="comment-item"
+              @longpress="showCommentAction(comment)"
+            >
+              <view class="comment-avatar">
+                <image v-if="comment.avatar" :src="getAvatarUrl(comment.avatar)" mode="aspectFill" />
+                <view v-else class="avatar-placeholder"></view>
+              </view>
+              <view class="comment-content-wrapper">
+                <view class="comment-content">
+                  <view class="comment-header">
+                    <text class="comment-name">{{ comment.username }}</text>
+                    <text class="comment-time">{{ formatTime(comment.created_at) }}</text>
+                  </view>
+                  <view class="comment-text-wrapper">
+                    <text class="comment-text">{{ comment.content }}</text>
                   </view>
                 </view>
+                <view 
+                  v-if="canDeleteComment(comment)" 
+                  class="comment-delete-btn"
+                  @click.stop="handleDeleteComment(comment)"
+                >
+                  <text>删除</text>
+                </view>
               </view>
+              <view class="comment-actions">
+                <view 
+                  class="comment-reply-btn" 
+                  @click="handleReply(comment)"
+                >
+                  <text>回复</text>
+                </view>
+                <view 
+                  v-if="comment.replies.length > 0"
+                  class="comment-expand-btn"
+                  @click="toggleExpand(comment.id)"
+                >
+                  <text>{{ isExpanded(comment.id) ? `收起(${comment.replies.length})` : `查看(${comment.replies.length})` }}</text>
+                </view>
+              </view>
+            </view>
+
+            <view 
+              v-if="comment.replies.length > 0 && isExpanded(comment.id)"
+              class="replies-section"
+            >
+              <view
+                v-for="reply in comment.replies"
+                :key="reply.id"
+                class="reply-item"
+                @longpress="showCommentAction(reply)"
+              >
+                <view class="reply-avatar">
+                  <image v-if="reply.avatar" :src="getAvatarUrl(reply.avatar)" mode="aspectFill" />
+                  <view v-else class="avatar-placeholder"></view>
+                </view>
+                <view class="reply-content-wrapper">
+                  <view class="reply-content">
+                    <view class="reply-header">
+                      <text class="reply-name">{{ reply.username }}</text>
+                      <text class="reply-time">{{ formatTime(reply.created_at) }}</text>
+                    </view>
+                    <view class="reply-text-wrapper">
+                      <text v-if="reply.reply_to_name" class="reply-label">@{{ reply.reply_to_name }}:</text>
+                      <text class="reply-text">{{ reply.content }}</text>
+                    </view>
+                  </view>
+                  <view 
+                    v-if="canDeleteComment(reply)" 
+                    class="reply-delete-btn"
+                    @click.stop="handleDeleteComment(reply)"
+                  >
+                    <text>删除</text>
+                  </view>
+                </view>
+                <view 
+                  class="reply-reply-btn" 
+                  @click="handleReply(reply)"
+                >
+                  <text>回复</text>
+                </view>
+              </view>
+            </view>
+          </template>
+
+          <view v-if="loadingComments" class="loading-comments">
+            <view class="loading-dots">
+              <view class="dot"></view>
+              <view class="dot"></view>
+              <view class="dot"></view>
             </view>
           </view>
         </view>
       </view>
     </scroll-view>
 
-    <view v-if="replyingTo" class="reply-hint">
-      <text class="reply-label">回复</text>
-      <text class="reply-name">{{ replyingTo.userName }}</text>
-      <view class="cancel-reply" @click="cancelReply">
-        <text class="cancel-text">取消</text>
+    <view 
+      class="comment-input-bar"
+      :class="{ 'show-reply': replyingComment }"
+    >
+      <view v-if="replyingComment" class="reply-hint">
+        <text>回复 {{ replyingComment.username }}</text>
+        <view class="close-reply" @click="cancelReply">×</view>
       </view>
-    </view>
-    <view class="input-bar">
       <input
-        v-model="inputText"
-        class="input-field"
-        :placeholder="
-          replyingTo ? `回复 ${replyingTo.userName}...` : '发表评论...'
-        "
-        placeholder-class="input-placeholder"
+        class="comment-input"
+        v-model="commentContent"
+        :placeholder="replyingComment ? '写下你的回复...' : '写下你的评论...'"
+        confirm-type="send"
+        @confirm="submitComment"
+        :focus="showInputFocus"
       />
-      <view class="send-btn" @click="sendComment">
-        <text class="send-text">发送</text>
+      <view 
+        class="send-btn" 
+        :class="{ active: commentContent.trim() }" 
+        @click="submitComment"
+      >
+        <text>发送</text>
       </view>
     </view>
+
+    <view v-if="showActionSheet" class="action-sheet-mask" @click="closeActionSheet">
+      <view class="action-sheet" @click.stop>
+        <view 
+          v-if="canDeleteComment(selectedComment)" 
+          class="action-item delete-action"
+          @click="handleDeleteComment(selectedComment)"
+        >
+          <text>删除评论</text>
+        </view>
+        <view class="action-item cancel-action" @click="closeActionSheet">
+          <text>取消</text>
+        </view>
+      </view>
+    </view>
+
+    <Loading :visible="submitLoading" />
   </view>
 </template>
 
 <script setup lang="ts">
 import TopNavBar from "@/components/common/TopNavBar.vue";
-import { ref, onMounted } from "vue";
-import { onLoad } from "@dcloudio/uni-app";
+import Loading from "@/components/common/Loading.vue";
+import { ref, computed, onMounted } from "vue";
+import { 
+  getPostDetail, 
+  getComments, 
+  likePost, 
+  unlikePost, 
+  addComment, 
+  deletePost, 
+  deleteComment,
+  checkLiked, 
+  type Post, 
+  type Comment 
+} from "@/api/post";
+import { getUserInfo } from "@/api/auth";
 
-const inputText = ref("");
-const replyingTo = ref<any>(null);
+const loading = ref(false);
+const loadingComments = ref(false);
+const submitLoading = ref(false);
+const post = ref<Post & { images: string[] }>({
+  id: 0,
+  user_id: 0,
+  username: "",
+  avatar: "",
+  content: "",
+  images: [],
+  likes: 0,
+  comments: 0,
+  created_at: ""
+});
+const commentsList = ref<Comment[]>([]);
+const expandedComments = ref<Set<number>>(new Set());
 
-// Mock数据列表
-const mockDynamics = [
-  {
-    id: 1,
-    userName: "布丁麻麻",
-    avatarColor: "#FFC1E9",
-    userTag: "柯基 · 2岁",
-    content:
-      "今天带布丁去公园草坪打滚啦！阳光超级好，它开心得像个200斤的孩子哈哈。这就是简单的幸福吧～✨",
-    images: ["#FFE4E1", "#FFD4F0", "#FFC1E9", "#FFB6C1"],
-    likes: 128,
-    comments: 32,
-    liked: false,
-  },
-  {
-    id: 2,
-    userName: "喵星人领养中心",
-    avatarColor: "#E8F5E9",
-    userTag: "志愿者",
-    content:
-      "新来的小橘太粘人啦！一进门就开始蹭腿，求一个有缘的家庭带它回家～ 坐标上海。🍊",
-    images: ["#FFF4D2"],
-    likes: 456,
-    comments: 89,
-    liked: true,
-  },
-  {
-    id: 3,
-    userName: "金毛铲屎官",
-    avatarColor: "#FFD4F0",
-    userTag: "金毛 · 3岁",
-    content: "今天训练了新技能！握手、趴下、打滚一气呵成，奖励了超多零食～🐾",
-    images: ["#FFE4E1", "#FFC1E9"],
-    likes: 234,
-    comments: 45,
-    liked: false,
-  },
-];
+interface NestedComment extends Comment {
+  replies: NestedComment[];
+  isExpanded?: boolean;
+}
 
-// Mock评论数据
-const mockComments: Record<number, any[]> = {
-  1: [
-    {
-      id: 1,
-      userName: "阿花",
-      avatarColor: "#FFD4F0",
-      time: "5分钟前",
-      content: "好可爱呀！布丁好活泼~",
-      likes: 5,
-      liked: false,
-      replies: [
-        {
-          userName: "布丁麻麻",
-          avatarColor: "#FFC1E9",
-          time: "4分钟前",
-          content: "哈哈，它每天精力都很旺盛！",
-          likes: 3,
-          liked: false,
-        },
-        {
-          userName: "旺财",
-          avatarColor: "#FFB6C1",
-          time: "3分钟前",
-          content: "我家的也是，每天都要遛好久",
-          likes: 2,
-          liked: false,
-        },
-        {
-          userName: "球球",
-          avatarColor: "#FFC0CB",
-          time: "2分钟前",
-          content: "柯基就是精力充沛",
-          likes: 1,
-          liked: false,
-        },
-        {
-          userName: "小黄",
-          avatarColor: "#FFF4D2",
-          time: "1分钟前",
-          content: "羡慕有院子的",
-          likes: 0,
-          liked: false,
-        },
-        {
-          userName: "小黑",
-          avatarColor: "#E8F5E9",
-          time: "刚刚",
-          content: "哈哈，太可爱了",
-          likes: 0,
-          liked: false,
-        },
-        {
-          userName: "小白",
-          avatarColor: "#FFE4E1",
-          time: "刚刚",
-          content: "想养一只",
-          likes: 0,
-          liked: false,
-        },
-      ],
-    },
-    {
-      id: 2,
-      userName: "旺财",
-      avatarColor: "#FFB6C1",
-      time: "3分钟前",
-      content: "下次一起去呀！",
-      likes: 3,
-      liked: true,
-      replies: [
-        {
-          userName: "布丁麻麻",
-          avatarColor: "#FFC1E9",
-          time: "2分钟前",
-          content: "好呀好呀！约起来~",
-          likes: 2,
-          liked: false,
-        },
-      ],
-    },
-    {
-      id: 3,
-      userName: "球球",
-      avatarColor: "#FFC0CB",
-      time: "1分钟前",
-      content: "这就是幸福的模样 💕",
-      likes: 8,
-      liked: false,
-      replies: [],
-    },
-  ],
-  2: [
-    {
-      id: 4,
-      userName: "爱猫人士",
-      avatarColor: "#E8F5E9",
-      time: "10分钟前",
-      content: "好可爱的小橘！想领养",
-      likes: 12,
-      liked: false,
-      replies: [
-        {
-          userName: "喵星人领养中心",
-          avatarColor: "#E8F5E9",
-          time: "8分钟前",
-          content: "欢迎来咨询哦！",
-          likes: 5,
-          liked: false,
-        },
-      ],
-    },
-    {
-      id: 5,
-      userName: "上海铲屎官",
-      avatarColor: "#FFF4D2",
-      time: "8分钟前",
-      content: "请问具体在哪里呀？",
-      likes: 6,
-      liked: false,
-      replies: [],
-    },
-  ],
-  3: [
-    {
-      id: 6,
-      userName: "训犬达人",
-      avatarColor: "#FFC1E9",
-      time: "15分钟前",
-      content: "训练得真好！用的什么方法？",
-      likes: 18,
-      liked: true,
-      replies: [],
-    },
-    {
-      id: 7,
-      userName: "新手铲屎官",
-      avatarColor: "#FFD4F0",
-      time: "12分钟前",
-      content: "羡慕！我家的根本不听话 😂",
-      likes: 9,
-      liked: false,
-      replies: [],
-    },
-  ],
-};
+const nestedComments = computed(() => {
+  const map = new Map<number, NestedComment>();
+  const topLevel: NestedComment[] = [];
 
-const dynamic = ref(mockDynamics[0]);
-const comments = ref(mockComments[1] || []);
+  commentsList.value.forEach(comment => {
+    map.set(comment.id, { ...comment, replies: [] });
+  });
 
-onLoad((options: any) => {
-  if (options && options.id) {
-    const id = parseInt(options.id);
-    const found = mockDynamics.find((item) => item.id === id);
-    if (found) {
-      dynamic.value = { ...found };
-      comments.value = mockComments[id] || [];
+  commentsList.value.forEach(comment => {
+    const nestedComment = map.get(comment.id)!;
+    
+    if (!comment.reply_to_id) {
+      topLevel.push(nestedComment);
+    } else {
+      const parentComment = map.get(comment.reply_to_id);
+      if (parentComment) {
+        parentComment.replies.push(nestedComment);
+      } else {
+        topLevel.push(nestedComment);
+      }
     }
-  }
+  });
+
+  topLevel.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  
+  topLevel.forEach(comment => {
+    comment.replies.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  });
+
+  return topLevel;
 });
 
-const handleLike = () => {
-  dynamic.value.liked = !dynamic.value.liked;
-  dynamic.value.likes += dynamic.value.liked ? 1 : -1;
+const toggleExpand = (commentId: number) => {
+  if (expandedComments.value.has(commentId)) {
+    expandedComments.value.delete(commentId);
+  } else {
+    expandedComments.value.add(commentId);
+  }
+  expandedComments.value = new Set(expandedComments.value);
+};
+
+const isExpanded = (commentId: number) => {
+  return expandedComments.value.has(commentId);
+};
+const liked = ref(false);
+const likes = ref(0);
+const comments = ref(0);
+const commentContent = ref("");
+const page = ref(1);
+const size = ref(10);
+const currentUser = ref(getUserInfo());
+const replyingComment = ref<Comment | null>(null);
+const showInputFocus = ref(false);
+const showActionSheet = ref(false);
+const selectedComment = ref<Comment | null>(null);
+
+const isOwnPost = () => {
+  return currentUser.value && currentUser.value.id === post.value.user_id;
+};
+
+const canDeleteComment = (comment: Comment) => {
+  if (!currentUser.value) return false;
+  return currentUser.value.id === comment.user_id || isOwnPost();
+};
+
+const getAvatarUrl = (avatar: string) => {
+  if (!avatar) return "";
+  if (avatar.startsWith("http")) return avatar;
+  return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
+};
+
+const formatTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return "刚刚";
+  if (minutes < 60) return `${minutes}分钟前`;
+  if (hours < 24) return `${hours}小时前`;
+  if (days < 7) return `${days}天前`;
+  
+  return `${date.getMonth() + 1}月${date.getDate()}日`;
+};
+
+const loadPost = async () => {
+  loading.value = true;
+  try {
+    const pages = getCurrentPages();
+    const currentPage = pages[pages.length - 1] as any;
+    const options = currentPage.options;
+    
+    if (options && options.id) {
+      const data = await getPostDetail(parseInt(options.id));
+      post.value = {
+        ...data,
+        images: typeof data.images === 'string' ? JSON.parse(data.images) : data.images
+      };
+      likes.value = data.likes;
+      comments.value = data.comments;
+      
+      if (currentUser.value) {
+        try {
+          const likedResult = await checkLiked(data.id);
+          liked.value = likedResult.liked;
+        } catch (error) {
+          console.warn("检查点赞状态失败:", error);
+        }
+      }
+      
+      await loadComments();
+    }
+  } catch (error) {
+    console.error("获取动态详情失败:", error);
+    uni.showToast({ title: "加载失败", icon: "none" });
+  } finally {
+    loading.value = false;
+  }
+};
+
+const loadComments = async () => {
+  loadingComments.value = true;
+  try {
+    const response = await getComments(post.value.id, page.value, size.value);
+    commentsList.value = response.list;
+  } catch (error) {
+    console.error("获取评论失败:", error);
+  } finally {
+    loadingComments.value = false;
+  }
+};
+
+const handleLike = async () => {
+  uni.vibrateShort({ type: "light" });
+  
+  if (liked.value) {
+    try {
+      await unlikePost(post.value.id);
+      liked.value = false;
+      likes.value--;
+    } catch (error) {
+      console.error("取消点赞失败:", error);
+    }
+  } else {
+    try {
+      await likePost(post.value.id);
+      liked.value = true;
+      likes.value++;
+    } catch (error) {
+      console.error("点赞失败:", error);
+    }
+  }
 };
 
 const handleShare = () => {
@@ -376,64 +416,103 @@ const handleShare = () => {
   });
 };
 
-const previewImage = (index: number) => {
+const handleDelete = async () => {
+  uni.showModal({
+    title: "确认删除",
+    content: "确定要删除这条动态吗？",
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await deletePost(post.value.id);
+          uni.showToast({ title: "删除成功", icon: "success" });
+          setTimeout(() => {
+            uni.navigateBack();
+          }, 1500);
+        } catch (error) {
+          console.error("删除失败:", error);
+          uni.showToast({ title: "删除失败", icon: "none" });
+        }
+      }
+    }
+  });
+};
+
+const handleReply = (comment: Comment) => {
+  replyingComment.value = comment;
+  showInputFocus.value = true;
+};
+
+const cancelReply = () => {
+  replyingComment.value = null;
+  commentContent.value = "";
+  showInputFocus.value = false;
+};
+
+const submitComment = async () => {
+  if (!commentContent.value.trim()) {
+    uni.showToast({ title: "请输入评论内容", icon: "none" });
+    return;
+  }
+  
+  submitLoading.value = true;
+  try {
+    await addComment(post.value.id, commentContent.value, replyingComment.value?.id);
+    uni.showToast({ title: "评论成功", icon: "success" });
+    commentContent.value = "";
+    comments.value++;
+    await loadComments();
+    cancelReply();
+  } catch (error) {
+    console.error("评论失败:", error);
+    uni.showToast({ title: "评论失败", icon: "none" });
+  } finally {
+    submitLoading.value = false;
+  }
+};
+
+const showCommentAction = (comment: Comment) => {
+  selectedComment.value = comment;
+  showActionSheet.value = true;
+};
+
+const closeActionSheet = () => {
+  showActionSheet.value = false;
+  selectedComment.value = null;
+};
+
+const handleDeleteComment = async (comment: Comment) => {
+  closeActionSheet();
+  uni.showModal({
+    title: "确认删除",
+    content: "确定要删除这条评论吗？",
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await deleteComment(comment.id);
+          uni.showToast({ title: "删除成功", icon: "success" });
+          await loadComments();
+          await loadPost();
+        } catch (error) {
+          console.error("删除评论失败:", error);
+          uni.showToast({ title: "删除失败", icon: "none" });
+        }
+      }
+    }
+  });
+};
+
+const previewImage = (item: any, index: number) => {
+  if (!item.images || item.images.length === 0) return;
+  
   uni.previewImage({
-    urls: dynamic.value.images,
+    urls: item.images,
     current: index,
   });
 };
 
-const handleReply = (comment: any) => {
-  replyingTo.value = comment;
-};
-
-const cancelReply = () => {
-  replyingTo.value = null;
-};
-
-const toggleReplyExpand = (comment: any) => {
-  comment.showAllReplies = !comment.showAllReplies;
-};
-
-const handleReplyLike = (reply: any) => {
-  reply.liked = !reply.liked;
-  reply.likes += reply.liked ? 1 : -1;
-};
-
-const handleCommentLike = (comment: any) => {
-  comment.liked = !comment.liked;
-  comment.likes += comment.liked ? 1 : -1;
-};
-
-const sendComment = () => {
-  if (!inputText.value.trim()) {
-    uni.showToast({
-      title: "请输入评论内容",
-      icon: "none",
-    });
-    return;
-  }
-
-  const newComment = {
-    userName: "我",
-    avatarColor: "#FFC1E9",
-    time: "刚刚",
-    content: replyingTo.value
-      ? `@${replyingTo.value.userName} ${inputText.value}`
-      : inputText.value,
-    likes: 0,
-    liked: false,
-    replyTo: replyingTo.value ? replyingTo.value.userName : null,
-  };
-
-  comments.value.push(newComment);
-  inputText.value = "";
-  dynamic.value.comments++;
-
-  if (replyingTo.value) {
-    replyingTo.value = null;
-  }
-};
+onMounted(() => {
+  loadPost();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -442,184 +521,257 @@ const sendComment = () => {
 .detail-container {
   min-height: 100vh;
   background: $color-bg-primary;
-  padding-bottom: 120rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-scroll {
+  flex: 1;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 200rpx 0;
 }
 
 .detail-content {
-  padding: 24rpx 32rpx;
-  max-height: calc(100vh - 400rpx);
-  box-sizing: border-box;
+  padding: 32rpx;
 }
 
-.feed-card {
+.detail-card {
   background: $color-bg-white;
-  border-radius: $border-radius-large;
+  border-radius: 24rpx;
   padding: 32rpx;
   margin-bottom: 32rpx;
-  border: 1rpx solid rgba(113, 88, 92, 0.1);
-  box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.08);
+  box-shadow: 0 12rpx 40rpx rgba(107, 78, 61, 0.06);
 }
 
 .card-header {
   display: flex;
-  align-items: flex-start;
-  margin-bottom: 24rpx;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28rpx;
+}
+
+.user-left {
+  display: flex;
+  gap: 24rpx;
+  align-items: center;
 }
 
 .user-avatar {
-  width: 80rpx;
-  height: 80rpx;
+  width: 96rpx;
+  height: 96rpx;
   border-radius: 50%;
-  padding: 4rpx;
-  border: 4rpx solid $color-primary-light;
-  margin-right: 20rpx;
+  overflow: hidden;
 }
 
-.avatar-bg {
+.avatar-placeholder {
   width: 100%;
   height: 100%;
   border-radius: 50%;
+  background: linear-gradient(135deg, #FFC1E9, #FFD4F0);
 }
 
 .user-info {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 4rpx;
 }
 
 .user-name {
-  font-size: $font-size-body;
-  font-weight: $font-weight-bold;
-  color: $color-gray-dark;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #3D2F2F;
 }
 
-.user-tags {
+.user-meta {
+  font-size: 24rpx;
+  color: #9B9090;
+}
+
+.header-right {
   display: flex;
-  gap: 8rpx;
-}
-
-.tag {
-  padding: 6rpx 16rpx;
-  background: rgba(113, 88, 92, 0.08);
-  color: $color-primary;
-  font-size: $font-size-helper;
-  font-weight: $font-weight-bold;
-  border-radius: $border-radius-small;
-}
-
-.more-btn {
-  padding: 8rpx;
+  align-items: center;
 }
 
 .more-icon {
-  width: 36rpx;
-  height: 36rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #7A6E6E;
+}
+
+.delete-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff0f0;
+  border-radius: 50%;
+  
+  &:active {
+    background: #ffe0e0;
+  }
+}
+
+.delete-icon {
+  width: 32rpx;
+  height: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #E53935;
 }
 
 .card-content {
-  font-size: $font-size-body;
-  color: $color-gray-dark;
-  line-height: 1.6;
-  margin-bottom: 24rpx;
+  font-size: 32rpx;
+  color: #4D3E3E;
+  line-height: 1.8;
+  margin-bottom: 28rpx;
 }
 
 .card-images {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 28rpx;
 }
 
 .image-item {
   aspect-ratio: 1;
-  border-radius: $border-radius-medium;
+  border-radius: 16rpx;
+  background: #F5F5F5;
 }
 
 .card-footer {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #F5F0F0;
+}
+
+.footer-left {
+  display: flex;
   gap: 48rpx;
-  padding-top: 24rpx;
-  border-top: 1rpx solid rgba(113, 88, 92, 0.1);
 }
 
 .footer-item {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 12rpx;
 }
 
 .footer-icon {
-  width: 36rpx;
-  height: 36rpx;
-
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  
   &.liked {
-    .like-icon {
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
-        no-repeat center;
-      background-size: 100%;
-    }
+    animation: likeAnimation 0.3s ease;
   }
 }
 
+@keyframes likeAnimation {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
 .like-icon {
-  width: 100%;
-  height: 100%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
+  font-size: 36rpx;
+  color: #C4B5B5;
+}
+
+.footer-icon.liked .like-icon {
+  color: #FF6B6B;
 }
 
 .comment-icon {
-  width: 100%;
-  height: 100%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
+  font-size: 32rpx;
+  color: #C4B5B5;
 }
 
 .footer-count {
-  font-size: 22rpx;
-  font-weight: 600;
-  color: #807476;
+  font-size: 26rpx;
+  color: #9B9090;
+}
+
+.share-icon {
+  font-size: 32rpx;
+  color: #C4B5B5;
 }
 
 .comment-section {
   background: $color-bg-white;
-  border-radius: $border-radius-large;
+  border-radius: 24rpx;
   padding: 32rpx;
-  border: 1rpx solid rgba(113, 88, 92, 0.1);
-  box-shadow: 0 8rpx 24rpx rgba(168, 155, 157, 0.08);
+}
+
+.section-header {
+  margin-bottom: 28rpx;
 }
 
 .section-title {
-  font-size: $font-size-body;
-  font-weight: $font-weight-bold;
-  color: $color-primary;
-  margin-bottom: 24rpx;
-  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #3D2F2F;
 }
 
-.comment-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
+.no-comment {
+  text-align: center;
+  padding: 80rpx 0;
+  color: #9B9090;
+  font-size: 28rpx;
 }
 
 .comment-item {
   display: flex;
-  gap: 16rpx;
+  gap: 20rpx;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #F5F0F0;
+  transition: background-color 0.2s ease;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:active {
+    background-color: #F8F8F8;
+  }
+  
+  &.comment-item-reply {
+    padding-left: 40rpx;
+    background-color: #FAFAFA;
+    margin-left: -32rpx;
+    margin-right: -32rpx;
+    padding-left: 72rpx;
+  }
 }
 
 .comment-avatar {
-  width: 64rpx;
-  height: 64rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
-  padding: 3rpx;
-  background: $color-primary-light;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.comment-content-wrapper {
+  flex: 1;
+  position: relative;
 }
 
 .comment-content {
@@ -628,192 +780,360 @@ const sendComment = () => {
 
 .comment-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 8rpx;
+  align-items: center;
+  margin-bottom: 12rpx;
 }
 
 .comment-name {
-  font-size: $font-size-body;
-  font-weight: $font-weight-bold;
-  color: $color-gray-dark;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #3D2F2F;
 }
 
 .comment-time {
-  font-size: $font-size-helper;
-  color: $color-gray-medium;
+  font-size: 22rpx;
+  color: #9B9090;
+}
+
+.comment-text-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.reply-label {
+  font-size: 28rpx;
+  color: #7B5B45;
+  font-weight: 500;
 }
 
 .comment-text {
-  font-size: $font-size-body;
-  color: $color-gray-dark;
-  line-height: 1.5;
-  margin-bottom: 12rpx;
-  display: block;
+  font-size: 28rpx;
+  color: #4D3E3E;
+  line-height: 1.6;
+}
+
+.comment-delete-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 8rpx 20rpx;
+  background: #fff0f0;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: #E53935;
+  
+  &:active {
+    background: #ffe0e0;
+  }
 }
 
 .comment-actions {
   display: flex;
-  gap: 24rpx;
-}
-
-.action-item {
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8rpx;
 }
 
-.action-icon {
-  width: 28rpx;
-  height: 28rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23807476'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
+.comment-reply-btn {
+  padding: 8rpx 20rpx;
+  font-size: 24rpx;
+  color: #7B5B45;
+}
 
-  &.liked {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
+.comment-expand-btn {
+  padding: 8rpx 20rpx;
+  font-size: 22rpx;
+  color: #9B9090;
+  background: #F5F5F5;
+  border-radius: 20rpx;
+}
+
+.replies-section {
+  background: #FAFAFA;
+  margin-left: -32rpx;
+  margin-right: -32rpx;
+  padding-left: 104rpx;
+  padding-right: 32rpx;
+  border-top: 1rpx solid #F0F0F0;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
   }
-}
-
-.action-text {
-  font-size: $font-size-helper;
-  color: $color-gray-medium;
-}
-
-.reply-list {
-  margin-top: 16rpx;
-  padding-left: 24rpx;
-  border-left: 2rpx solid $color-primary-light;
-}
-
-.reply-toggle {
-  padding: 8rpx 0;
-  margin-bottom: 8rpx;
-}
-
-.toggle-text {
-  font-size: $font-size-helper;
-  color: $color-primary;
+  to {
+    opacity: 1;
+    max-height: 1000rpx;
+  }
 }
 
 .reply-item {
-  padding: 12rpx 0;
-  border-bottom: 1rpx solid rgba(113, 88, 92, 0.05);
-
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+  transition: background-color 0.2s ease;
+  
   &:last-child {
     border-bottom: none;
   }
-}
-
-.reply-name {
-  font-size: $font-size-body;
-  font-weight: $font-weight-bold;
-  color: $color-gray-dark;
-  margin-right: 8rpx;
-}
-
-.reply-content {
-  font-size: $font-size-body;
-  color: $color-gray-medium;
-  line-height: 1.5;
-}
-
-.reply-actions {
-  display: flex;
-  gap: 20rpx;
-  margin-top: 8rpx;
-}
-
-.reply-action-item {
-  display: flex;
-  align-items: center;
-}
-
-.reply-action-text {
-  font-size: $font-size-helper;
-  color: $color-gray-medium;
-}
-
-.reply-hint {
-  position: fixed;
-  bottom: 96rpx;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 16rpx 32rpx;
-  background: $color-bg-primary;
-  border-top: 1rpx solid rgba(113, 88, 92, 0.1);
-}
-
-.reply-label {
-  font-size: $font-size-body;
-  color: $color-gray-medium;
-}
-
-.reply-name {
-  font-size: $font-size-body;
-  color: $color-primary;
-  font-weight: $font-weight-bold;
-}
-
-.cancel-reply {
-  margin-left: auto;
-  padding: 8rpx 20rpx;
-  background: rgba(113, 88, 92, 0.1);
-  border-radius: $border-radius-base;
-}
-
-.cancel-text {
-  font-size: $font-size-body;
-  color: $color-gray-medium;
-}
-
-.input-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding: 16rpx 32rpx;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
-  background: $color-bg-white;
-  border-top: 1rpx solid rgba(113, 88, 92, 0.1);
-  box-shadow: 0 -4rpx 16rpx rgba(168, 155, 157, 0.08);
-}
-
-.input-field {
-  flex: 1;
-  height: 72rpx;
-  background: $color-bg-primary;
-  border-radius: 36rpx;
-  padding: 0 24rpx;
-  font-size: 26rpx;
-  border: none;
-}
-
-.input-placeholder {
-  color: $color-gray-medium;
-}
-
-.send-btn {
-  padding: 16rpx 32rpx;
-  background: $color-primary;
-  border-radius: 36rpx;
-
+  
   &:active {
-    transform: scale(1);
+    background-color: #F0F0F0;
   }
 }
 
-.send-text {
-  font-size: $font-size-body;
-  color: $color-bg-white;
-  font-weight: $font-weight-bold;
+.reply-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.reply-content-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.reply-content {
+  flex: 1;
+}
+
+.reply-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.reply-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #3D2F2F;
+}
+
+.reply-time {
+  font-size: 20rpx;
+  color: #9B9090;
+}
+
+.reply-text-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6rpx;
+}
+
+.reply-label {
+  font-size: 26rpx;
+  color: #7B5B45;
+  font-weight: 500;
+}
+
+.reply-text {
+  font-size: 26rpx;
+  color: #4D3E3E;
+  line-height: 1.5;
+}
+
+.reply-delete-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 6rpx 16rpx;
+  background: #fff0f0;
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  color: #E53935;
+  
+  &:active {
+    background: #ffe0e0;
+  }
+}
+
+.reply-reply-btn {
+  padding: 6rpx 16rpx;
+  font-size: 22rpx;
+  color: #7B5B45;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  
+  .reply-item:active &,
+  .reply-item:hover & {
+    opacity: 1;
+  }
+}
+
+.loading-comments {
+  text-align: center;
+  padding: 32rpx 0;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #C4B5B5;
+  animation: dotLoading 1.4s infinite ease-in-out both;
+  
+  &:nth-child(1) { animation-delay: -0.32s; }
+  &:nth-child(2) { animation-delay: -0.16s; }
+}
+
+@keyframes dotLoading {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.comment-input-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  background: $color-bg-white;
+  border-top: 1rpx solid #F5F0F0;
+  transition: all 0.3s ease;
+  z-index: 100;
+  
+  &.show-reply {
+    padding-top: 60rpx;
+  }
+}
+
+.reply-hint {
+  position: absolute;
+  top: 0;
+  left: 32rpx;
+  right: 32rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  color: #7B5B45;
+  background: #FFF8F0;
+  border-radius: 16rpx 16rpx 0 0;
+}
+
+.close-reply {
+  font-size: 36rpx;
+  color: #9B9090;
+  padding: 0 16rpx;
+}
+
+.comment-input {
+  flex: 1;
+  height: 88rpx;
+  background: #F5F5F5;
+  border-radius: 44rpx;
+  padding: 0 32rpx;
+  font-size: 28rpx;
+  transition: background-color 0.2s ease;
+  
+  &:focus {
+    background: #FFFFFF;
+    border: 2rpx solid #FFB6C1;
+  }
+}
+
+.send-btn {
+  padding: 24rpx 48rpx;
+  background: #E8E8E8;
+  border-radius: 44rpx;
+  color: #9B9090;
+  font-size: 28rpx;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  transform: scale(1);
+  
+  &.active {
+    background: linear-gradient(135deg, #FFB6C1, #FFC1E9);
+    color: white;
+    box-shadow: 0 8rpx 24rpx rgba(255, 182, 193, 0.3);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.action-sheet-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.action-sheet {
+  width: 100%;
+  background: white;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 24rpx 0 calc(24rpx + env(safe-area-inset-bottom));
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.action-item {
+  padding: 32rpx;
+  text-align: center;
+  font-size: 32rpx;
+  color: #3D2F2F;
+  border-bottom: 1rpx solid #F5F0F0;
+  
+  &:last-child {
+    border-bottom: none;
+    margin-top: 16rpx;
+  }
+  
+  &.delete-action {
+    color: #E53935;
+    font-weight: 600;
+  }
+  
+  &.cancel-action {
+    background: #F8F8F8;
+    margin-top: 16rpx;
+    margin-left: 24rpx;
+    margin-right: 24rpx;
+    border-radius: 16rpx;
+  }
+  
+  &:active {
+    background: #F5F5F5;
+  }
 }
 </style>
