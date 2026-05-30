@@ -57,103 +57,69 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
+import { getChatMessages, sendMessage as sendMsgApi } from "@/api/message";
+import { getUserInfo as getStoredUser } from "@/api/auth";
+import { getUserInfo } from "@/api/user";
+import { formatTime } from "@/utils/format";
+import { resolveMediaUrl } from "@/utils/media";
 
-const friendName = ref("小明");
+const peerUserId = ref(0);
+const friendName = ref("");
 const inputText = ref("");
 const scrollToId = ref("");
-const myAvatar = ref("https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop");
+const myAvatar = ref("");
+const myUserId = ref(0);
 
-const messages = ref([
-  {
-    id: 1,
-    content: "你好呀！🐶",
-    time: "10:00",
-    isMe: false,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-  },
-  {
-    id: 2,
-    content: "你好呀！今天出去遛狗吗？",
-    time: "10:01",
-    isMe: true,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-  },
-  {
-    id: 3,
-    content: "今天不下雨，要不要一起去公园？",
-    time: "10:02",
-    isMe: false,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-  },
-  {
-    id: 4,
-    content: "好呀！去哪边？",
-    time: "10:03",
-    isMe: true,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-  },
-  {
-    id: 5,
-    content: "中央公园吧，那边草坪大～",
-    time: "10:05",
-    isMe: false,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-  },
-  {
-    id: 6,
-    content: "可以，几点？",
-    time: "10:06",
-    isMe: true,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-  },
-  {
-    id: 7,
-    content: "下午三点怎么样？",
-    time: "10:08",
-    isMe: false,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-  },
-  {
-    id: 8,
-    content: "没问题，到时见！🐾",
-    time: "10:10",
-    isMe: true,
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-  },
-]);
+const messages = ref<
+  Array<{
+    id: number;
+    content: string;
+    time: string;
+    isMe: boolean;
+    avatar: string;
+  }>
+>([]);
 
-const goBack = () => {
-  uni.navigateBack();
+const goBack = () => uni.navigateBack();
+
+const loadMessages = async () => {
+  if (!peerUserId.value) return;
+  try {
+    const list = await getChatMessages(peerUserId.value, 1, 100);
+    messages.value = list.map((m) => ({
+      id: m.id,
+      content: m.content,
+      time: formatTime(m.created_at),
+      isMe: m.from_id === myUserId.value,
+      avatar: resolveMediaUrl(
+        m.from_id === myUserId.value ? myAvatar.value : m.from_avatar,
+      ),
+    }));
+    setTimeout(() => {
+      scrollToId.value = "msg-" + Math.max(0, messages.value.length - 1);
+    }, 100);
+  } catch {
+    uni.showToast({ title: "加载消息失败", icon: "none" });
+  }
 };
 
-const sendMessage = () => {
-  if (!inputText.value.trim()) return;
-
-  messages.value.push({
-    id: messages.value.length + 1,
-    content: inputText.value,
-    time: new Date().toLocaleTimeString("zh-CN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    isMe: true,
-    avatar: myAvatar.value,
-  });
-
+const sendMessage = async () => {
+  if (!inputText.value.trim() || !peerUserId.value) return;
+  const content = inputText.value.trim();
   inputText.value = "";
-
-  setTimeout(() => {
+  try {
+    const msg = await sendMsgApi(peerUserId.value, content);
     messages.value.push({
-      id: messages.value.length + 1,
-      content: "好的，不见不散！",
-      time: new Date().toLocaleTimeString("zh-CN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      isMe: false,
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
+      id: msg.id,
+      content: msg.content,
+      time: formatTime(msg.created_at),
+      isMe: true,
+      avatar: myAvatar.value,
     });
-  }, 1000);
+  } catch {
+    uni.showToast({ title: "发送失败", icon: "none" });
+  }
 };
 
 watch(
@@ -166,8 +132,24 @@ watch(
   { deep: true },
 );
 
+onLoad(async (options) => {
+  peerUserId.value = Number(options?.userId);
+  friendName.value = decodeURIComponent(options?.name || "聊天");
+  const stored = getStoredUser();
+  if (stored) myUserId.value = stored.id;
+  try {
+    const me = await getUserInfo();
+    myUserId.value = me.id;
+    myAvatar.value = resolveMediaUrl(me.avatar);
+  } catch {
+    /* ignore */
+  }
+  await loadMessages();
+});
+
 onMounted(() => {
-  scrollToId.value = "msg-" + (messages.value.length - 1);
+  if (messages.value.length)
+    scrollToId.value = "msg-" + (messages.value.length - 1);
 });
 </script>
 

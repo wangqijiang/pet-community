@@ -4,11 +4,6 @@
     <!-- Main Content -->
     <scroll-view class="page-content" scroll-y>
       <!-- Welcome Section -->
-      <view class="welcome-section">
-        <text class="welcome-title">宠爱乐园</text>
-        <text class="welcome-desc">在这里记录宝贝们成长的每一个瞬间</text>
-      </view>
-
       <!-- Pet List -->
       <view class="pet-list">
         <view
@@ -83,14 +78,13 @@
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import Empty from "@/components/common/Empty.vue";
 import { ref, onMounted, onUnmounted } from "vue";
+import { onShow } from "@dcloudio/uni-app";
 import Loading from "@/components/common/Loading.vue";
 import { getPetList, deletePet, type Pet } from "@/api/pet";
 
 const loading = ref(false);
 const pets = ref<Pet[]>([]);
-const swipedIndex = ref & lt;
-number | (null & gt);
-null;
+const swipedIndex = ref<number | null>(null);
 let touchStartX = 0;
 let touchStartY = 0;
 const SWIPE_THRESHOLD = 80;
@@ -98,7 +92,9 @@ const SWIPE_THRESHOLD = 80;
 const getFullAvatarUrl = (avatar: string) => {
   if (!avatar) return "";
   if (avatar.startsWith("http")) return avatar;
-  return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
+  return `${
+    import.meta.env.VITE_API_BASE_URL || "https://api.example.com"
+  }${avatar}`;
 };
 
 const getGenderClass = (gender: string) => {
@@ -164,10 +160,12 @@ const handleDeletePet = async (pet: Pet) => {
   });
 };
 
-onMounted(async () => {
-  await loadPets();
-  // 监听刷新宠物列表事件
+onMounted(() => {
   uni.$on("refreshPetList", loadPets);
+});
+
+onShow(() => {
+  loadPets();
 });
 
 onUnmounted(() => {

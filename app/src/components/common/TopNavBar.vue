@@ -44,8 +44,6 @@ const emit = defineEmits<{
 }>();
 
 const statusBarHeight = ref(20);
-const navBarContentHeight = ref(48); // 96rpx = 48px
-
 onMounted(() => {
   const sysInfo = uni.getSystemInfoSync();
   statusBarHeight.value = sysInfo.statusBarHeight || 20;
@@ -77,12 +75,9 @@ const handleRightClick = () => {
 @import "@/styles/variables.scss";
 
 .navbar {
-  position: sticky;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: $z-index-nav;
+  width: 100%;
   background: rgba(255, 247, 241, 1);
+  border-bottom: 1rpx solid rgba(255, 193, 233, 0.35);
 }
 
 .navbar-content {
@@ -90,6 +85,8 @@ const handleRightClick = () => {
   align-items: center;
   justify-content: space-between;
   padding: 0 32rpx;
+  height: 88rpx;
+  min-height: 88rpx;
 }
 
 .navbar-left {

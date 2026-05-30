@@ -1,0 +1,129 @@
+import { get, post } from "@/utils/request";
+import { parseJsonArray } from "@/utils/format";
+
+export interface Place {
+  id: number;
+  name: string;
+  type: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+  images?: string[] | string;
+  phone?: string;
+  rating: number;
+  likes?: number;
+  reviews_count?: number;
+  business_hours?: string;
+  pet_policy?: string;
+  amenities?: string[] | string;
+  distance_km?: number;
+  distance?: string;
+}
+
+export interface PlaceReview {
+  id: number;
+  place_id: number;
+  user_id: number;
+  username: string;
+  avatar: string;
+  rating: number;
+  content: string;
+  created_at: string;
+}
+
+export interface PlaceListResponse {
+  list: Place[];
+  pagination: {
+    total: number;
+    page: number;
+    size: number;
+    pages: number;
+  };
+}
+
+function normalizePlace(place: Place): Place {
+  return {
+    ...place,
+    images: parseJsonArray<string>(place.images),
+    amenities: parseJsonArray<string>(place.amenities),
+    distance:
+      place.distance ||
+      (place.distance_km != null
+        ? place.distance_km < 1
+          ? `${Math.round(place.distance_km * 1000)}m`
+          : `${place.distance_km.toFixed(1)}km`
+        : undefined),
+  };
+}
+
+export async function getPlaceList(params: {
+  page?: number;
+  size?: number;
+  type?: string;
+  keyword?: string;
+  lat?: number;
+  lng?: number;
+  radius?: number;
+} = {}): Promise<PlaceListResponse> {
+  const res = await get<PlaceListResponse>("/place", params as Record<string, unknown>);
+  return {
+    list: (res.data?.list || []).map(normalizePlace),
+    pagination: res.data?.pagination || {
+      total: 0,
+      page: params.page || 1,
+      size: params.size || 10,
+      pages: 0,
+    },
+  };
+}
+
+export async function getPlaceDetail(id: number): Promise<Place> {
+  const res = await get<Place>(`/place/${id}`);
+  return normalizePlace(res.data);
+}
+
+export async function getPlaceReviews(
+  placeId: number,
+  page = 1,
+  size = 10,
+): Promise<{ list: PlaceReview[]; pagination: PlaceListResponse["pagination"] }> {
+  const res = await get<{ list: PlaceReview[]; pagination: PlaceListResponse["pagination"] }>(
+    `/place/${placeId}/reviews`,
+    { page, size },
+  );
+  return res.data || { list: [], pagination: { total: 0, page, size, pages: 0 } };
+}
+
+export async function togglePlaceLike(
+  placeId: number,
+): Promise<{ liked: boolean }> {
+  const res = await post<{ liked: boolean }>(`/place/${placeId}/like`);
+  return res.data;
+}
+
+export async function addPlaceReview(
+  placeId: number,
+  rating: number,
+  content: string,
+): Promise<PlaceReview> {
+  const res = await post<PlaceReview>(`/place/${placeId}/reviews`, {
+    rating,
+    content,
+  });
+  return res.data;
+}
+
+export async function getFavoritePlaces(
+  page = 1,
+  size = 10,
+): Promise<PlaceListResponse> {
+  const res = await get<PlaceListResponse>("/place/user/favorites", {
+    page,
+    size,
+  });
+  return {
+    list: (res.data?.list || []).map(normalizePlace),
+    pagination: res.data?.pagination || { total: 0, page, size, pages: 0 },
+  };
+}

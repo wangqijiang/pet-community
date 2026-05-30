@@ -72,10 +72,10 @@
       }
     },
     {
-      "path": "pages/mine/petInfo",
+      "path": "pages/mine/aiGuide",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "宠物信息",
+        "navigationBarTitleText": "养宠攻略",
         "navigationBarBackgroundColor": "#ffffff"
       }
     },
@@ -175,26 +175,10 @@
         "navigationBarBackgroundColor": "#ffffff"
       }
     },
-    {
-      "path": "pages/notification-detail/notification-detail",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTitleText": "通知详情",
-        "navigationBarBackgroundColor": "#ffffff"
-      }
-    },
-    {
-      "path": "pages/demo/components-demo",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTitleText": "组件演示",
-        "navigationBarBackgroundColor": "#ffffff"
-      }
-    }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "Waggleworld",
+    "navigationBarTitleText": "萌宠朋友圈",
     "navigationBarBackgroundColor": "#ffffff",
     "backgroundColor": "#f5f5f5"
   }

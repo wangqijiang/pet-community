@@ -1,30 +1,26 @@
 <template>
-  <view class="page-container">
-    <view class="topbar">
-      <view class="action-group">
-        <view class="action-btn">
-          <view class="action-icon icon-ellipsis"></view>
-        </view>
-        <view class="action-btn" @click="goToSetting">
-          <view class="action-icon icon-settings"></view>
-        </view>
-      </view>
-    </view>
+  <PageLayout :tab-bar="true">
+    <template #navbar>
+      <TopNavBar
+        title="我的"
+        :showBack="false"
+        rightIcon="icon-setting"
+        @rightClick="goToSetting"
+      />
+    </template>
 
-    <scroll-view scroll-y class="content">
+    <view class="mine-content">
       <view class="profile-card">
         <view class="user-row">
           <view class="user-left">
             <image
               class="avatar"
-              :src="
-                userInfo?.avatar ||
-                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop'
-              "
+              :src="userInfo?.avatar ? getFullAvatarUrl(userInfo.avatar) : defaultAvatar"
               mode="aspectFill"
             />
-            <view>
-              <text class="name">{{ userInfo?.username || "Summer Lin" }}</text>
+            <view class="user-info">
+              <text class="name">{{ userInfo?.username || "未登录" }}</text>
+              <text class="desc" v-if="userInfo?.signature">{{ userInfo.signature }}</text>
             </view>
           </view>
           <view class="edit-btn" @click="goToEditInfo">
@@ -58,40 +54,53 @@
             v-for="pet in pets"
             :key="pet.id"
             class="pet-card"
-            @click="goToPetDetail(pet)"
+            @click="goToEditPet(pet)"
           >
-            <image
-              v-if="pet.avatar"
-              class="pet-avatar"
-              :src="getFullAvatarUrl(pet.avatar)"
-              mode="aspectFill"
-            />
-            <view v-else class="pet-avatar-placeholder">
-              <view class="placeholder-icon"></view>
+            <view class="pet-cover">
+              <image
+                v-if="pet.avatar"
+                class="pet-avatar"
+                :src="getFullAvatarUrl(pet.avatar)"
+                mode="aspectFill"
+              />
+              <view v-else class="pet-avatar-placeholder">
+                <view class="placeholder-icon"></view>
+              </view>
             </view>
-            <text class="pet-name">{{ pet.name }}</text>
-            <text class="pet-info">{{ pet.age }} · {{ pet.breed }}</text>
+            <view class="pet-meta">
+              <text class="pet-name">{{ pet.name }}</text>
+              <text class="pet-info">{{ formatPetAge(pet.age) || "—" }} · {{ pet.breed || "—" }}</text>
+            </view>
           </view>
-          <view class="add-card" @click="goToPetInfo">
+          <view class="add-card" @click.stop="goToAddPet">
             <view class="add-icon">
               <view class="add-icon-inner"></view>
             </view>
             <text>添加宠物</text>
           </view>
         </view>
-        <view v-else class="empty-pet-list" @click="goToPetInfo">
+        <view v-else class="empty-pet-list" @click="goToAddPet">
           <text class="empty-text">还没有宠物</text>
           <text class="empty-hint">点击添加你的宠物</text>
+        </view>
+      </view>
+
+      <view class="menu-section">
+        <view class="menu-item" @click="goToCollection">
+          <text class="menu-label">我的收藏</text>
+          <view class="menu-arrow"></view>
+        </view>
+        <view class="menu-item" @click="goToAiGuide">
+          <text class="menu-label">AI 养宠助手</text>
+          <view class="menu-arrow"></view>
         </view>
       </view>
 
       <view class="ai-card">
         <view class="ai-light"></view>
         <text class="ai-title">需要养宠建议吗？</text>
-        <text class="ai-desc"
-          >AI 为你生成今日遛狗推荐、天气提醒和宠物陪伴建议 ✨</text
-        >
-        <view class="ai-btn" @click="handleGenerateTips">
+        <text class="ai-desc">AI 为你生成遛狗推荐、天气提醒和陪伴建议</text>
+        <view class="ai-btn" @click="goToAiGuide">
           <view class="ai-btn-icon"></view>
           <text>一键生成建议</text>
         </view>
@@ -104,18 +113,25 @@
       >
         <text>{{ isLoggingOut ? "退出中..." : "退出登录" }}</text>
       </view>
-    </scroll-view>
+    </view>
 
-    <TabBar :current="3" />
-  </view>
+    <template #tabbar>
+      <TabBar :current="3" />
+    </template>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
+import { onShow } from "@dcloudio/uni-app";
+import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import { logout } from "@/api/auth";
 import { getUserInfo } from "@/api/user";
 import { getPetList, type Pet } from "@/api/pet";
+import { resolveMediaUrl } from "@/utils/media";
+import { formatPetAge } from "@/utils/format";
 
 const userInfo = ref<any>(null);
 const isLoggingOut = ref(false);
@@ -124,27 +140,39 @@ const isLoadingPets = ref(false);
 const MAX_DISPLAY_PETS = 3; // 首页最多显示的宠物数量
 
 const stats = ref({
-  posts: 24,
-  following: 1200,
-  followers: 856,
+  posts: 0,
+  following: 0,
+  followers: 0,
 });
 
 onMounted(async () => {
-  try {
-    const user = await getUserInfo();
-    userInfo.value = user;
-  } catch (error) {
-    console.error("获取用户信息失败:", error);
-  }
-
-  await loadPets();
-
   uni.$on("refreshPetList", loadPets);
+  uni.$on("refreshUserInfo", loadUserInfo);
+});
+
+onShow(() => {
+  loadUserInfo();
+  loadPets();
 });
 
 onUnmounted(() => {
   uni.$off("refreshPetList", loadPets);
+  uni.$off("refreshUserInfo", loadUserInfo);
 });
+
+const loadUserInfo = async () => {
+  try {
+    const user = await getUserInfo();
+    userInfo.value = user;
+    stats.value = {
+      posts: user.posts_count || 0,
+      following: user.following_count || 0,
+      followers: user.followers_count || 0,
+    };
+  } catch (error) {
+    console.error("获取用户信息失败:", error);
+  }
+};
 
 const loadPets = async () => {
   isLoadingPets.value = true;
@@ -162,11 +190,7 @@ const loadPets = async () => {
   }
 };
 
-const getFullAvatarUrl = (avatar: string) => {
-  if (!avatar) return "";
-  if (avatar.startsWith("http")) return avatar;
-  return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
-};
+const getFullAvatarUrl = (avatar: string) => resolveMediaUrl(avatar);
 
 const goToSetting = () => {
   uni.navigateTo({
@@ -186,11 +210,29 @@ const goToPetInfo = () => {
   });
 };
 
-const goToPetDetail = (pet: Pet) => {
+const defaultAvatar =
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=pet";
+
+const goToAddPet = () => {
+  uni.vibrateShort({ type: "light" });
+  uni.navigateTo({
+    url: "/pages/mine/addPet",
+  });
+};
+
+const goToEditPet = (pet: Pet) => {
   uni.vibrateShort({ type: "light" });
   uni.navigateTo({
     url: `/pages/mine/addPet?id=${pet.id}`,
   });
+};
+
+const goToCollection = () => {
+  uni.navigateTo({ url: "/pages/mine/collection" });
+};
+
+const goToAiGuide = () => {
+  uni.navigateTo({ url: "/pages/mine/aiGuide" });
 };
 
 const goToFollow = () => {
@@ -208,13 +250,6 @@ const goToFans = () => {
 const goToMyDynamic = () => {
   uni.navigateTo({
     url: "/pages/mine/myDynamic",
-  });
-};
-
-const handleGenerateTips = () => {
-  uni.showToast({
-    title: "正在生成攻略...",
-    icon: "loading",
   });
 };
 
@@ -255,63 +290,43 @@ const handleLogout = () => {
 </script>
 
 <style lang="scss" scoped>
-.page-container {
-  width: 100%;
-  min-height: 100vh;
-  background: #fff7f1;
-  position: relative;
-}
-
-.topbar {
-  height: 184rpx;
-  padding: 104rpx 20rpx 0;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  background: rgba(255, 247, 241, 0.88);
-  backdrop-filter: blur(20px);
-  position: relative;
-  z-index: 5;
-}
-
-.action-group {
-  display: flex;
-  gap: 20rpx;
-}
-
-.action-btn {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 999rpx;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(107, 78, 61, 0.08);
-}
-
-.action-icon {
-  width: 32rpx;
-  height: 32rpx;
-
-  &.icon-ellipsis {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B5B5B'%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-
-  &.icon-settings {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B5B5B'%3E%3Cpath d='M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.39-1.08-.7-1.66-.94l-.38-2.65c-.03-.24-.24-.42-.48-.42h-4c-.24 0-.45.18-.48.42l-.38 2.65c-.58.24-1.14.55-1.66.94l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.64-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.39 1.08.7 1.66.94l.38 2.65c.03.24.24.42.48.42h4c.24 0 .45-.18.48-.42l.38-2.65c.58-.24 1.14-.55 1.66-.94l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zm-7.43 2.52c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-}
-
-.content {
-  height: calc(100% - 184rpx);
-  overflow-y: auto;
+.mine-content {
+  padding: 0 32rpx 32rpx;
   box-sizing: border-box;
-  padding: 0 32rpx 240rpx;
+}
+
+.menu-section {
+  margin-top: 24rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  overflow: hidden;
+  box-shadow: 0 12rpx 40rpx rgba(107, 78, 61, 0.06);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 36rpx;
+  border-bottom: 1rpx solid rgba(210, 195, 196, 0.25);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.menu-label {
+  font-size: 30rpx;
+  color: #3d2f2f;
+  font-weight: 600;
+}
+
+.menu-arrow {
+  width: 28rpx;
+  height: 28rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238A7F7F'%3E%3Cpath d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
 }
 
 .profile-card {
@@ -335,6 +350,14 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   gap: 32rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .avatar {
@@ -350,13 +373,21 @@ const handleLogout = () => {
   font-weight: 700;
   color: #3d2f2f;
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .desc {
   margin-top: 16rpx;
   color: #8a7f7f;
   font-size: 28rpx;
-  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  word-break: break-all;
 }
 
 .edit-btn {
@@ -449,45 +480,63 @@ const handleLogout = () => {
 }
 
 .pet-card {
-  min-width: 300rpx;
+  flex-shrink: 0;
+  width: 280rpx;
   background: #ffffff;
   border-radius: 56rpx;
-  padding: 36rpx;
+  overflow: hidden;
+  padding: 0;
   box-shadow: 0 20rpx 56rpx rgba(107, 78, 61, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.pet-cover {
+  width: 100%;
+  height: 280rpx;
+  overflow: hidden;
 }
 
 .pet-avatar {
-  width: 144rpx;
-  height: 144rpx;
-  border-radius: 48rpx;
-  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.pet-meta {
+  padding: 0 20rpx 32rpx;
+  margin-top: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .pet-name {
-  margin-top: 32rpx;
+  width: 100%;
   font-size: 36rpx;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: #3d2f2f;
-  display: block;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pet-info {
   margin-top: 12rpx;
+  width: 100%;
   font-size: 26rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: #9b9090;
-  display: block;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pet-avatar-placeholder {
-  width: 144rpx;
-  height: 144rpx;
-  border-radius: 48rpx;
+  width: 100%;
+  height: 100%;
   background: rgba(107, 78, 61, 0.08);
   display: flex;
   align-items: center;
@@ -526,16 +575,22 @@ const handleLogout = () => {
 }
 
 .add-card {
-  min-width: 300rpx;
+  flex-shrink: 0;
+  width: 280rpx;
   border-radius: 56rpx;
   border: 4rpx dashed #f2d7c3;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 36rpx;
+  padding: 36rpx 20rpx;
   color: #b8a7a7;
   background: rgba(255, 255, 255, 0.4);
+  box-sizing: border-box;
+
+  text {
+    text-align: center;
+  }
 }
 
 .add-icon {

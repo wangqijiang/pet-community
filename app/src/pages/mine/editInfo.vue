@@ -36,7 +36,7 @@
         <view class="form-item" @tap="showGenderPicker">
           <text class="item-label">性别</text>
           <view class="item-value">
-            <text class="value-text">{{ formData.gender || "请选择" }}</text>
+            <text class="value-text">{{ displayGender }}</text>
             <image
               class="arrow-icon"
               src="/static/images/icon-arrow-right.png"
@@ -57,9 +57,7 @@
           <view class="picker-content">
             <text class="item-label">生日</text>
             <view class="item-value">
-              <text class="value-text">{{
-                formData.birthday || "请选择"
-              }}</text>
+              <text class="value-text">{{ displayBirthday }}</text>
               <image
                 class="arrow-icon"
                 src="/static/images/icon-arrow-right.png"
@@ -117,6 +115,14 @@ import { ref, computed, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getUserInfo, updateUserInfo, uploadAvatar } from "@/api/user";
+import {
+  USER_GENDER_OPTIONS,
+  normalizeUserGender,
+  formatUserGender,
+  formatDateYMD,
+} from "@/utils/format";
+import dayjs from "dayjs";
+import { resolveMediaUrl } from "@/utils/media";
 
 const loading = ref(false);
 const isUploading = ref(false);
@@ -130,14 +136,21 @@ const formData = ref({
   signature: "",
 });
 
-const today = computed(() => {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-});
+const today = computed(() => dayjs().format("YYYY-MM-DD"));
 
 const regionArray = computed(() => {
   if (!formData.value.region) return [];
   return formData.value.region.split(" ").filter(Boolean);
+});
+
+const displayGender = computed(() => {
+  if (!formData.value.gender) return "请选择";
+  return formatUserGender(formData.value.gender) || "请选择";
+});
+
+const displayBirthday = computed(() => {
+  if (!formData.value.birthday) return "请选择";
+  return formatDateYMD(formData.value.birthday) || "请选择";
 });
 
 onMounted(() => {
@@ -148,10 +161,10 @@ const loadUserInfo = async () => {
   try {
     const user = await getUserInfo();
     formData.value = {
-      avatar: user.avatar || "/static/images/avatar-default.png",
+      avatar: user.avatar ? resolveMediaUrl(user.avatar) : "/static/images/avatar-default.png",
       username: user.username || "",
-      gender: user.gender || "",
-      birthday: user.birthday || "",
+      gender: normalizeUserGender(user.gender) || "",
+      birthday: formatDateYMD(user.birthday),
       region: user.region || "",
       signature: user.signature || "",
     };
@@ -199,16 +212,15 @@ const uploadAvatarFile = async (filePath) => {
 const showGenderPicker = () => {
   uni.vibrateShort({ type: "light" });
   uni.showActionSheet({
-    itemList: ["男", "女", "保密"],
+    itemList: USER_GENDER_OPTIONS.map((item) => item.label),
     success: (res) => {
-      const genders = ["男", "女", "保密"];
-      formData.value.gender = genders[res.tapIndex];
+      formData.value.gender = USER_GENDER_OPTIONS[res.tapIndex].value;
     },
   });
 };
 
 const onDateChange = (e) => {
-  formData.value.birthday = e.detail.value;
+  formData.value.birthday = formatDateYMD(e.detail.value);
 };
 
 const onRegionChange = (e) => {
@@ -233,7 +245,7 @@ const handleSave = async () => {
       username: formData.value.username,
       avatar: formData.value.avatar,
       signature: formData.value.signature,
-      gender: formData.value.gender,
+      gender: formData.value.gender || undefined,
       birthday: formData.value.birthday,
       region: formData.value.region,
     });
@@ -242,6 +254,8 @@ const handleSave = async () => {
       title: "保存成功",
       icon: "success",
     });
+
+    uni.$emit("refreshUserInfo");
 
     setTimeout(() => {
       uni.navigateBack();

@@ -1,8 +1,9 @@
 <template>
-  <view class="detail-container">
-    <TopNavBar :title="''" :showBack="true" />
-    
-    <scroll-view scroll-y class="detail-scroll">
+  <PageLayout :footer-height="commentBarHeight">
+    <template #navbar>
+      <TopNavBar title="动态详情" :showBack="true" />
+    </template>
+    <view class="detail-inner">
       <view v-if="loading" class="loading-container">
         <Loading />
       </view>
@@ -30,16 +31,7 @@
 
           <text class="card-content">{{ post.content }}</text>
 
-          <view class="card-images" v-if="post.images && post.images.length > 0">
-            <image
-              v-for="(img, imgIndex) in post.images"
-              :key="imgIndex"
-              class="image-item"
-              :src="img"
-              mode="aspectFill"
-              @click="previewImage(post, imgIndex)"
-            />
-          </view>
+          <PostImageGrid :images="post.images" />
 
           <view class="card-footer">
             <view class="footer-left">
@@ -167,8 +159,9 @@
           </view>
         </view>
       </view>
-    </scroll-view>
+    </view>
 
+    <template #fixed>
     <view 
       class="comment-input-bar"
       :class="{ 'show-reply': replyingComment }"
@@ -208,28 +201,32 @@
         </view>
       </view>
     </view>
+    </template>
 
     <Loading :visible="submitLoading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
-import TopNavBar from "@/components/common/TopNavBar.vue";
-import Loading from "@/components/common/Loading.vue";
 import { ref, computed, onMounted } from "vue";
-import { 
-  getPostDetail, 
-  getComments, 
-  likePost, 
-  unlikePost, 
-  addComment, 
-  deletePost, 
+import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
+import PostImageGrid from "@/components/common/PostImageGrid.vue";
+import Loading from "@/components/common/Loading.vue";
+import {
+  getPostDetail,
+  getComments,
+  toggleLikePost,
+  addComment,
+  deletePost,
   deleteComment,
-  checkLiked, 
-  type Post, 
-  type Comment 
+  checkLiked,
+  type Post,
+  type Comment,
 } from "@/api/post";
 import { getUserInfo } from "@/api/auth";
+
+const commentBarHeight = uni.upx2px(120);
 
 const loading = ref(false);
 const loadingComments = ref(false);
@@ -390,23 +387,12 @@ const loadComments = async () => {
 
 const handleLike = async () => {
   uni.vibrateShort({ type: "light" });
-  
-  if (liked.value) {
-    try {
-      await unlikePost(post.value.id);
-      liked.value = false;
-      likes.value--;
-    } catch (error) {
-      console.error("取消点赞失败:", error);
-    }
-  } else {
-    try {
-      await likePost(post.value.id);
-      liked.value = true;
-      likes.value++;
-    } catch (error) {
-      console.error("点赞失败:", error);
-    }
+  try {
+    const res = await toggleLikePost(post.value.id);
+    liked.value = res.liked;
+    likes.value = Math.max(0, likes.value + (res.liked ? 1 : -1));
+  } catch {
+    uni.showToast({ title: "操作失败", icon: "none" });
   }
 };
 
@@ -525,9 +511,9 @@ onMounted(() => {
   flex-direction: column;
 }
 
-.detail-scroll {
-  flex: 1;
-  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+.detail-inner {
+  padding: 0 32rpx 24rpx;
+  box-sizing: border-box;
 }
 
 .loading-container {

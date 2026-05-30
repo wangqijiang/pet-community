@@ -8,16 +8,14 @@
         <view class="pet-header">
           <image
             class="pet-avatar"
-            src="/static/images/post-default.png"
+            :src="petAvatar"
             mode="aspectFill"
           ></image>
           <view class="pet-info">
-            <text class="pet-name">奶酪</text>
-            <text class="pet-badge">金毛 · 6个月 · 公</text>
-            <view class="pet-tags">
-              <view class="tag">活泼</view>
-              <view class="tag">聪明</view>
-              <view class="tag">粘人</view>
+            <text class="pet-name">{{ pet?.name || "宠物" }}</text>
+            <text class="pet-badge">{{ petSubtitle }}</text>
+            <view class="pet-tags" v-if="personalityTags.length">
+              <view v-for="(tag, i) in personalityTags" :key="i" class="tag">{{ tag }}</view>
             </view>
           </view>
         </view>
@@ -49,29 +47,29 @@
             <text class="title-text">宠物简介</text>
           </view>
           <view class="profile-detail">
-            <view class="detail-row">
+            <view class="detail-row" v-if="pet?.breed">
               <text class="detail-label">品种</text>
-              <text class="detail-value">金毛寻回犬</text>
+              <text class="detail-value">{{ pet.breed }}</text>
             </view>
-            <view class="detail-row">
+            <view class="detail-row" v-if="pet?.gender">
               <text class="detail-label">性别</text>
-              <text class="detail-value">公</text>
+              <text class="detail-value">{{ genderLabel }}</text>
             </view>
-            <view class="detail-row">
+            <view class="detail-row" v-if="pet?.age">
               <text class="detail-label">年龄</text>
-              <text class="detail-value">6个月</text>
+              <text class="detail-value">{{ formatAge(pet.age) }}</text>
             </view>
-            <view class="detail-row">
+            <view class="detail-row" v-if="pet?.weight">
               <text class="detail-label">体重</text>
-              <text class="detail-value">15kg</text>
+              <text class="detail-value">{{ pet.weight }}kg</text>
             </view>
-            <view class="detail-row">
-              <text class="detail-label">生日</text>
-              <text class="detail-value">2024-06-15</text>
+            <view class="detail-row" v-if="pet?.color">
+              <text class="detail-label">毛色</text>
+              <text class="detail-value">{{ pet.color }}</text>
             </view>
-            <view class="detail-row full">
+            <view class="detail-row full" v-if="pet?.description || pet?.personality">
               <text class="detail-label">性格特点</text>
-              <text class="detail-value">非常活泼好动，喜欢和人互动，聪明好学，对陌生人也很友善</text>
+              <text class="detail-value">{{ pet.description || pet.personality }}</text>
             </view>
           </view>
         </view>
@@ -229,22 +227,62 @@
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import Loading from "@/components/common/Loading.vue";
+import { getPublicPetDetail, type Pet } from "@/api/pet";
+import { resolveMediaUrl } from "@/utils/media";
+import { formatPetAge, formatPetGender } from "@/utils/format";
 
 const loading = ref(false);
+const petId = ref(0);
+const pet = ref<Pet | null>(null);
 
-onMounted(() => {
-  loadPetProfile();
+const formatAge = formatPetAge;
+
+const petAvatar = computed(() =>
+  pet.value?.avatar
+    ? resolveMediaUrl(pet.value.avatar)
+    : "/static/images/post-default.png",
+);
+
+const genderLabel = computed(() => formatPetGender(pet.value?.gender));
+
+const petSubtitle = computed(() => {
+  if (!pet.value) return "";
+  const parts = [
+    pet.value.breed,
+    formatAge(pet.value.age),
+    genderLabel.value,
+  ].filter(Boolean);
+  return parts.join(" · ");
 });
 
-const loadPetProfile = () => {
+const personalityTags = computed(() => {
+  const text = pet.value?.personality || "";
+  return text
+    .split(/[,，、]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+});
+
+onLoad((options) => {
+  petId.value = Number(options?.id || 0);
+  if (petId.value) loadPetProfile();
+});
+
+const loadPetProfile = async () => {
   loading.value = true;
-  setTimeout(() => {
+  try {
+    pet.value = await getPublicPetDetail(petId.value);
+  } catch {
+    uni.showToast({ title: "加载失败", icon: "none" });
+  } finally {
     loading.value = false;
-  }, 1000);
+  }
 };
 
 const goToAlbum = () => {
@@ -349,6 +387,10 @@ const previewImage = (index) => {
   font-size: 44rpx;
   font-weight: 700;
   color: #71585c;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .pet-badge {

@@ -11,12 +11,16 @@
             mode="aspectFit"
           ></image>
         </view>
-        <text class="notice-title">点赞通知</text>
-        <text class="notice-time">2小时前</text>
+        <text class="notice-title">{{ noticeDetail.title }}</text>
+        <text class="notice-time">{{ noticeDetail.time }}</text>
         <view class="notice-content">
-          <text class="content-text">铲屎官小王 赞了你的动态</text>
+          <text class="content-text">{{ noticeDetail.content }}</text>
         </view>
-        <view class="action-btn" @tap="goToRelated">
+        <view
+          v-if="noticeDetail.target_id && noticeDetail.target_type === 'post'"
+          class="action-btn"
+          @tap="goToRelated"
+        >
           <text class="btn-text">查看动态</text>
         </view>
       </view>
@@ -26,37 +30,54 @@
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import Loading from "@/components/common/Loading.vue";
+import { getNotificationDetail } from "@/api/notification";
+import { formatRelativeTime } from "@/utils/format";
 
 const loading = ref(false);
 const noticeDetail = ref({
-  id: 1,
-  icon: "/static/images/icon-like-filled.png",
-  title: "点赞通知",
-  time: "2小时前",
-  content: "铲屎官小王 赞了你的动态",
+  id: 0,
+  title: "",
+  time: "",
+  content: "",
+  target_id: 0 as number | undefined,
+  target_type: "" as string | undefined,
 });
 
-onMounted(() => {
-  loadNoticeDetail();
-});
-
-const loadNoticeDetail = () => {
+const loadNoticeDetail = async (id: number) => {
   loading.value = true;
-  setTimeout(() => {
+  try {
+    const n = await getNotificationDetail(id);
+    noticeDetail.value = {
+      id: n.id,
+      title: n.title,
+      time: formatRelativeTime(n.created_at),
+      content: n.content || "",
+      target_id: n.target_id,
+      target_type: n.target_type,
+    };
+  } catch {
+    uni.showToast({ title: "加载失败", icon: "none" });
+  } finally {
     loading.value = false;
-  }, 1000);
+  }
 };
 
 const goToRelated = () => {
-  uni.vibrateShort({ type: "medium" });
+  if (!noticeDetail.value.target_id) return;
   uni.navigateTo({
-    url: "/pages/circle/detail?id=1",
+    url: `/pages/circle/detail?id=${noticeDetail.value.target_id}`,
   });
 };
+
+onLoad((options) => {
+  const id = Number(options?.id);
+  if (id) loadNoticeDetail(id);
+});
 </script>
 
 <style lang="scss" scoped>

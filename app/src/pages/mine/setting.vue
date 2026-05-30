@@ -77,21 +77,34 @@
 
 <script setup lang="ts">
 import TopNavBar from "@/components/common/TopNavBar.vue";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import Loading from "@/components/common/Loading.vue";
+import { getUserInfo, updateUserInfo, uploadAvatar } from "@/api/user";
+import { resolveMediaUrl } from "@/utils/media";
 
 const loading = ref(false);
-const avatarUrl = ref(
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBLI_TiM-8WkRvWXF3zLl5insv5qwVJ4DP31d8Q83fyEoVhUn_p6EhyrL8P0oYHRYOG2C1EPGovSFDuRKtZEElf6Y3ekMCuXhCm6H8p7E-l9_uww9SEPQfSsuoH443tOg2AqsKTHZrtbleJrTmiyS4ihH0gnl-qs0p-HNYLLCj5ot5DckDWouuxn5prB2VnphtZOod7ht2zORDkmjR6121rLQSrVbmjT1rRu_5fuHxsf3EQVXzfFyXg3aya8R59XZAm0hfx9yP53yyg",
-);
-const nickname = ref("小柴汪汪");
-const userId = ref("Waggle_882934");
+const isUploading = ref(false);
+const avatarUrl = ref("/static/images/avatar-default.png");
+const nickname = ref("");
+const userId = ref("");
 const bio = ref("");
 
-const goBack = () => {
-  uni.vibrateShort({ type: "light" });
-  uni.navigateBack();
-};
+const getFullAvatarUrl = (url: string) => resolveMediaUrl(url);
+
+onMounted(async () => {
+  loading.value = true;
+  try {
+    const user = await getUserInfo();
+    nickname.value = user.username || "";
+    userId.value = String(user.id || "");
+    bio.value = user.signature || "";
+    if (user.avatar) avatarUrl.value = getFullAvatarUrl(user.avatar);
+  } catch {
+    uni.showToast({ title: "加载失败", icon: "none" });
+  } finally {
+    loading.value = false;
+  }
+});
 
 const chooseAvatar = () => {
   uni.vibrateShort({ type: "light" });
@@ -103,12 +116,19 @@ const chooseAvatar = () => {
         count: 1,
         sizeType: ["compressed"],
         sourceType: [sourceType],
-        success: (res) => {
-          avatarUrl.value = res.tempFilePaths[0];
-          uni.showToast({
-            title: "头像上传成功",
-            icon: "success",
-          });
+        success: async (imgRes) => {
+          const tempPath = imgRes.tempFilePaths[0];
+          avatarUrl.value = tempPath;
+          isUploading.value = true;
+          try {
+            const { url } = await uploadAvatar(tempPath);
+            avatarUrl.value = getFullAvatarUrl(url);
+            uni.showToast({ title: "头像上传成功", icon: "success" });
+          } catch {
+            uni.showToast({ title: "头像上传失败", icon: "none" });
+          } finally {
+            isUploading.value = false;
+          }
         },
       });
     },
@@ -119,28 +139,29 @@ const copyUserId = () => {
   uni.vibrateShort({ type: "light" });
   uni.setClipboardData({
     data: userId.value,
-    success: () => {
-      uni.showToast({
-        title: "已复制",
-        icon: "success",
-      });
-    },
+    success: () => uni.showToast({ title: "已复制", icon: "success" }),
   });
 };
 
-const saveProfile = () => {
+const saveProfile = async () => {
+  if (!nickname.value.trim()) {
+    uni.showToast({ title: "请输入昵称", icon: "none" });
+    return;
+  }
   uni.vibrateShort({ type: "medium" });
   loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-    uni.showToast({
-      title: "保存成功",
-      icon: "success",
+  try {
+    await updateUserInfo({
+      username: nickname.value.trim(),
+      signature: bio.value.trim(),
     });
-    setTimeout(() => {
-      uni.navigateBack();
-    }, 1500);
-  }, 1000);
+    uni.showToast({ title: "保存成功", icon: "success" });
+    setTimeout(() => uni.navigateBack(), 800);
+  } catch {
+    uni.showToast({ title: "保存失败", icon: "none" });
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 

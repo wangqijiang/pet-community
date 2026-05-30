@@ -1,15 +1,10 @@
 <template>
-  <view class="collection-page">
-    <TopNavBar title="我的收藏" :showBack="true" />
+  <PageLayout refresher @refresh="onRefresh">
+    <template #navbar>
+      <TopNavBar title="我的收藏" :showBack="true" />
+    </template>
 
-    <view class="page-content">
-      <scroll-view
-        class="dynamic-list"
-        scroll-y
-        @scrolltolower="loadMore"
-        refresher-enabled
-        @refresherrefresh="onRefresh"
-      >
+    <view class="collection-inner">
         <view
           v-for="item in collectionList"
           :key="item.id"
@@ -76,87 +71,78 @@
           type="noData"
           text="暂无收藏"
         />
-      </scroll-view>
     </view>
 
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import Empty from "@/components/common/Empty.vue";
 import Loading from "@/components/common/Loading.vue";
+import { getFavoritePosts, toggleFavoritePost } from "@/api/post";
+import { formatRelativeTime } from "@/utils/format";
+import { resolveMediaUrl } from "@/utils/media";
 
 const loading = ref(false);
+const collectionList = ref<
+  Array<{
+    id: number;
+    avatar: string;
+    nickname: string;
+    time: string;
+    content: string;
+    images: string[];
+    likeCount: number;
+    commentCount: number;
+  }>
+>([]);
 
-const collectionList = ref([
-  {
-    id: 1,
-    avatar: "/static/images/avatar-default.png",
-    nickname: "铲屎官小王",
-    time: "2小时前",
-    content: "今天带旺财去公园玩，遇到了好多小伙伴！",
-    images: [
-      "/static/images/post-default.png",
-      "/static/images/post-default.png",
-    ],
-    likeCount: 128,
-    commentCount: 32,
-  },
-  {
-    id: 2,
-    avatar: "/static/images/avatar-default.png",
-    nickname: "爱狗人士",
-    time: "昨天",
-    content: "分享一下我家狗狗的日常～",
-    images: ["/static/images/post-default.png"],
-    likeCount: 256,
-    commentCount: 48,
-  },
-]);
-
-onMounted(() => {
-  loadCollectionList();
-});
-
-const loadCollectionList = () => {
+const loadCollectionList = async () => {
   loading.value = true;
-  setTimeout(() => {
+  try {
+    const res = await getFavoritePosts(1, 50);
+    collectionList.value = res.list.map((p) => ({
+      id: p.id,
+      avatar: resolveMediaUrl(p.avatar),
+      nickname: p.username,
+      time: formatRelativeTime(p.created_at),
+      content: p.content,
+      images: (p.images || []).map((url) => resolveMediaUrl(url)),
+      likeCount: p.likes || 0,
+      commentCount: p.comments || 0,
+    }));
+  } catch {
+    uni.showToast({ title: "加载失败", icon: "none" });
+  } finally {
     loading.value = false;
-  }, 1000);
+  }
 };
 
-const onRefresh = () => {
-  loadCollectionList();
+onMounted(loadCollectionList);
+
+const onRefresh = () => loadCollectionList();
+const loadMore = () => {};
+
+const goToDetail = (id: number) => {
+  uni.navigateTo({ url: `/pages/circle/detail?id=${id}` });
 };
 
-const loadMore = () => {
-  console.log("Load more");
-};
-
-const goToDetail = (id) => {
-  uni.navigateTo({
-    url: `/pages/circle/detail?id=${id}`,
-  });
-};
-
-const handleUncollect = (item) => {
-  uni.vibrateShort({ type: "medium" });
+const handleUncollect = (item: { id: number }) => {
   uni.showModal({
     title: "提示",
     content: "确定取消收藏吗？",
-    success: (res) => {
-      if (res.confirm) {
-        const index = collectionList.value.findIndex((c) => c.id === item.id);
-        if (index > -1) {
-          collectionList.value.splice(index, 1);
-        }
-        uni.showToast({
-          title: "取消收藏",
-          icon: "success",
-        });
+    success: async (res) => {
+      if (!res.confirm) return;
+      try {
+        await toggleFavoritePost(item.id);
+        collectionList.value = collectionList.value.filter((c) => c.id !== item.id);
+        uni.showToast({ title: "取消收藏", icon: "success" });
+      } catch {
+        uni.showToast({ title: "操作失败", icon: "none" });
       }
     },
   });
@@ -166,20 +152,9 @@ const handleUncollect = (item) => {
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
 
-.collection-page {
-  width: 100%;
-  min-height: 100vh;
-  background: $color-bg-primary;
-}
-
-.page-content {
-  padding-top: calc(#{$nav-bar-height} + 20rpx);
-}
-
-.dynamic-list {
-  height: calc(100vh - #{$nav-bar-height} - 40rpx);
-  padding: 0 $spacing-page-horizontal;
-  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+.collection-inner {
+  padding: 0 $spacing-page-horizontal 32rpx;
+  box-sizing: border-box;
 }
 
 .dynamic-card {

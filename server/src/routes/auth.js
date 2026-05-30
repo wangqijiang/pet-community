@@ -6,330 +6,299 @@ const { sign } = require('../utils/jwt')
 const { success, error } = require('../utils/response')
 
 /**
- * @swagger
- * /api/auth/register:
- *   post:
- *     summary: 用户注册
- *     description: 新用户注册账号
- *     tags: [认证]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *                 description: 用户名
- *                 example: 铲屎官小明
- *               phone:
- *                 type: string
- *                 description: 手机号
- *                 example: '13800138000'
- *               password:
- *                 type: string
- *                 description: 密码
- *                 example: '123456'
- *     responses:
- *       200:
- *         description: 注册成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 注册成功
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       $ref: '#/components/schemas/User'
- *                     token:
- *                       type: string
- *                       example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
- *       400:
- *         description: 参数错误或手机号已被注册
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ * 用户注册
  */
 router.post('/register', async (req, res) => {
   const { username, phone, password } = req.body
-  
+
+  // 参数验证
   if (!username || !phone || !password) {
     return res.status(400).json(error('请填写完整信息', 400))
   }
 
-  const existing = await query('SELECT id FROM users WHERE phone = ?', [phone])
-  if (existing.length > 0) {
-    return res.status(400).json(error('该手机号已被注册', 400))
+  if (username.length < 2 || username.length > 20) {
+    return res.status(400).json(error('用户名长度应为2-20个字符', 400))
   }
 
-  const hashedPassword = await hash(password)
-  const result = await query(
-    'INSERT INTO users (username, phone, password, created_at) VALUES (?, ?, ?, NOW())',
-    [username, phone, hashedPassword]
-  )
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    return res.status(400).json(error('手机号格式不正确', 400))
+  }
 
-  const user = await query('SELECT id, username, phone, avatar FROM users WHERE id = ?', [result.insertId])
-  
-  const token = sign({ id: user[0].id })
-  
-  res.json(success({ user: user[0], token }, '注册成功'))
+  if (password.length < 6 || password.length > 20) {
+    return res.status(400).json(error('密码长度应为6-20个字符', 400))
+  }
+
+  try {
+    // 检查手机号是否已注册
+    const existing = await query('SELECT id FROM users WHERE phone = ?', [phone])
+    if (existing.length > 0) {
+      return res.status(400).json(error('该手机号已注册', 400))
+    }
+
+    // 密码加密
+    const hashedPassword = await hash(password)
+
+    // 创建用户
+    const result = await query(
+      'INSERT INTO users (username, phone, password, created_at) VALUES (?, ?, ?, NOW())',
+      [username, phone, hashedPassword]
+    )
+
+    // 生成token
+    const token = sign({ id: result.insertId })
+
+    res.json(success({
+      token,
+      user: {
+        id: result.insertId,
+        username,
+        phone
+      }
+    }, '注册成功'))
+  } catch (err) {
+    console.error('注册失败:', err)
+    res.status(500).json(error('注册失败', 500))
+  }
 })
 
 /**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: 密码登录
- *     description: 使用手机号和密码登录
- *     tags: [认证]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               phone:
- *                 type: string
- *                 description: 手机号
- *                 example: '13800138000'
- *               password:
- *                 type: string
- *                 description: 密码
- *                 example: '123456'
- *     responses:
- *       200:
- *         description: 登录成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 登录成功
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       $ref: '#/components/schemas/User'
- *                     token:
- *                       type: string
- *                       example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
- *       400:
- *         description: 参数错误、用户不存在或密码错误
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ * 用户登录
  */
 router.post('/login', async (req, res) => {
   const { phone, password } = req.body
-  
+
+  // 参数验证
   if (!phone || !password) {
     return res.status(400).json(error('请填写手机号和密码', 400))
   }
 
-  const user = await query('SELECT id, username, phone, password, avatar FROM users WHERE phone = ?', [phone])
-  
-  if (user.length === 0) {
-    return res.status(400).json(error('用户不存在', 400))
-  }
+  try {
+    // 查找用户
+    const users = await query('SELECT * FROM users WHERE phone = ?', [phone])
+    if (users.length === 0) {
+      return res.status(400).json(error('手机号或密码错误', 400))
+    }
 
-  const isMatch = await compare(password, user[0].password)
-  if (!isMatch) {
-    return res.status(400).json(error('密码错误', 400))
-  }
+    const user = users[0]
 
-  const token = sign({ id: user[0].id })
-  
-  const userData = {
-    id: user[0].id,
-    username: user[0].username,
-    phone: user[0].phone,
-    avatar: user[0].avatar
+    // 检查账号状态
+    if (user.status !== 1) {
+      return res.status(403).json(error('账号已被禁用', 403))
+    }
+
+    // 验证密码
+    const isMatch = await compare(password, user.password)
+    if (!isMatch) {
+      return res.status(400).json(error('手机号或密码错误', 400))
+    }
+
+    // 生成token
+    const token = sign({ id: user.id })
+
+    res.json(success({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        phone: user.phone,
+        avatar: user.avatar
+      }
+    }, '登录成功'))
+  } catch (err) {
+    console.error('登录失败:', err)
+    res.status(500).json(error('登录失败', 500))
   }
-  
-  res.json(success({ user: userData, token }, '登录成功'))
 })
 
 /**
- * @swagger
- * /api/auth/loginByCode:
- *   post:
- *     summary: 验证码登录
- *     description: 使用手机号和验证码登录，用户不存在时自动注册
- *     tags: [认证]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               phone:
- *                 type: string
- *                 description: 手机号
- *                 example: '13800138000'
- *               code:
- *                 type: string
- *                 description: 验证码（测试环境固定为 1234）
- *                 example: '1234'
- *     responses:
- *       200:
- *         description: 登录成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 登录成功
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       $ref: '#/components/schemas/User'
- *                     token:
- *                       type: string
- *                       example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
- *       400:
- *         description: 参数错误或验证码错误
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ * 检查token有效性
+ */
+router.get('/check', async (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '')
+  
+  if (!token) {
+    return res.json(success({ valid: false }, '未登录'))
+  }
+
+  try {
+    const { verify } = require('../utils/jwt')
+    const decoded = verify(token)
+    
+    if (!decoded) {
+      return res.json(success({ valid: false }, 'token无效'))
+    }
+
+    const users = await query('SELECT id, username, phone, avatar FROM users WHERE id = ? AND status = 1', [decoded.id])
+    if (users.length === 0) {
+      return res.json(success({ valid: false }, '用户不存在'))
+    }
+
+    res.json(success({ valid: true, user: users[0] }, 'token有效'))
+  } catch (err) {
+    res.json(success({ valid: false }, 'token验证失败'))
+  }
+})
+
+/**
+ * 修改密码
+ */
+router.post('/change-password', async (req, res) => {
+  const { phone, oldPassword, newPassword } = req.body
+
+  if (!phone || !oldPassword || !newPassword) {
+    return res.status(400).json(error('请填写完整信息', 400))
+  }
+
+  if (newPassword.length < 6 || newPassword.length > 20) {
+    return res.status(400).json(error('新密码长度应为6-20个字符', 400))
+  }
+
+  try {
+    const users = await query('SELECT * FROM users WHERE phone = ?', [phone])
+    if (users.length === 0) {
+      return res.status(400).json(error('用户不存在', 400))
+    }
+
+    const user = users[0]
+
+    const isMatch = await compare(oldPassword, user.password)
+    if (!isMatch) {
+      return res.status(400).json(error('原密码错误', 400))
+    }
+
+    const hashedPassword = await hash(newPassword)
+    await query('UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?', [hashedPassword, user.id])
+
+    res.json(success(null, '密码修改成功'))
+  } catch (err) {
+    console.error('修改密码失败:', err)
+    res.status(500).json(error('修改失败', 500))
+  }
+})
+
+/**
+ * 重置密码（通过手机号）
+ */
+router.post('/reset-password', async (req, res) => {
+  const { phone, newPassword } = req.body
+
+  if (!phone || !newPassword) {
+    return res.status(400).json(error('请填写完整信息', 400))
+  }
+
+  if (newPassword.length < 6 || newPassword.length > 20) {
+    return res.status(400).json(error('密码长度应为6-20个字符', 400))
+  }
+
+  try {
+    const users = await query('SELECT id FROM users WHERE phone = ?', [phone])
+    if (users.length === 0) {
+      return res.status(400).json(error('手机号未注册', 400))
+    }
+
+    const hashedPassword = await hash(newPassword)
+    await query('UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?', [hashedPassword, users[0].id])
+
+    res.json(success(null, '密码重置成功'))
+  } catch (err) {
+    console.error('重置密码失败:', err)
+    res.status(500).json(error('重置失败', 500))
+  }
+})
+
+/**
+ * 发送验证码（开发环境返回固定码）
+ */
+router.post('/sendCode', async (req, res) => {
+  const { phone } = req.body
+  if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+    return res.status(400).json(error('手机号格式不正确', 400))
+  }
+
+  const code = process.env.SMS_DEV_CODE || '1234'
+
+  try {
+    await query('DELETE FROM sms_codes WHERE phone = ?', [phone])
+    await query(
+      'INSERT INTO sms_codes (phone, code, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))',
+      [phone, code]
+    )
+    const payload = process.env.NODE_ENV === 'production' ? {} : { code }
+    res.json(success(payload, '验证码已发送'))
+  } catch (err) {
+    console.error('发送验证码失败:', err)
+    res.status(500).json(error('发送失败', 500))
+  }
+})
+
+/**
+ * 验证码登录（用户不存在则自动注册）
  */
 router.post('/loginByCode', async (req, res) => {
   const { phone, code } = req.body
-  
+  const devCode = process.env.SMS_DEV_CODE || '1234'
+
   if (!phone || !code) {
     return res.status(400).json(error('请填写手机号和验证码', 400))
   }
 
-  if (code !== '1234') {
-    return res.status(400).json(error('验证码错误', 400))
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    return res.status(400).json(error('手机号格式不正确', 400))
   }
 
-  let user = await query('SELECT id, username, phone, avatar FROM users WHERE phone = ?', [phone])
-  
-  if (user.length === 0) {
-    const result = await query(
-      'INSERT INTO users (username, phone, created_at) VALUES (?, ?, NOW())',
-      [`用户${phone.slice(-4)}`, phone]
-    )
-    user = await query('SELECT id, username, phone, avatar FROM users WHERE id = ?', [result.insertId])
-  }
+  try {
+    let codeValid = code === devCode
+    try {
+      const codes = await query(
+        'SELECT * FROM sms_codes WHERE phone = ? AND code = ? AND expires_at > NOW() ORDER BY id DESC LIMIT 1',
+        [phone, code]
+      )
+      if (codes.length > 0) codeValid = true
+    } catch (dbErr) {
+      if (dbErr.code !== 'ER_NO_SUCH_TABLE') throw dbErr
+      codeValid = code === devCode
+    }
+    if (!codeValid) {
+      return res.status(400).json(error('验证码错误或已过期', 400))
+    }
 
-  const token = sign({ id: user[0].id })
-  
-  res.json(success({ user: user[0], token }, '登录成功'))
+    let users = await query('SELECT * FROM users WHERE phone = ?', [phone])
+    if (users.length === 0) {
+      const hashedPassword = await hash(devCode)
+      const username = `用户${phone.slice(-4)}`
+      const result = await query(
+        'INSERT INTO users (username, phone, password, created_at) VALUES (?, ?, ?, NOW())',
+        [username, phone, hashedPassword]
+      )
+      users = await query('SELECT * FROM users WHERE id = ?', [result.insertId])
+    }
+
+    const user = users[0]
+    if (user.status !== 1) {
+      return res.status(403).json(error('账号已被禁用', 403))
+    }
+
+    const token = sign({ id: user.id })
+    res.json(success({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        phone: user.phone,
+        avatar: user.avatar
+      }
+    }, '登录成功'))
+  } catch (err) {
+    console.error('验证码登录失败:', err)
+    res.status(500).json(error('登录失败', 500))
+  }
 })
 
 /**
- * @swagger
- * /api/auth/sendCode:
- *   post:
- *     summary: 发送验证码
- *     description: 向指定手机号发送验证码（测试环境固定返回 1234）
- *     tags: [认证]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               phone:
- *                 type: string
- *                 description: 手机号
- *                 example: '13800138000'
- *     responses:
- *       200:
- *         description: 发送成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 验证码已发送
- *                 data:
- *                   type: object
- *                   properties:
- *                     code:
- *                       type: string
- *                       example: '1234'
- *       400:
- *         description: 参数错误
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.post('/sendCode', async (req, res) => {
-  const { phone } = req.body
-  
-  if (!phone) {
-    return res.status(400).json(error('请填写手机号', 400))
-  }
-
-  res.json(success({ code: '1234' }, '验证码已发送'))
-})
-
-/**
- * @swagger
- * /api/auth/logout:
- *   post:
- *     summary: 退出登录
- *     description: 用户退出登录，清除本地 token
- *     tags: [认证]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: 退出成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 退出成功
- *       401:
- *         description: 未授权
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ * 退出登录
  */
 router.post('/logout', async (req, res) => {
-  res.json(success({}, '退出成功'))
+  res.json(success(null, '已退出登录'))
 })
 
 module.exports = router

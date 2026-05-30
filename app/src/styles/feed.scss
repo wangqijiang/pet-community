@@ -1,0 +1,84 @@
+@import "./variables.scss";
+
+// 朋友圈图片（参考微信展示逻辑）
+.post-images {
+  margin-bottom: 24rpx;
+
+  &--1 {
+    .post-images__single {
+      max-width: 420rpx;
+      width: 100%;
+      border-radius: 12rpx;
+      display: block;
+      vertical-align: top;
+    }
+  }
+
+  &--2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8rpx;
+
+    .post-images__cell {
+      width: 100%;
+      height: 280rpx;
+      border-radius: 8rpx;
+    }
+  }
+
+  &--3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8rpx;
+
+    .post-images__cell {
+      width: 100%;
+      height: 200rpx;
+      border-radius: 8rpx;
+    }
+  }
+
+  &--4 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8rpx;
+
+    .post-images__cell {
+      width: 100%;
+      height: 220rpx;
+      border-radius: 8rpx;
+    }
+  }
+
+  &--5,
+  &--6,
+  &--7,
+  &--8,
+  &--9 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8rpx;
+
+    .post-images__cell {
+      width: 100%;
+      height: 200rpx;
+      border-radius: 8rpx;
+    }
+  }
+}
+
+.feed-card {
+  background: $color-bg-white;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 12rpx 40rpx rgba(107, 78, 61, 0.06);
+}
+
+.feed-card__content {
+  font-size: 30rpx;
+  color: #4d3e3e;
+  line-height: 1.8;
+  margin-bottom: 20rpx;
+  word-break: break-word;
+}

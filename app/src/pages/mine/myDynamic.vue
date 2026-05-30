@@ -100,72 +100,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import { getPostList, deletePost, toggleLikePost } from "@/api/post";
+import { getUserInfo as getStoredUser } from "@/api/auth";
+import { formatRelativeTime } from "@/utils/format";
+import { resolveMediaUrl } from "@/utils/media";
 
 const loading = ref(false);
 const isRefreshing = ref(false);
+const myUserId = ref(0);
 
-const dynamicList = ref([
-  {
-    id: 1,
-    userName: "Summer Lin",
-    avatar:
-      "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400&auto=format&fit=crop",
-    time: "2小时前",
-    content:
-      "今天带布丁去公园草坪打滚啦！阳光超级好，它开心得像个200斤的孩子哈哈。这就是简单的小幸福吧～ ✨",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop",
-      },
-      {
-        url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop",
-      },
-      {
-        url: "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=800&auto=format&fit=crop",
-      },
-    ],
-    likes: 128,
-    comments: 32,
-    liked: false,
-  },
-  {
-    id: 2,
-    userName: "Summer Lin",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-    time: "昨天 18:30",
-    content: "午后的小憩时光，它睡得像个小猪呼噜噜的。安静的日子，真好。💤",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1000&auto=format&fit=crop",
-      },
-    ],
-    likes: 85,
-    comments: 12,
-    liked: true,
-  },
-  {
-    id: 3,
-    userName: "Summer Lin",
-    avatar:
-      "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=400&auto=format&fit=crop",
-    time: "3天前",
-    content: "今天训练了新技能！握手、趴下、打滚一气呵成，奖励了超多零食～🐾",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop",
-      },
-      {
-        url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop",
-      },
-    ],
-    likes: 234,
-    comments: 45,
-    liked: false,
-  },
-]);
+const dynamicList = ref<
+  Array<{
+    id: number;
+    userName: string;
+    avatar: string;
+    time: string;
+    content: string;
+    images: Array<{ url: string }>;
+    likes: number;
+    comments: number;
+    liked: boolean;
+  }>
+>([]);
 
 const totalLikes = computed(() => {
   return dynamicList.value.reduce((sum, item) => sum + item.likes, 0);
@@ -175,20 +133,44 @@ const totalComments = computed(() => {
   return dynamicList.value.reduce((sum, item) => sum + item.comments, 0);
 });
 
-const onRefresh = () => {
-  isRefreshing.value = true;
-  setTimeout(() => {
+const loadDynamics = async () => {
+  if (!myUserId.value) return;
+  loading.value = true;
+  try {
+    const res = await getPostList(1, 50, myUserId.value);
+    dynamicList.value = res.list.map((p) => ({
+      id: p.id,
+      userName: p.username,
+      avatar: resolveMediaUrl(p.avatar),
+      time: formatRelativeTime(p.created_at),
+      content: p.content,
+      images: (p.images || []).map((url) => ({ url: resolveMediaUrl(url) })),
+      likes: p.likes || 0,
+      comments: p.comments || 0,
+      liked: false,
+    }));
+  } catch {
+    uni.showToast({ title: "加载失败", icon: "none" });
+  } finally {
+    loading.value = false;
     isRefreshing.value = false;
-    uni.showToast({
-      title: "刷新成功",
-      icon: "success",
-    });
-  }, 1000);
+  }
 };
 
-const loadMore = () => {
-  console.log("Load more");
+const onRefresh = () => {
+  isRefreshing.value = true;
+  loadDynamics();
 };
+
+const loadMore = () => {};
+
+onMounted(() => {
+  const u = getStoredUser();
+  if (u) {
+    myUserId.value = u.id;
+    loadDynamics();
+  }
+});
 
 const showMoreActions = (item: any) => {
   uni.vibrateShort({ type: "light" });
@@ -206,15 +188,14 @@ const showMoreActions = (item: any) => {
   });
 };
 
-const handleLike = (item: any) => {
-  if (!item.liked) {
-    item.liked = true;
-    item.likes += 1;
-    uni.vibrateShort({ type: "light" });
-  } else {
-    item.liked = false;
-    item.likes -= 1;
-    uni.vibrateShort({ type: "light" });
+const handleLike = async (item: any) => {
+  uni.vibrateShort({ type: "light" });
+  try {
+    const res = await toggleLikePost(item.id);
+    item.liked = res.liked;
+    item.likes = Math.max(0, item.likes + (res.liked ? 1 : -1));
+  } catch {
+    uni.showToast({ title: "操作失败", icon: "none" });
   }
 };
 
@@ -225,22 +206,20 @@ const handleEdit = (item: any) => {
   });
 };
 
-const handleDelete = (item: any) => {
+const handleDelete = (item: { id: number }) => {
   uni.vibrateShort({ type: "light" });
   uni.showModal({
     title: "删除动态",
     content: "确定要删除这条动态吗？删除后无法恢复",
     confirmColor: "#FF6B8A",
-    success: (res) => {
-      if (res.confirm) {
-        const index = dynamicList.value.findIndex((d) => d.id === item.id);
-        if (index > -1) {
-          dynamicList.value.splice(index, 1);
-          uni.showToast({
-            title: "删除成功",
-            icon: "success",
-          });
-        }
+    success: async (res) => {
+      if (!res.confirm) return;
+      try {
+        await deletePost(item.id);
+        dynamicList.value = dynamicList.value.filter((d) => d.id !== item.id);
+        uni.showToast({ title: "删除成功", icon: "success" });
+      } catch {
+        uni.showToast({ title: "删除失败", icon: "none" });
       }
     },
   });

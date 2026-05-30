@@ -1,417 +1,351 @@
 const express = require('express')
 const router = express.Router()
 const { query } = require('../config/db')
-const { success, error } = require('../utils/response')
+const { success, error, pagination } = require('../utils/response')
 const { auth } = require('../middleware/auth')
-const multer = require('multer')
-const path = require('path')
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../../uploads/pets'))
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname)
-    const filename = `pet_${Date.now()}${ext}`
-    cb(null, filename)
-  }
-})
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg']
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true)
-    } else {
-      cb(new Error('只允许上传图片文件'))
-    }
-  }
-})
 
 /**
- * @swagger
- * tags:
- *   name: 宠物管理
- *   description: 宠物相关接口
- */
-
-/**
- * @swagger
- * /api/pet/list:
- *   get:
- *     summary: 获取用户的宠物列表
- *     description: 获取当前登录用户的所有宠物
- *     tags: [宠物管理]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: 获取成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Pet'
+ * 获取用户的宠物列表
  */
 router.get('/list', auth, async (req, res) => {
-  const pets = await query(
-    'SELECT * FROM pets WHERE user_id = ? ORDER BY created_at DESC',
-    [req.user.id]
-  )
-  
-  res.json(success(pets, '获取成功'))
+  try {
+    const pets = await query(
+      'SELECT * FROM pets WHERE user_id = ? AND status = 1 ORDER BY created_at DESC',
+      [req.user.id]
+    )
+    
+    // 解析JSON字段
+    for (let pet of pets) {
+      if (typeof pet.photos === 'string') {
+        pet.photos = JSON.parse(pet.photos)
+      }
+    }
+    
+    res.json(success(pets, '获取成功'))
+  } catch (err) {
+    console.error('获取宠物列表失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
 })
 
 /**
- * @swagger
- * /api/pet/{id}:
- *   get:
- *     summary: 获取宠物详情
- *     description: 根据ID获取宠物详情
- *     tags: [宠物管理]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         description: 宠物ID
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: 获取成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Pet'
- *       404:
- *         description: 宠物不存在
+ * 公开宠物详情（无需是主人）
+ */
+router.get('/public/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const pets = await query(`
+      SELECT p.*, u.username as owner_name, u.avatar as owner_avatar
+      FROM pets p
+      JOIN users u ON p.user_id = u.id
+      WHERE p.id = ? AND p.status = 1
+    `, [id])
+
+    if (pets.length === 0) {
+      return res.status(404).json(error('宠物不存在', 404))
+    }
+
+    const pet = pets[0]
+    if (typeof pet.photos === 'string') {
+      pet.photos = JSON.parse(pet.photos)
+    }
+
+    res.json(success(pet, '获取成功'))
+  } catch (err) {
+    console.error('获取宠物详情失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+/**
+ * 获取宠物详情
  */
 router.get('/:id', auth, async (req, res) => {
   const { id } = req.params
   
-  const pets = await query(
-    'SELECT * FROM pets WHERE id = ? AND user_id = ?',
-    [id, req.user.id]
-  )
-  
-  if (pets.length === 0) {
-    return res.status(404).json(error('宠物不存在', 404))
+  try {
+    const pets = await query(
+      'SELECT * FROM pets WHERE id = ? AND user_id = ? AND status = 1',
+      [id, req.user.id]
+    )
+    
+    if (pets.length === 0) {
+      return res.status(404).json(error('宠物不存在', 404))
+    }
+    
+    const pet = pets[0]
+    if (typeof pet.photos === 'string') {
+      pet.photos = JSON.parse(pet.photos)
+    }
+    
+    res.json(success(pet, '获取成功'))
+  } catch (err) {
+    console.error('获取宠物详情失败:', err)
+    res.status(500).json(error('获取失败', 500))
   }
-  
-  res.json(success(pets[0], '获取成功'))
 })
 
 /**
- * @swagger
- * /api/pet:
- *   post:
- *     summary: 添加宠物
- *     description: 添加新宠物
- *     tags: [宠物管理]
- *     security:
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 description: 宠物名字
- *               type:
- *                 type: string
- *                 description: 类型（dog/cat/etc）
- *               breed:
- *                 type: string
- *                 description: 品种
- *               age:
- *                 type: string
- *                 description: 年龄
- *               avatar:
- *                 type: string
- *                 format: binary
- *                 description: 头像图片
- *     responses:
- *       200:
- *         description: 添加成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Pet'
+ * 添加宠物
  */
 router.post('/', auth, async (req, res) => {
-  const { name, type, breed, age, gender, color, weight, size, neutered, vaccinated, healthCertificate, personality, habits, avatar, photos } = req.body
+  const { 
+    name, type, breed, age, gender, color, weight, size, 
+    neutered, vaccinated, healthCertificate, personality, habits, 
+    avatar, photos, description 
+  } = req.body
   
   if (!name) {
     return res.status(400).json(error('请输入宠物名字', 400))
   }
   
-  // 处理布尔值字段
-  const neuteredValue = neutered === true || neutered === 'true' || neutered === 1 ? 1 : 0
-  const healthCertValue = healthCertificate === true || healthCertificate === 'true' || healthCertificate === 1 ? 1 : 0
-  
-  const result = await query(
-    'INSERT INTO pets (user_id, name, type, breed, age, gender, color, weight, size, neutered, vaccinated, health_certificate, personality, habits, avatar, photos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [req.user.id, name, type || null, breed || null, age || null, gender || null, color || null, weight || null, size || null, neuteredValue, vaccinated || null, healthCertValue, personality || null, habits || null, avatar || null, photos || null]
-  )
-  
-  const pet = await query(
-    'SELECT * FROM pets WHERE id = ?',
-    [result.insertId]
-  )
-  
-  res.json(success(pet[0], '添加成功'))
-})
-
-router.post('/upload', auth, upload.single('avatar'), async (req, res) => {
-  const { name, type, breed, age } = req.body
-  const avatar = req.file ? `/uploads/pets/${req.file.filename}` : null
-  
-  if (!name) {
-    return res.status(400).json(error('请输入宠物名字', 400))
+  if (!type) {
+    return res.status(400).json(error('请选择宠物类型', 400))
   }
   
-  const result = await query(
-    'INSERT INTO pets (user_id, name, type, breed, age, avatar) VALUES (?, ?, ?, ?, ?, ?)',
-    [req.user.id, name, type || null, breed || null, age || null, avatar]
-  )
-  
-  const pet = await query(
-    'SELECT * FROM pets WHERE id = ?',
-    [result.insertId]
-  )
-  
-  res.json(success(pet[0], '添加成功'))
+  try {
+    // 处理布尔值字段
+    const neuteredValue = neutered === true || neutered === 'true' || neutered === 1 ? 1 : 0
+    const healthCertValue = healthCertificate === true || healthCertificate === 'true' || healthCertificate === 1 ? 1 : 0
+    
+    const result = await query(
+      `INSERT INTO pets (
+        user_id, name, type, breed, age, gender, color, weight, size, 
+        neutered, vaccinated, health_certificate, personality, habits, 
+        avatar, photos, description, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [
+        req.user.id, name, type, breed || null, age || null, gender || 'unknown',
+        color || null, weight || null, size || 'medium',
+        neuteredValue, vaccinated || null, healthCertValue,
+        personality || null, habits || null,
+        avatar || null, JSON.stringify(photos || []), description || null
+      ]
+    )
+    
+    // 更新用户宠物数
+    await query('UPDATE users SET pets_count = pets_count + 1 WHERE id = ?', [req.user.id])
+    
+    const pet = await query('SELECT * FROM pets WHERE id = ?', [result.insertId])
+    
+    res.json(success(pet[0], '添加成功'))
+  } catch (err) {
+    console.error('添加宠物失败:', err)
+    res.status(500).json(error('添加失败', 500))
+  }
 })
 
 /**
- * @swagger
- * /api/pet/{id}:
- *   put:
- *     summary: 更新宠物信息
- *     description: 更新宠物信息
- *     tags: [宠物管理]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         description: 宠物ID
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 description: 宠物名字
- *               type:
- *                 type: string
- *                 description: 类型
- *               breed:
- *                 type: string
- *                 description: 品种
- *               age:
- *                 type: string
- *                 description: 年龄
- *               avatar:
- *                 type: string
- *                 format: binary
- *                 description: 头像图片
- *     responses:
- *       200:
- *         description: 更新成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Pet'
- *       404:
- *         description: 宠物不存在
+ * 更新宠物信息
  */
 router.put('/:id', auth, async (req, res) => {
   const { id } = req.params
-  const { name, type, breed, age, gender, color, weight, size, neutered, vaccinated, healthCertificate, personality, habits, avatar, photos } = req.body
+  const { 
+    name, type, breed, age, gender, color, weight, size, 
+    neutered, vaccinated, healthCertificate, personality, habits, 
+    avatar, photos, description 
+  } = req.body
   
-  const existPet = await query(
-    'SELECT * FROM pets WHERE id = ? AND user_id = ?',
-    [id, req.user.id]
-  )
-  
-  if (existPet.length === 0) {
-    return res.status(404).json(error('宠物不存在', 404))
+  try {
+    const existPet = await query(
+      'SELECT * FROM pets WHERE id = ? AND user_id = ?',
+      [id, req.user.id]
+    )
+    
+    if (existPet.length === 0) {
+      return res.status(404).json(error('宠物不存在', 404))
+    }
+    
+    let updateFields = []
+    let params = []
+    
+    if (name !== undefined) {
+      updateFields.push('name = ?')
+      params.push(name)
+    }
+    if (type !== undefined) {
+      updateFields.push('type = ?')
+      params.push(type)
+    }
+    if (breed !== undefined) {
+      updateFields.push('breed = ?')
+      params.push(breed || null)
+    }
+    if (age !== undefined) {
+      updateFields.push('age = ?')
+      params.push(age || null)
+    }
+    if (gender !== undefined) {
+      updateFields.push('gender = ?')
+      params.push(gender)
+    }
+    if (color !== undefined) {
+      updateFields.push('color = ?')
+      params.push(color || null)
+    }
+    if (weight !== undefined) {
+      updateFields.push('weight = ?')
+      params.push(weight || null)
+    }
+    if (size !== undefined) {
+      updateFields.push('size = ?')
+      params.push(size)
+    }
+    if (neutered !== undefined) {
+      updateFields.push('neutered = ?')
+      params.push(neutered ? 1 : 0)
+    }
+    if (vaccinated !== undefined) {
+      updateFields.push('vaccinated = ?')
+      params.push(vaccinated || null)
+    }
+    if (healthCertificate !== undefined) {
+      updateFields.push('health_certificate = ?')
+      params.push(healthCertificate ? 1 : 0)
+    }
+    if (personality !== undefined) {
+      updateFields.push('personality = ?')
+      params.push(personality || null)
+    }
+    if (habits !== undefined) {
+      updateFields.push('habits = ?')
+      params.push(habits || null)
+    }
+    if (avatar !== undefined) {
+      updateFields.push('avatar = ?')
+      params.push(avatar || null)
+    }
+    if (photos !== undefined) {
+      updateFields.push('photos = ?')
+      const photosValue = Array.isArray(photos)
+        ? JSON.stringify(photos)
+        : typeof photos === 'string'
+          ? photos
+          : JSON.stringify(photos || [])
+      params.push(photosValue)
+    }
+    if (description !== undefined) {
+      updateFields.push('description = ?')
+      params.push(description || null)
+    }
+    
+    if (updateFields.length === 0) {
+      return res.status(400).json(error('没有需要更新的字段', 400))
+    }
+    
+    updateFields.push('updated_at = NOW()')
+    params.push(id)
+    params.push(req.user.id)
+    
+    await query(
+      `UPDATE pets SET ${updateFields.join(', ')} WHERE id = ? AND user_id = ?`,
+      params
+    )
+    
+    const pet = await query('SELECT * FROM pets WHERE id = ?', [id])
+    
+    res.json(success(pet[0], '更新成功'))
+  } catch (err) {
+    console.error('更新宠物失败:', err)
+    res.status(500).json(error('更新失败', 500))
   }
-  
-  let updateFields = []
-  let params = []
-  
-  if (name) {
-    updateFields.push('name = ?')
-    params.push(name)
-  }
-  if (type !== undefined) {
-    updateFields.push('type = COALESCE(?, type)')
-    params.push(type || null)
-  }
-  if (breed !== undefined) {
-    updateFields.push('breed = COALESCE(?, breed)')
-    params.push(breed || null)
-  }
-  if (age !== undefined) {
-    updateFields.push('age = COALESCE(?, age)')
-    params.push(age || null)
-  }
-  if (gender !== undefined) {
-    updateFields.push('gender = COALESCE(?, gender)')
-    params.push(gender || null)
-  }
-  if (color !== undefined) {
-    updateFields.push('color = COALESCE(?, color)')
-    params.push(color || null)
-  }
-  if (weight !== undefined) {
-    updateFields.push('weight = COALESCE(?, weight)')
-    params.push(weight || null)
-  }
-  if (size !== undefined) {
-    updateFields.push('size = COALESCE(?, size)')
-    params.push(size || null)
-  }
-  if (neutered !== undefined) {
-    updateFields.push('neutered = ?')
-    params.push(neutered ? 1 : 0)
-  }
-  if (vaccinated !== undefined) {
-    updateFields.push('vaccinated = COALESCE(?, vaccinated)')
-    params.push(vaccinated || null)
-  }
-  if (healthCertificate !== undefined) {
-    updateFields.push('health_certificate = ?')
-    params.push(healthCertificate ? 1 : 0)
-  }
-  if (personality !== undefined) {
-    updateFields.push('personality = COALESCE(?, personality)')
-    params.push(personality || null)
-  }
-  if (habits !== undefined) {
-    updateFields.push('habits = COALESCE(?, habits)')
-    params.push(habits || null)
-  }
-  if (avatar !== undefined) {
-    updateFields.push('avatar = ?')
-    params.push(avatar || null)
-  }
-  if (photos !== undefined) {
-    updateFields.push('photos = ?')
-    params.push(photos || null)
-  }
-  
-  if (updateFields.length === 0) {
-    return res.status(400).json(error('没有需要更新的字段', 400))
-  }
-  
-  params.push(id)
-  params.push(req.user.id)
-  
-  await query(
-    `UPDATE pets SET ${updateFields.join(', ')} WHERE id = ? AND user_id = ?`,
-    params
-  )
-  
-  const pet = await query(
-    'SELECT * FROM pets WHERE id = ?',
-    [id]
-  )
-  
-  res.json(success(pet[0], '更新成功'))
 })
 
 /**
- * @swagger
- * /api/pet/{id}:
- *   delete:
- *     summary: 删除宠物
- *     description: 删除指定宠物
- *     tags: [宠物管理]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         description: 宠物ID
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: 删除成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 删除成功
- *       404:
- *         description: 宠物不存在
+ * 删除宠物
  */
 router.delete('/:id', auth, async (req, res) => {
   const { id } = req.params
   
-  const existPet = await query(
-    'SELECT * FROM pets WHERE id = ? AND user_id = ?',
-    [id, req.user.id]
-  )
+  try {
+    const existPet = await query(
+      'SELECT * FROM pets WHERE id = ? AND user_id = ?',
+      [id, req.user.id]
+    )
+    
+    if (existPet.length === 0) {
+      return res.status(404).json(error('宠物不存在', 404))
+    }
+    
+    await query('UPDATE pets SET status = 0 WHERE id = ? AND user_id = ?', [id, req.user.id])
+    
+    // 更新用户宠物数
+    await query('UPDATE users SET pets_count = GREATEST(pets_count - 1, 0) WHERE id = ?', [req.user.id])
+    
+    res.json(success(null, '删除成功'))
+  } catch (err) {
+    console.error('删除宠物失败:', err)
+    res.status(500).json(error('删除失败', 500))
+  }
+})
+
+/**
+ * 上传宠物头像
+ */
+router.post('/:id/avatar', auth, async (req, res) => {
+  const { id } = req.params
+  const { avatar } = req.body
   
-  if (existPet.length === 0) {
-    return res.status(404).json(error('宠物不存在', 404))
+  if (!avatar) {
+    return res.status(400).json(error('请提供头像URL', 400))
   }
   
-  await query(
-    'DELETE FROM pets WHERE id = ? AND user_id = ?',
-    [id, req.user.id]
-  )
+  try {
+    const existPet = await query(
+      'SELECT * FROM pets WHERE id = ? AND user_id = ?',
+      [id, req.user.id]
+    )
+    
+    if (existPet.length === 0) {
+      return res.status(404).json(error('宠物不存在', 404))
+    }
+    
+    await query('UPDATE pets SET avatar = ?, updated_at = NOW() WHERE id = ?', [avatar, id])
+    
+    res.json(success({ avatar }, '上传成功'))
+  } catch (err) {
+    console.error('上传头像失败:', err)
+    res.status(500).json(error('上传失败', 500))
+  }
+})
+
+/**
+ * 获取其他用户的宠物列表
+ */
+router.get('/user/:userId', async (req, res) => {
+  const { userId } = req.params
+  const { page = 1, size = 10 } = req.query
+  const offset = (page - 1) * size
   
-  res.json(success({}, '删除成功'))
+  try {
+    const pets = await query(
+      'SELECT * FROM pets WHERE user_id = ? AND status = 1 ORDER BY created_at DESC LIMIT ? OFFSET ?',
+      [userId, parseInt(size), parseInt(offset)]
+    )
+    
+    const total = await query(
+      'SELECT COUNT(*) as count FROM pets WHERE user_id = ? AND status = 1',
+      [userId]
+    )
+    
+    res.json({
+      success: true,
+      message: '获取成功',
+      data: {
+        list: pets,
+        pagination: {
+          total: total[0].count,
+          page: parseInt(page),
+          size: parseInt(size),
+          pages: Math.ceil(total[0].count / size)
+        }
+      }
+    })
+  } catch (err) {
+    console.error('获取宠物列表失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
 })
 
 module.exports = router

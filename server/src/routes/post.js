@@ -2,62 +2,10 @@ const express = require('express')
 const router = express.Router()
 const { query } = require('../config/db')
 const { auth } = require('../middleware/auth')
-const { success, error } = require('../utils/response')
+const { success, error, pagination } = require('../utils/response')
 
 /**
- * @swagger
- * /api/post:
- *   post:
- *     summary: 创建动态
- *     description: 发布新的动态
- *     tags: [动态]
- *     security:
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               content:
- *                 type: string
- *                 description: 动态内容
- *                 example: 今天带狗狗去公园玩啦，天气真好！
- *               images:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: 图片 URL 数组
- *                 example: ["https://example.com/img1.jpg", "https://example.com/img2.jpg"]
- *     responses:
- *       200:
- *         description: 发布成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 发布成功
- *                 data:
- *                   $ref: '#/components/schemas/Post'
- *       400:
- *         description: 参数错误
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: 未登录或 token 无效
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ * 创建动态
  */
 router.post('/', auth, async (req, res) => {
   const { content, images } = req.body
@@ -66,585 +14,486 @@ router.post('/', auth, async (req, res) => {
     return res.status(400).json(error('请填写内容', 400))
   }
 
-  const result = await query(
-    'INSERT INTO posts (user_id, content, images, created_at) VALUES (?, ?, ?, NOW())',
-    [req.user.id, content, JSON.stringify(images || [])]
-  )
+  try {
+    const result = await query(
+      'INSERT INTO posts (user_id, content, images, created_at) VALUES (?, ?, ?, NOW())',
+      [req.user.id, content, JSON.stringify(images || [])]
+    )
 
-  const post = await query(
-    'SELECT p.*, u.username, u.avatar FROM posts p JOIN users u ON p.user_id = u.id WHERE p.id = ?',
-    [result.insertId]
-  )
+    // 更新用户动态数
+    await query('UPDATE users SET posts_count = posts_count + 1 WHERE id = ?', [req.user.id])
 
-  res.json(success(post[0], '发布成功'))
+    const post = await query(
+      'SELECT p.*, u.username, u.avatar, u.signature FROM posts p JOIN users u ON p.user_id = u.id WHERE p.id = ?',
+      [result.insertId]
+    )
+
+    res.json(success(post[0], '发布成功'))
+  } catch (err) {
+    console.error('发布动态失败:', err)
+    res.status(500).json(error('发布失败', 500))
+  }
 })
 
 /**
- * @swagger
- * /api/post:
- *   get:
- *     summary: 获取动态列表
- *     description: 获取所有动态列表，支持分页
- *     tags: [动态]
- *     parameters:
- *       - name: page
- *         in: query
- *         type: integer
- *         description: 页码
- *         default: 1
- *       - name: size
- *         in: query
- *         type: integer
- *         description: 每页数量
- *         default: 10
- *     responses:
- *       200:
- *         description: 获取成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 获取成功
- *                 data:
- *                   type: object
- *                   properties:
- *                     list:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/Post'
- *                     pagination:
- *                       type: object
- *                       properties:
- *                         total:
- *                           type: integer
- *                           example: 100
- *                         page:
- *                           type: integer
- *                           example: 1
- *                         size:
- *                           type: integer
- *                           example: 10
- *                         pages:
- *                           type: integer
- *                           example: 10
+ * 获取动态列表
  */
 router.get('/', async (req, res) => {
-  const { page = 1, size = 10 } = req.query
+  const { page = 1, size = 10, user_id, keyword } = req.query
   const pageNum = parseInt(page)
   const sizeNum = parseInt(size)
   const offset = (pageNum - 1) * sizeNum
 
-  const posts = await query(
-    'SELECT p.*, u.username, u.avatar FROM posts p JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?',
-    [sizeNum, offset]
-  )
+  try {
+    let sql = `
+      SELECT p.*, u.username, u.avatar, u.signature,
+        (SELECT COUNT(*) FROM likes WHERE target_id = p.id AND target_type = 'post') as likes_count,
+        (SELECT COUNT(*) FROM comments WHERE post_id = p.id AND status = 1) as comments_count
+      FROM posts p 
+      JOIN users u ON p.user_id = u.id 
+      WHERE p.status = 1
+    `
+    const params = []
 
-  const total = await query('SELECT COUNT(*) as count FROM posts')
+    if (user_id) {
+      sql += ' AND p.user_id = ?'
+      params.push(user_id)
+    }
 
-  res.json({
-    success: true,
-    message: '获取成功',
-    data: {
-      list: posts,
-      pagination: {
-        total: total[0].count,
-        page,
-        size,
-        pages: Math.ceil(total[0].count / size)
+    if (keyword) {
+      sql += ' AND p.content LIKE ?'
+      params.push(`%${keyword}%`)
+    }
+
+    sql += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?'
+    params.push(sizeNum, offset)
+
+    const posts = await query(sql, params)
+
+    // 解析images字段
+    for (let post of posts) {
+      if (typeof post.images === 'string') {
+        post.images = JSON.parse(post.images)
       }
     }
-  })
+
+    let countSql = 'SELECT COUNT(*) as count FROM posts WHERE status = 1'
+    const countParams = []
+    if (user_id) {
+      countSql += ' AND user_id = ?'
+      countParams.push(user_id)
+    }
+    if (keyword) {
+      countSql += ' AND content LIKE ?'
+      countParams.push(`%${keyword}%`)
+    }
+    const total = await query(countSql, countParams)
+
+    res.json(pagination(posts, total[0].count, pageNum, sizeNum))
+  } catch (err) {
+    console.error('获取动态列表失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
 })
 
 /**
- * @swagger
- * /api/post/{id}:
- *   get:
- *     summary: 获取单条动态
- *     description: 根据动态 ID 获取详细信息
- *     tags: [动态]
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         type: integer
- *         description: 动态 ID
- *     responses:
- *       200:
- *         description: 获取成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 获取成功
- *                 data:
- *                   $ref: '#/components/schemas/Post'
- *       404:
- *         description: 动态不存在
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ * 检查当前用户是否已点赞
+ */
+router.get('/:id/liked', auth, async (req, res) => {
+  const { id } = req.params
+  try {
+    const existing = await query(
+      'SELECT id FROM likes WHERE user_id = ? AND target_id = ? AND target_type = ?',
+      [req.user.id, id, 'post']
+    )
+    res.json(success({ liked: existing.length > 0 }, '获取成功'))
+  } catch (err) {
+    console.error('检查点赞状态失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+/**
+ * 获取单条动态
  */
 router.get('/:id', async (req, res) => {
   const { id } = req.params
 
-  const post = await query(
-    'SELECT p.*, u.username, u.avatar FROM posts p JOIN users u ON p.user_id = u.id WHERE p.id = ?',
-    [id]
-  )
+  try {
+    const posts = await query(`
+      SELECT p.*, u.username, u.avatar, u.signature,
+        (SELECT COUNT(*) FROM likes WHERE target_id = p.id AND target_type = 'post') as likes_count,
+        (SELECT COUNT(*) FROM comments WHERE post_id = p.id AND status = 1) as comments_count
+      FROM posts p 
+      JOIN users u ON p.user_id = u.id 
+      WHERE p.id = ? AND p.status = 1
+    `, [id])
 
-  if (post.length === 0) {
-    return res.status(404).json(error('动态不存在', 404))
+    if (posts.length === 0) {
+      return res.status(404).json(error('动态不存在', 404))
+    }
+
+    const post = posts[0]
+    if (typeof post.images === 'string') {
+      post.images = JSON.parse(post.images)
+    }
+
+    res.json(success(post, '获取成功'))
+  } catch (err) {
+    console.error('获取动态详情失败:', err)
+    res.status(500).json(error('获取失败', 500))
   }
-
-  res.json(success(post[0], '获取成功'))
 })
 
 /**
- * @swagger
- * /api/post/{id}:
- *   delete:
- *     summary: 删除动态
- *     description: 删除指定的动态（仅作者可删除）
- *     tags: [动态]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         type: integer
- *         description: 动态 ID
- *     responses:
- *       200:
- *         description: 删除成功
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *       403:
- *         description: 无权删除
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: 动态不存在
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: 未登录或 token 无效
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ * 更新动态
+ */
+router.put('/:id', auth, async (req, res) => {
+  const { id } = req.params
+  const { content, images } = req.body
+
+  try {
+    const posts = await query('SELECT * FROM posts WHERE id = ? AND user_id = ?', [id, req.user.id])
+    if (posts.length === 0) {
+      return res.status(404).json(error('动态不存在或无权修改', 404))
+    }
+
+    await query(
+      'UPDATE posts SET content = ?, images = ?, updated_at = NOW() WHERE id = ?',
+      [content || posts[0].content, JSON.stringify(images || JSON.parse(posts[0].images || '[]')), id]
+    )
+
+    const updatedPost = await query(
+      'SELECT p.*, u.username, u.avatar FROM posts p JOIN users u ON p.user_id = u.id WHERE p.id = ?',
+      [id]
+    )
+
+    res.json(success(updatedPost[0], '更新成功'))
+  } catch (err) {
+    console.error('更新动态失败:', err)
+    res.status(500).json(error('更新失败', 500))
+  }
+})
+
+/**
+ * 删除动态
  */
 router.delete('/:id', auth, async (req, res) => {
   const { id } = req.params
 
-  const post = await query('SELECT user_id FROM posts WHERE id = ?', [id])
-  
-  if (post.length === 0) {
-    return res.status(404).json(error('动态不存在', 404))
+  try {
+    const posts = await query('SELECT * FROM posts WHERE id = ? AND user_id = ?', [id, req.user.id])
+    if (posts.length === 0) {
+      return res.status(404).json(error('动态不存在或无权删除', 404))
+    }
+
+    await query('UPDATE posts SET status = 0 WHERE id = ?', [id])
+    
+    // 更新用户动态数
+    await query('UPDATE users SET posts_count = GREATEST(posts_count - 1, 0) WHERE id = ?', [req.user.id])
+
+    res.json(success(null, '删除成功'))
+  } catch (err) {
+    console.error('删除动态失败:', err)
+    res.status(500).json(error('删除失败', 500))
   }
-
-  if (post[0].user_id !== req.user.id) {
-    return res.status(403).json(error('无权删除', 403))
-  }
-
-  await query('DELETE FROM posts WHERE id = ?', [id])
-
-  res.json(success(null, '删除成功'))
 })
 
 /**
- * @swagger
- * /api/post/{id}/like:
- *   post:
- *     summary: 点赞动态
- *     description: 给指定动态点赞
- *     tags: [动态]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         type: integer
- *         description: 动态 ID
- *     responses:
- *       200:
- *         description: 点赞成功
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *       400:
- *         description: 已点赞
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: 未登录或 token 无效
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ * 点赞动态
  */
 router.post('/:id/like', auth, async (req, res) => {
   const { id } = req.params
 
-  const existing = await query(
-    'SELECT id FROM likes WHERE user_id = ? AND post_id = ?',
-    [req.user.id, id]
-  )
+  try {
+    // 检查动态是否存在
+    const posts = await query('SELECT * FROM posts WHERE id = ? AND status = 1', [id])
+    if (posts.length === 0) {
+      return res.status(404).json(error('动态不存在', 404))
+    }
 
-  if (existing.length > 0) {
-    return res.status(400).json(error('已点赞', 400))
+    // 检查是否已点赞
+    const existing = await query(
+      'SELECT id FROM likes WHERE user_id = ? AND target_id = ? AND target_type = ?',
+      [req.user.id, id, 'post']
+    )
+
+    if (existing.length > 0) {
+      // 取消点赞
+      await query('DELETE FROM likes WHERE id = ?', [existing[0].id])
+      await query('UPDATE posts SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?', [id])
+      res.json(success({ liked: false }, '取消点赞'))
+    } else {
+      // 点赞
+      await query(
+        'INSERT INTO likes (user_id, target_id, target_type, created_at) VALUES (?, ?, ?, NOW())',
+        [req.user.id, id, 'post']
+      )
+      await query('UPDATE posts SET likes_count = likes_count + 1 WHERE id = ?', [id])
+      
+      // 创建通知
+      if (posts[0].user_id !== req.user.id) {
+        await query(
+          'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [posts[0].user_id, req.user.id, 'like', '点赞通知', `赞了你的动态`, id, 'post']
+        )
+      }
+      
+      res.json(success({ liked: true }, '点赞成功'))
+    }
+  } catch (err) {
+    console.error('点赞操作失败:', err)
+    res.status(500).json(error('操作失败', 500))
   }
-
-  await query(
-    'INSERT INTO likes (user_id, post_id, created_at) VALUES (?, ?, NOW())',
-    [req.user.id, id]
-  )
-
-  await query('UPDATE posts SET likes = likes + 1 WHERE id = ?', [id])
-
-  res.json(success(null, '点赞成功'))
 })
 
 /**
- * @swagger
- * /api/post/{id}/unlike:
- *   post:
- *     summary: 取消点赞
- *     description: 取消对指定动态的点赞
- *     tags: [动态]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         type: integer
- *         description: 动态 ID
- *     responses:
- *       200:
- *         description: 取消点赞成功
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *       400:
- *         description: 未点赞
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: 未登录或 token 无效
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ * 收藏动态
  */
-router.post('/:id/unlike', auth, async (req, res) => {
+router.post('/:id/favorite', auth, async (req, res) => {
   const { id } = req.params
 
-  const result = await query(
-    'DELETE FROM likes WHERE user_id = ? AND post_id = ?',
-    [req.user.id, id]
-  )
+  try {
+    const posts = await query('SELECT * FROM posts WHERE id = ? AND status = 1', [id])
+    if (posts.length === 0) {
+      return res.status(404).json(error('动态不存在', 404))
+    }
 
-  if (result.affectedRows === 0) {
-    return res.status(400).json(error('未点赞', 400))
+    const existing = await query(
+      'SELECT id FROM favorites WHERE user_id = ? AND target_id = ? AND target_type = ?',
+      [req.user.id, id, 'post']
+    )
+
+    if (existing.length > 0) {
+      await query('DELETE FROM favorites WHERE id = ?', [existing[0].id])
+      res.json(success({ favorited: false }, '取消收藏'))
+    } else {
+      await query(
+        'INSERT INTO favorites (user_id, target_id, target_type, created_at) VALUES (?, ?, ?, NOW())',
+        [req.user.id, id, 'post']
+      )
+      res.json(success({ favorited: true }, '收藏成功'))
+    }
+  } catch (err) {
+    console.error('收藏操作失败:', err)
+    res.status(500).json(error('操作失败', 500))
   }
-
-  await query('UPDATE posts SET likes = likes - 1 WHERE id = ?', [id])
-
-  res.json(success(null, '取消点赞成功'))
 })
 
 /**
- * @swagger
- * /api/post/{id}/comments:
- *   get:
- *     summary: 获取评论列表
- *     description: 获取指定动态的评论列表
- *     tags: [动态]
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         type: integer
- *         description: 动态 ID
- *       - name: page
- *         in: query
- *         type: integer
- *         description: 页码
- *         default: 1
- *       - name: size
- *         in: query
- *         type: integer
- *         description: 每页数量
- *         default: 10
- *     responses:
- *       200:
- *         description: 获取成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 获取成功
- *                 data:
- *                   type: object
- *                   properties:
- *                     list:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: integer
- *                             example: 1
- *                           post_id:
- *                             type: integer
- *                             example: 1
- *                           user_id:
- *                             type: integer
- *                             example: 1
- *                           content:
- *                             type: string
- *                             example: 好可爱的狗狗！
- *                           username:
- *                             type: string
- *                             example: 用户小明
- *                           avatar:
- *                             type: string
- *                             example: https://example.com/avatar.jpg
- *                           created_at:
- *                             type: string
- *                             format: date-time
- *                             example: '2024-01-01T12:00:00Z'
- *                     pagination:
- *                       type: object
- *                       properties:
- *                         total:
- *                           type: integer
- *                           example: 50
- *                         page:
- *                           type: integer
- *                           example: 1
- *                         size:
- *                           type: integer
- *                           example: 10
- *                         pages:
- *                           type: integer
- *                           example: 5
+ * 获取评论列表
  */
-router.get('/:id/liked', auth, async (req, res) => {
-  const { id } = req.params
-
-  const result = await query(
-    'SELECT id FROM likes WHERE user_id = ? AND post_id = ?',
-    [req.user.id, id]
-  )
-
-  res.json(success({ liked: result.length > 0 }, '获取成功'))
-})
-
 router.get('/:id/comments', async (req, res) => {
   const { id } = req.params
-  const { page = 1, size = 10 } = req.query
-  const pageNum = parseInt(page)
-  const sizeNum = parseInt(size)
-  const offset = (pageNum - 1) * sizeNum
+  const { page = 1, size = 20 } = req.query
+  const offset = (page - 1) * size
 
-  const comments = await query(
-    'SELECT c.*, u.username, u.avatar, rc.user_id as reply_to_user_id, ru.username as reply_to_name FROM comments c JOIN users u ON c.user_id = u.id LEFT JOIN comments rc ON c.reply_to_id = rc.id LEFT JOIN users ru ON rc.user_id = ru.id WHERE c.post_id = ? ORDER BY c.created_at DESC LIMIT ? OFFSET ?',
-    [id, sizeNum, offset]
-  )
+  try {
+    const comments = await query(`
+      SELECT c.*, u.username, u.avatar,
+        ru.username as reply_to_username
+      FROM comments c
+      JOIN users u ON c.user_id = u.id
+      LEFT JOIN users ru ON c.reply_to_user_id = ru.id
+      WHERE c.post_id = ? AND c.status = 1
+      ORDER BY c.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [id, parseInt(size), parseInt(offset)])
 
-  const total = await query('SELECT COUNT(*) as count FROM comments WHERE post_id = ?', [id])
+    const total = await query(
+      'SELECT COUNT(*) as count FROM comments WHERE post_id = ? AND status = 1',
+      [id]
+    )
 
-  res.json({
-    success: true,
-    message: '获取成功',
-    data: {
-      list: comments,
-      pagination: {
-        total: total[0].count,
-        page,
-        size,
-        pages: Math.ceil(total[0].count / size)
+    res.json({
+      success: true,
+      message: '获取成功',
+      data: {
+        list: comments,
+        pagination: {
+          total: total[0].count,
+          page: parseInt(page),
+          size: parseInt(size),
+          pages: Math.ceil(total[0].count / size)
+        }
       }
-    }
-  })
+    })
+  } catch (err) {
+    console.error('获取评论失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
 })
 
 /**
- * @swagger
- * /api/post/{id}/comment:
- *   post:
- *     summary: 添加评论
- *     description: 给指定动态添加评论
- *     tags: [动态]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         type: integer
- *         description: 动态 ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               content:
- *                 type: string
- *                 description: 评论内容
- *                 example: 好可爱的狗狗！
- *     responses:
- *       200:
- *         description: 评论成功
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: 评论成功
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                       example: 1
- *                     post_id:
- *                       type: integer
- *                       example: 1
- *                     user_id:
- *                       type: integer
- *                       example: 1
- *                     content:
- *                       type: string
- *                       example: 好可爱的狗狗！
- *                     username:
- *                       type: string
- *                       example: 用户小明
- *                     avatar:
- *                       type: string
- *                       example: https://example.com/avatar.jpg
- *                     created_at:
- *                       type: string
- *                       format: date-time
- *                       example: '2024-01-01T12:00:00Z'
- *       400:
- *         description: 参数错误
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: 未登录或 token 无效
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ * 发表评论
  */
 router.post('/:id/comment', auth, async (req, res) => {
   const { id } = req.params
-  const { content, reply_to_id } = req.body
+  const { content, reply_to_id, reply_to_user_id } = req.body
 
   if (!content) {
     return res.status(400).json(error('请填写评论内容', 400))
   }
 
-  const result = await query(
-    'INSERT INTO comments (post_id, user_id, content, reply_to_id, created_at) VALUES (?, ?, ?, ?, NOW())',
-    [id, req.user.id, content, reply_to_id || null]
-  )
+  try {
+    // 检查动态是否存在
+    const posts = await query('SELECT * FROM posts WHERE id = ? AND status = 1', [id])
+    if (posts.length === 0) {
+      return res.status(404).json(error('动态不存在', 404))
+    }
 
-  await query('UPDATE posts SET comments = comments + 1 WHERE id = ?', [id])
+    const result = await query(
+      'INSERT INTO comments (post_id, user_id, content, reply_to_id, reply_to_user_id, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+      [id, req.user.id, content, reply_to_id || null, reply_to_user_id || null]
+    )
 
-  const comment = await query(
-    'SELECT c.*, u.username, u.avatar, rc.user_id as reply_to_user_id, ru.username as reply_to_name FROM comments c JOIN users u ON c.user_id = u.id LEFT JOIN comments rc ON c.reply_to_id = rc.id LEFT JOIN users ru ON rc.user_id = ru.id WHERE c.id = ?',
-    [result.insertId]
-  )
+    // 更新动态评论数
+    await query('UPDATE posts SET comments_count = comments_count + 1 WHERE id = ?', [id])
 
-  res.json(success(comment[0], '评论成功'))
+    const comment = await query(`
+      SELECT c.*, u.username, u.avatar,
+        ru.username as reply_to_username
+      FROM comments c
+      JOIN users u ON c.user_id = u.id
+      LEFT JOIN users ru ON c.reply_to_user_id = ru.id
+      WHERE c.id = ?
+    `, [result.insertId])
+
+    // 创建通知
+    const postAuthorId = posts[0].user_id
+    if (postAuthorId !== req.user.id) {
+      await query(
+        'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [postAuthorId, req.user.id, 'comment', '评论通知', `评论了你的动态`, id, 'post']
+      )
+    }
+
+    if (reply_to_user_id && reply_to_user_id !== req.user.id && reply_to_user_id !== postAuthorId) {
+      await query(
+        'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [reply_to_user_id, req.user.id, 'comment', '回复通知', `回复了你的评论`, id, 'post']
+      )
+    }
+
+    res.json(success(comment[0], '评论成功'))
+  } catch (err) {
+    console.error('发表评论失败:', err)
+    res.status(500).json(error('评论失败', 500))
+  }
 })
 
+/**
+ * 删除评论
+ */
 router.delete('/comment/:commentId', auth, async (req, res) => {
   const { commentId } = req.params
-  const startTime = Date.now()
 
-  console.log(`[DELETE COMMENT] 开始删除评论, commentId: ${commentId}, userId: ${req.user.id}`)
+  try {
+    const comment = await query(
+      'SELECT c.*, p.user_id as post_user_id FROM comments c JOIN posts p ON c.post_id = p.id WHERE c.id = ?',
+      [commentId]
+    )
 
-  const comment = await query(
-    'SELECT c.*, p.user_id as post_user_id FROM comments c JOIN posts p ON c.post_id = p.id WHERE c.id = ?',
-    [commentId]
-  )
+    if (comment.length === 0) {
+      return res.status(404).json(error('评论不存在', 404))
+    }
 
-  if (comment.length === 0) {
-    console.log(`[DELETE COMMENT] 评论不存在, commentId: ${commentId}`)
-    return res.status(404).json(error('评论不存在', 404))
+    if (comment[0].user_id !== req.user.id && comment[0].post_user_id !== req.user.id) {
+      return res.status(403).json(error('无权删除', 403))
+    }
+
+    const postId = comment[0].post_id
+
+    await query('UPDATE comments SET status = 0 WHERE id = ?', [commentId])
+
+    // 更新动态评论数
+    const countResult = await query('SELECT COUNT(*) as count FROM comments WHERE post_id = ? AND status = 1', [postId])
+    await query('UPDATE posts SET comments_count = ? WHERE id = ?', [countResult[0].count, postId])
+
+    res.json(success(null, '删除成功'))
+  } catch (err) {
+    console.error('删除评论失败:', err)
+    res.status(500).json(error('删除失败', 500))
   }
+})
 
-  if (comment[0].user_id !== req.user.id && comment[0].post_user_id !== req.user.id) {
-    console.log(`[DELETE COMMENT] 无权删除, commentId: ${commentId}, commentUserId: ${comment[0].user_id}, postUserId: ${comment[0].post_user_id}, currentUserId: ${req.user.id}`)
-    return res.status(403).json(error('无权删除', 403))
+/**
+ * 点赞评论
+ */
+router.post('/comment/:commentId/like', auth, async (req, res) => {
+  const { commentId } = req.params
+
+  try {
+    const comments = await query('SELECT * FROM comments WHERE id = ? AND status = 1', [commentId])
+    if (comments.length === 0) {
+      return res.status(404).json(error('评论不存在', 404))
+    }
+
+    const existing = await query(
+      'SELECT id FROM likes WHERE user_id = ? AND target_id = ? AND target_type = ?',
+      [req.user.id, commentId, 'comment']
+    )
+
+    if (existing.length > 0) {
+      await query('DELETE FROM likes WHERE id = ?', [existing[0].id])
+      await query('UPDATE comments SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?', [commentId])
+      res.json(success({ liked: false }, '取消点赞'))
+    } else {
+      await query(
+        'INSERT INTO likes (user_id, target_id, target_type, created_at) VALUES (?, ?, ?, NOW())',
+        [req.user.id, commentId, 'comment']
+      )
+      await query('UPDATE comments SET likes_count = likes_count + 1 WHERE id = ?', [commentId])
+      res.json(success({ liked: true }, '点赞成功'))
+    }
+  } catch (err) {
+    console.error('点赞评论失败:', err)
+    res.status(500).json(error('操作失败', 500))
   }
+})
 
-  const postId = comment[0].post_id
-  
-  const beforeCountResult = await query('SELECT COUNT(*) as count FROM comments WHERE post_id = ?', [postId])
-  const beforeCount = beforeCountResult[0].count || 0
-  console.log(`[DELETE COMMENT] 删除前, postId: ${postId}, 评论总数: ${beforeCount}`)
+/**
+ * 获取用户收藏的动态列表
+ */
+router.get('/user/favorites', auth, async (req, res) => {
+  const { page = 1, size = 10 } = req.query
+  const offset = (page - 1) * size
 
-  const deleteResult = await query('DELETE FROM comments WHERE id = ? OR reply_to_id = ?', [commentId, commentId])
-  console.log(`[DELETE COMMENT] 删除成功, 删除记录数: ${deleteResult.affectedRows}`)
+  try {
+    const posts = await query(`
+      SELECT p.*, u.username, u.avatar,
+        (SELECT COUNT(*) FROM likes WHERE target_id = p.id AND target_type = 'post') as likes_count,
+        (SELECT COUNT(*) FROM comments WHERE post_id = p.id AND status = 1) as comments_count
+      FROM posts p
+      JOIN favorites f ON p.id = f.target_id AND f.target_type = 'post'
+      JOIN users u ON p.user_id = u.id
+      WHERE f.user_id = ? AND p.status = 1
+      ORDER BY f.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [req.user.id, parseInt(size), parseInt(offset)])
 
-  const afterCountResult = await query('SELECT COUNT(*) as count FROM comments WHERE post_id = ?', [postId])
-  const afterCount = afterCountResult[0].count || 0
-  console.log(`[DELETE COMMENT] 删除后, postId: ${postId}, 评论总数: ${afterCount}, 减少数量: ${beforeCount - afterCount}`)
+    const total = await query(
+      'SELECT COUNT(*) as count FROM favorites WHERE user_id = ? AND target_type = ?',
+      [req.user.id, 'post']
+    )
 
-  await query('UPDATE posts SET comments = ? WHERE id = ?', [afterCount, postId])
-
-  const endTime = Date.now()
-  console.log(`[DELETE COMMENT] 删除完成, commentId: ${commentId}, postId: ${postId}, 耗时: ${endTime - startTime}ms`)
-
-  res.json(success(null, '删除成功'))
+    res.json({
+      success: true,
+      message: '获取成功',
+      data: {
+        list: posts,
+        pagination: {
+          total: total[0].count,
+          page: parseInt(page),
+          size: parseInt(size),
+          pages: Math.ceil(total[0].count / size)
+        }
+      }
+    })
+  } catch (err) {
+    console.error('获取收藏列表失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
 })
 
 module.exports = router

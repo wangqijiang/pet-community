@@ -9,7 +9,7 @@
           <view class="avatar-wrapper">
             <image
               class="user-avatar"
-              src="/static/images/avatar-default.png"
+              :src="avatarUrl"
               mode="aspectFill"
             ></image>
             <view class="pet-badge">
@@ -17,16 +17,20 @@
             </view>
           </view>
           <view class="profile-info">
-            <text class="user-name">肉垫守护者</text>
-            <text class="user-desc">记录和毛孩子在一起的每一个治愈瞬间</text>
+            <text class="user-name">{{ profile?.username || "用户" }}</text>
+            <text class="user-desc">{{ profile?.signature || "这个人很懒，什么都没写" }}</text>
           </view>
         </view>
 
         <!-- 操作按钮 -->
         <view class="action-buttons">
-          <view class="action-btn followed" @tap="handleFollow">
-            <view class="check-icon"></view>
-            <text class="btn-text">已关注</text>
+          <view
+            class="action-btn"
+            :class="{ followed: isFollowing }"
+            @tap="handleFollow"
+          >
+            <view v-if="isFollowing" class="check-icon"></view>
+            <text class="btn-text">{{ isFollowing ? "已关注" : "关注" }}</text>
           </view>
           <view class="action-btn secondary" @tap="sendMessage">
             <view class="message-icon"></view>
@@ -37,17 +41,17 @@
         <!-- 数据统计 -->
         <view class="stats-bar">
           <view class="stat-item">
-            <text class="stat-number">128</text>
+            <text class="stat-number">{{ profile?.posts_count ?? 0 }}</text>
             <text class="stat-label">动态</text>
           </view>
           <view class="stat-divider"></view>
           <view class="stat-item">
-            <text class="stat-number">3.2k</text>
-            <text class="stat-label">获赞</text>
+            <text class="stat-number">{{ profile?.pets_count ?? 0 }}</text>
+            <text class="stat-label">宠物</text>
           </view>
           <view class="stat-divider"></view>
           <view class="stat-item">
-            <text class="stat-number">542</text>
+            <text class="stat-number">{{ profile?.followers_count ?? 0 }}</text>
             <text class="stat-label">粉丝</text>
           </view>
         </view>
@@ -58,34 +62,30 @@
             <text class="section-title">TA的宠物</text>
             <text class="view-all">查看全部</text>
           </view>
-          <scroll-view class="pets-scroll" scroll-x>
+          <scroll-view class="pets-scroll" scroll-x v-if="pets.length">
             <view class="pets-list">
-              <view class="pet-card" @tap="goToPetProfile(1)">
+              <view
+                v-for="pet in pets"
+                :key="pet.id"
+                class="pet-card"
+                @tap="goToPetProfile(pet.id)"
+              >
                 <image
                   class="pet-cover"
-                  src="/static/images/post-default.png"
+                  :src="petAvatar(pet.avatar)"
                   mode="aspectFill"
                 ></image>
                 <view class="pet-info">
-                  <text class="pet-name">奶酪</text>
-                  <text class="pet-detail">金毛 · 6个月</text>
+                  <text class="pet-name">{{ pet.name }}</text>
+                  <text class="pet-detail">{{ pet.breed }} · {{ formatAge(pet.age) }}</text>
                 </view>
-                <view class="pet-tag">活泼</view>
-              </view>
-              <view class="pet-card" @tap="goToPetProfile(2)">
-                <image
-                  class="pet-cover"
-                  src="/static/images/post-default.png"
-                  mode="aspectFill"
-                ></image>
-                <view class="pet-info">
-                  <text class="pet-name">布丁</text>
-                  <text class="pet-detail">比格 · 2岁</text>
-                </view>
-                <view class="pet-tag secondary">贪吃</view>
+                <view v-if="pet.personality" class="pet-tag">{{ pet.personality.split(/[,，]/)[0] }}</view>
               </view>
             </view>
           </scroll-view>
+          <view v-else class="empty-pets">
+            <text>暂无宠物</text>
+          </view>
         </view>
 
         <!-- TA的萌宠日常 -->
@@ -93,51 +93,37 @@
           <view class="section-header">
             <text class="section-title">TA的萌宠日常</text>
           </view>
-          <view class="feed-grid">
-            <view class="feed-card tall" @tap="goToFeedDetail(1)">
+          <view class="feed-grid" v-if="posts.length">
+            <view
+              v-for="(post, index) in posts"
+              :key="post.id"
+              class="feed-card"
+              :class="{ tall: index === 0 }"
+              @tap="goToFeedDetail(post.id)"
+            >
               <image
+                v-if="postCover(post)"
                 class="feed-image"
-                src="/static/images/post-default.png"
+                :src="postCover(post)"
                 mode="aspectFill"
               ></image>
               <view class="feed-info">
-                <text class="feed-content"
-                  >今天也是被小家伙治愈的一天呢，哪怕是拆家也舍不得骂它...</text
-                >
+                <text class="feed-content">{{ post.content }}</text>
                 <view class="feed-stats">
                   <view class="feed-stat">
-                    <view class="like-icon filled"></view>
-                    <text class="stat-num">1.2k</text>
+                    <view class="like-icon" :class="{ filled: post.liked }"></view>
+                    <text class="stat-num">{{ post.likes ?? 0 }}</text>
                   </view>
                   <view class="feed-stat">
                     <view class="comment-icon"></view>
-                    <text class="stat-num">86</text>
+                    <text class="stat-num">{{ post.comments ?? 0 }}</text>
                   </view>
                 </view>
               </view>
             </view>
-            <view class="feed-card" @tap="goToFeedDetail(2)">
-              <image
-                class="feed-image"
-                src="/static/images/post-default.png"
-                mode="aspectFill"
-              ></image>
-              <view class="feed-info">
-                <text class="feed-content"
-                  >带柯基去草地撒欢，这小短腿跑起来太带感了！</text
-                >
-                <view class="feed-stats">
-                  <view class="feed-stat">
-                    <view class="like-icon"></view>
-                    <text class="stat-num">943</text>
-                  </view>
-                  <view class="feed-stat">
-                    <view class="comment-icon"></view>
-                    <text class="stat-num">42</text>
-                  </view>
-                </view>
-              </view>
-            </view>
+          </view>
+          <view v-else class="empty-pets">
+            <text>暂无动态</text>
           </view>
         </view>
       </scroll-view>
@@ -147,51 +133,112 @@
   </view>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import Loading from "@/components/common/Loading.vue";
+import {
+  getUserById,
+  followUser,
+  unfollowUser,
+  isFollowing as checkFollowing,
+  type UserInfo,
+} from "@/api/user";
+import { getUserPets, type Pet } from "@/api/pet";
+import { getPostList, type Post } from "@/api/post";
+import { resolveMediaUrl } from "@/utils/media";
+import { formatPetAge, parseJsonArray } from "@/utils/format";
 
 const loading = ref(false);
+const userId = ref(0);
+const profile = ref<UserInfo | null>(null);
+const pets = ref<Pet[]>([]);
+const posts = ref<Post[]>([]);
+const isFollowing = ref(false);
+const defaultAvatar = "/static/images/avatar-default.png";
 
-onMounted(() => {
-  loadUserProfile();
-});
+const avatarUrl = computed(() =>
+  profile.value?.avatar
+    ? resolveMediaUrl(profile.value.avatar)
+    : defaultAvatar,
+);
 
-const loadUserProfile = () => {
-  loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-  }, 1000);
+const formatAge = formatPetAge;
+const petAvatar = (url?: string) =>
+  url ? resolveMediaUrl(url) : "/static/images/post-default.png";
+
+const postCover = (post: Post) => {
+  const imgs = parseJsonArray<string>(post.images);
+  return imgs[0] ? resolveMediaUrl(imgs[0]) : "";
 };
 
-const handleFollow = () => {
+onLoad((options) => {
+  userId.value = Number(options?.id || 0);
+  if (userId.value) loadUserProfile();
+});
+
+const loadUserProfile = async () => {
+  loading.value = true;
+  try {
+    const [user, petRes, postRes, following] = await Promise.all([
+      getUserById(userId.value),
+      getUserPets(userId.value, 1, 10),
+      getPostList(1, 10, userId.value),
+      checkFollowing(userId.value).catch(() => false),
+    ]);
+    profile.value = user;
+    pets.value = petRes.list;
+    posts.value = postRes.list;
+    isFollowing.value = following;
+  } catch {
+    uni.showToast({ title: "加载失败", icon: "none" });
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleFollow = async () => {
   uni.vibrateShort({ type: "light" });
-  uni.showToast({
-    title: "已取消关注",
-    icon: "success",
-  });
+  try {
+    if (isFollowing.value) {
+      await unfollowUser(userId.value);
+      isFollowing.value = false;
+      if (profile.value) {
+        profile.value.followers_count = Math.max(
+          0,
+          (profile.value.followers_count || 0) - 1,
+        );
+      }
+      uni.showToast({ title: "已取消关注", icon: "success" });
+    } else {
+      await followUser(userId.value);
+      isFollowing.value = true;
+      if (profile.value) {
+        profile.value.followers_count =
+          (profile.value.followers_count || 0) + 1;
+      }
+      uni.showToast({ title: "关注成功", icon: "success" });
+    }
+  } catch {
+    uni.showToast({ title: "操作失败", icon: "none" });
+  }
 };
 
 const sendMessage = () => {
   uni.vibrateShort({ type: "light" });
+  const name = encodeURIComponent(profile.value?.username || "用户");
   uni.navigateTo({
-    url: "/pages/message/chat",
+    url: `/pages/message/chat?userId=${userId.value}&name=${name}`,
   });
 };
 
-const goToPetProfile = (petId) => {
-  uni.vibrateShort({ type: "light" });
-  uni.navigateTo({
-    url: `/pages/mine/petProfile?id=${petId}`,
-  });
+const goToPetProfile = (petId: number) => {
+  uni.navigateTo({ url: `/pages/mine/petProfile?id=${petId}` });
 };
 
-const goToFeedDetail = (feedId) => {
-  uni.vibrateShort({ type: "light" });
-  uni.navigateTo({
-    url: `/pages/circle/detail?id=${feedId}`,
-  });
+const goToFeedDetail = (feedId: number) => {
+  uni.navigateTo({ url: `/pages/circle/detail?id=${feedId}` });
 };
 </script>
 
@@ -264,9 +311,23 @@ const goToFeedDetail = (feedId) => {
   display: flex;
   flex-direction: column;
   gap: 12rpx;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.empty-pets {
+  padding: 48rpx;
+  text-align: center;
+  color: #8a7f7f;
+  font-size: 28rpx;
 }
 
 .user-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
   font-size: 40rpx;
   font-weight: 700;
   color: #71585c;
@@ -276,7 +337,11 @@ const goToFeedDetail = (feedId) => {
   font-size: 26rpx;
   color: #4f4446;
   opacity: 0.8;
-  max-width: 560rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  word-break: break-all;
 }
 
 /* 操作按钮 */

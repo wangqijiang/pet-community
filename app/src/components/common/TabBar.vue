@@ -21,6 +21,10 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
+import { onShow } from "@dcloudio/uni-app";
+import { getUnreadMessageCount } from "@/api/message";
+import { getUnreadNotificationCount } from "@/api/notification";
+import { isLoggedIn } from "@/api/auth";
 
 const props = defineProps<{
   current: number;
@@ -44,7 +48,7 @@ const tabs = [
   {
     text: "消息",
     icon: "icon-message",
-    badge: 2,
+    badge: 0,
     url: "/pages/message/index",
   },
   {
@@ -62,9 +66,25 @@ watch(
   },
 );
 
+const refreshBadge = async () => {
+  if (!isLoggedIn()) return;
+  try {
+    const [msg, notif] = await Promise.all([
+      getUnreadMessageCount(),
+      getUnreadNotificationCount(),
+    ]);
+    tabs[2].badge = msg + notif;
+  } catch {
+    /* ignore */
+  }
+};
+
 onMounted(() => {
   currentIndex.value = props.current;
+  refreshBadge();
 });
+
+onShow(refreshBadge);
 
 const handleTabClick = (index: number) => {
   if (currentIndex.value === index) return;

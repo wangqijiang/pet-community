@@ -48,81 +48,48 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import Loading from "@/components/common/Loading.vue";
+import { getFollowersList } from "@/api/user";
+import { resolveMediaUrl } from "@/utils/media";
 
 const loading = ref(false);
 
-const userList = ref([
-  {
-    id: 1,
-    avatar: "/static/images/avatar-default.png",
-    nickname: "可爱的肉垫子",
-    desc: "超级金毛守护者 🐾",
-    isPetLover: true,
-  },
-  {
-    id: 2,
-    avatar: "/static/images/avatar-default.png",
-    nickname: "布丁的麻麻",
-    desc: "家有法斗小霸王",
-    isPetLover: false,
-  },
-  {
-    id: 3,
-    avatar: "/static/images/avatar-default.png",
-    nickname: "汪汪队长",
-    desc: "每天带狗跑5公里",
-    isPetLover: true,
-  },
-  {
-    id: 4,
-    avatar: "/static/images/avatar-default.png",
-    nickname: "小柯基爱吃草",
-    desc: "收集全世界的小狗瞬间",
-    isPetLover: true,
-  },
-  {
-    id: 5,
-    avatar: "/static/images/avatar-default.png",
-    nickname: "哈士奇观察员",
-    desc: "记录拆家日常中...",
-    isPetLover: false,
-  },
-  {
-    id: 6,
-    avatar: "/static/images/avatar-default.png",
-    nickname: "毛茸茸控",
-    desc: "云吸狗深度患者",
-    isPetLover: true,
-  },
-]);
+const userList = ref<
+  Array<{
+    id: number;
+    avatar: string;
+    nickname: string;
+    desc: string;
+    isPetLover: boolean;
+  }>
+>([]);
 
-onMounted(() => {
-  loadFansList();
-});
-
-const loadFansList = () => {
+const loadFansList = async () => {
   loading.value = true;
-  setTimeout(() => {
+  try {
+    const res = await getFollowersList(1, 50);
+    userList.value = res.list.map((u) => ({
+      id: u.id,
+      avatar: resolveMediaUrl(u.avatar),
+      nickname: u.username,
+      desc: u.signature || "",
+      isPetLover: true,
+    }));
+  } catch {
+    uni.showToast({ title: "加载失败", icon: "none" });
+  } finally {
     loading.value = false;
-  }, 1000);
+  }
 };
 
-const onRefresh = () => {
-  loadFansList();
-};
-
-const loadMore = () => {
-  console.log("Load more");
-};
-
-const goToUserProfile = (userId) => {
-  uni.navigateTo({
-    url: `/pages/mine/userProfile?id=${userId}`,
-  });
+onMounted(loadFansList);
+const onRefresh = () => loadFansList();
+const loadMore = () => {};
+const goToUserProfile = (userId: number) => {
+  uni.navigateTo({ url: `/pages/mine/userProfile?id=${userId}` });
 };
 </script>
 
@@ -218,18 +185,27 @@ const goToUserProfile = (userId) => {
   display: flex;
   flex-direction: column;
   gap: 8rpx;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .user-name {
   font-size: 32rpx;
   font-weight: 600;
   color: #1e1b1b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-desc {
   font-size: 24rpx;
   color: #4f4446;
   opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .bottom-hint {

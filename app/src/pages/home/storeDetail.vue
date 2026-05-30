@@ -23,21 +23,21 @@
       </view>
 
       <view class="hero-content">
-        <view class="tag">宠物友好公园</view>
-        <text class="store-name">中央公园</text>
-        <text class="store-desc">草坪宽阔 · 适合遛狗 · 狗友聚集地</text>
+        <view class="tag">{{ typeLabel }}</view>
+        <text class="store-name">{{ place.name || "加载中..." }}</text>
+        <text class="store-desc">{{ place.description || place.address }}</text>
         <view class="meta-row">
           <view class="meta-item">
             <view class="meta-icon icon-star"></view>
-            <text>4.9评分</text>
+            <text>{{ place.rating }}评分</text>
           </view>
-          <view class="meta-item">
+          <view class="meta-item" v-if="place.distance">
             <view class="meta-icon icon-map-pin"></view>
-            <text>距离500m</text>
+            <text>距离{{ place.distance }}</text>
           </view>
           <view class="meta-item">
             <view class="meta-icon icon-paw"></view>
-            <text>23只宠物</text>
+            <text>{{ place.reviews_count || 0 }}条评价</text>
           </view>
         </view>
       </view>
@@ -49,9 +49,7 @@
           <view class="title-icon icon-file"></view>
           <text>店铺介绍</text>
         </view>
-        <text class="intro">
-          中央公园是本地最受欢迎的宠物友好地点之一，拥有大面积草坪与休闲步道。园区内提供宠物饮水区、便便袋领取点与休息区域，周末经常有狗友聚会，非常适合带毛孩子出来玩耍与社交。
-        </text>
+        <text class="intro">{{ place.description || "暂无介绍" }}</text>
       </view>
 
       <view class="card">
@@ -64,14 +62,14 @@
             <view class="info-icon icon-clock"></view>
             <view class="info-content">
               <text class="info-label">营业时间</text>
-              <text class="info-value">周一至周日 06:00 - 22:00</text>
+              <text class="info-value">{{ place.business_hours || "暂无" }}</text>
             </view>
           </view>
           <view class="info-item">
             <view class="info-icon icon-map"></view>
             <view class="info-content">
               <text class="info-label">店铺地址</text>
-              <text class="info-value">市中心公园路88号</text>
+              <text class="info-value">{{ place.address || "暂无" }}</text>
             </view>
           </view>
         </view>
@@ -103,25 +101,23 @@
           <view class="title-icon icon-message"></view>
           <text>用户评价</text>
         </view>
-        <view class="review-header">
-          <view class="user">
-            <image
-              class="avatar"
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop"
-              mode="aspectFill"
-            />
-            <view class="user-info">
-              <text class="username">小明</text>
-              <text class="date">2024-01-15</text>
+        <view v-if="reviews.length === 0" class="review-text">暂无评价</view>
+        <view v-for="review in reviews" :key="review.id" class="review-block">
+          <view class="review-header">
+            <view class="user">
+              <image
+                class="avatar"
+                :src="resolveMediaUrl(review.avatar)"
+                mode="aspectFill"
+              />
+              <view class="user-info">
+                <text class="username">{{ review.username }}</text>
+                <text class="date">{{ formatRelativeTime(review.created_at) }}</text>
+              </view>
             </view>
           </view>
-          <view class="stars">
-            <view class="star-icon" v-for="i in 5" :key="i"></view>
-          </view>
+          <text class="review-text">{{ review.content }}</text>
         </view>
-        <text class="review-text">
-          草坪特别干净，空气很好，狗狗玩得特别开心。周末很多养狗的人会聚在这里，氛围非常舒服，已经连续来了很多次了 🐾
-        </text>
       </view>
 
       <view class="bottom-space"></view>
@@ -130,30 +126,59 @@
 </template>
 
 <script setup lang="ts">
-const goBack = () => {
-  uni.navigateBack();
-};
+import { ref, computed } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
+import { getPlaceDetail, getPlaceReviews, togglePlaceLike, type Place, type PlaceReview } from "@/api/place";
+import { PLACE_TYPE_LABEL, formatRelativeTime } from "@/utils/format";
+import { resolveMediaUrl } from "@/utils/media";
+
+const place = ref<Partial<Place>>({});
+const reviews = ref<PlaceReview[]>([]);
+const favorited = ref(false);
+
+const typeLabel = computed(
+  () => PLACE_TYPE_LABEL[place.value.type || ""] || "宠物友好地点",
+);
+
+const goBack = () => uni.navigateBack();
 
 const handleNavigate = () => {
-  uni.showToast({
-    title: "正在导航...",
-    icon: "loading",
+  if (!place.value.latitude) return;
+  uni.openLocation({
+    latitude: Number(place.value.latitude),
+    longitude: Number(place.value.longitude),
+    name: place.value.name,
+    address: place.value.address,
   });
 };
 
 const handleCall = () => {
-  uni.showToast({
-    title: "正在拨打电话...",
-    icon: "loading",
-  });
+  if (place.value.phone) uni.makePhoneCall({ phoneNumber: place.value.phone });
+  else uni.showToast({ title: "暂无电话", icon: "none" });
 };
 
-const handleCollect = () => {
-  uni.showToast({
-    title: "已收藏",
-    icon: "success",
-  });
+const handleCollect = async () => {
+  if (!place.value.id) return;
+  try {
+    const res = await togglePlaceLike(place.value.id);
+    favorited.value = res.liked;
+    uni.showToast({ title: res.liked ? "已收藏" : "已取消", icon: "success" });
+  } catch {
+    uni.showToast({ title: "操作失败", icon: "none" });
+  }
 };
+
+onLoad(async (options) => {
+  const id = Number(options?.id);
+  if (!id) return;
+  try {
+    place.value = await getPlaceDetail(id);
+    const res = await getPlaceReviews(id, 1, 5);
+    reviews.value = res.list;
+  } catch {
+    uni.showToast({ title: "加载失败", icon: "none" });
+  }
+});
 </script>
 
 <style lang="scss" scoped>

@@ -8,10 +8,10 @@
         <view class="ai-banner">
           <view class="ai-content">
             <view class="ai-tag">
-              <text class="tag-text">AI-POWERED INSIGHTS</text>
+              <text class="tag-text">智能养宠</text>
             </view>
-            <text class="ai-title">汪汪！您的定制成长秘籍已生成</text>
-            <text class="ai-desc">基于毛孩子的年龄、品种与生活习性深度定制</text>
+            <text class="ai-title">{{ bannerTitle }}</text>
+            <text class="ai-desc">{{ bannerDesc }}</text>
           </view>
           <view class="ai-decoration decoration-1"></view>
           <view class="ai-decoration decoration-2"></view>
@@ -31,62 +31,22 @@
 
           <!-- 攻略内容 -->
           <view class="guide-content">
-            <!-- 健康膳食建议 -->
-            <view class="guide-section">
+            <view
+              v-for="(section, index) in guideSections"
+              :key="index"
+              class="guide-section"
+            >
               <view class="section-header">
-                <view class="section-icon-wrapper tertiary">
-                  <view class="section-icon restaurant"></view>
+                <view
+                  class="section-icon-wrapper"
+                  :class="sectionIconClass(index)"
+                >
+                  <view class="section-icon" :class="sectionIconName(index)"></view>
                 </view>
-                <text class="section-title">健康膳食建议</text>
+                <text class="section-title">{{ section.title }}</text>
               </view>
               <view class="section-body">
-                <text class="section-text">
-                  幼犬期需要高蛋白易消化的食物。建议每日3-4餐，以温水泡软的干粮为主，配合适量益生菌维护肠胃健康。
-                </text>
-                <view class="food-tags">
-                  <view class="food-tag">
-                    <view class="tag-check"></view>
-                    <text class="tag-text">鸡肉/三文鱼</text>
-                  </view>
-                  <view class="food-tag">
-                    <view class="tag-check"></view>
-                    <text class="tag-text">蛋黄</text>
-                  </view>
-                </view>
-              </view>
-            </view>
-
-            <!-- 运动活力指南 -->
-            <view class="guide-section">
-              <view class="section-header">
-                <view class="section-icon-wrapper secondary">
-                  <view class="section-icon run"></view>
-                </view>
-                <text class="section-title">运动活力指南</text>
-              </view>
-              <view class="section-body">
-                <text class="section-text">
-                  每日室内互动时间不低于45分钟。推荐使用漏食玩具训练智力。户外遛狗避开烈日，保护脆弱的肉垫。
-                </text>
-                <view class="sport-info">
-                  <text class="info-item">建议时长: 45min+</text>
-                  <text class="info-item">推荐指数: ★★★★★</text>
-                </view>
-              </view>
-            </view>
-
-            <!-- 心情治愈贴士 -->
-            <view class="guide-section">
-              <view class="section-header">
-                <view class="section-icon-wrapper primary">
-                  <view class="section-icon heart"></view>
-                </view>
-                <text class="section-title">心情治愈贴士</text>
-              </view>
-              <view class="section-body">
-                <text class="section-text">
-                  狗狗也非常敏感，主人的陪伴是最好的安慰。当它出现低头、叹气或寻找角落躲避时，请温柔安抚并给予零食奖励。
-                </text>
+                <text class="section-text">{{ section.content }}</text>
               </view>
             </view>
 
@@ -126,22 +86,84 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import TopNavBar from '@/components/common/TopNavBar.vue'
 import Loading from '@/components/common/Loading.vue'
+import { getPetList } from '@/api/pet'
+import { sendAiChat } from '@/api/ai'
+import { getGuideList } from '@/api/guide'
+import { formatPetAge } from '@/utils/format'
 
 const loading = ref(false)
+const bannerTitle = ref('正在生成专属养宠攻略...')
+const bannerDesc = ref('基于毛孩子的年龄、品种与生活习性深度定制')
+const guideSections = ref<Array<{ title: string; content: string }>>([])
+
+const sectionIconClass = (index: number) =>
+  ['tertiary', 'secondary', 'primary'][index % 3]
+
+const sectionIconName = (index: number) =>
+  (['restaurant', 'run', 'heart'] as const)[index % 3]
+
+const parseGuideContent = (text: string, fallbackTitle = '养宠建议') => {
+  const blocks = text.split(/\n\n+/).filter(Boolean)
+  if (blocks.length <= 1) {
+    return [{ title: fallbackTitle, content: text.trim() }]
+  }
+  return blocks.map((block, i) => {
+    const lines = block.split('\n')
+    const first = lines[0].replace(/^[\d#.、\s]+/, '').trim()
+    const hasTitle = first.length <= 20 && lines.length > 1
+    return {
+      title: hasTitle ? first : `建议 ${i + 1}`,
+      content: hasTitle ? lines.slice(1).join('\n').trim() : block.trim(),
+    }
+  })
+}
 
 onMounted(() => {
   loadGuide()
 })
 
-const loadGuide = () => {
+const loadGuide = async () => {
   loading.value = true
-  setTimeout(() => {
+  try {
+    const pets = await getPetList()
+    if (pets.length > 0) {
+      const pet = pets[0]
+      const typeLabel = pet.type === 'cat' ? '猫咪' : pet.type === 'dog' ? '狗狗' : '宠物'
+      bannerTitle.value = `为「${pet.name}」定制的成长秘籍`
+      bannerDesc.value = `${pet.breed} · ${formatPetAge(pet.age)} · ${typeLabel}`
+      const { answer } = await sendAiChat(
+        `请为我的${typeLabel}「${pet.name}」（品种：${pet.breed}，年龄：${formatPetAge(pet.age)}）生成健康膳食、运动和日常护理方面的养宠建议`,
+        pet.id,
+      )
+      guideSections.value = parseGuideContent(answer, 'AI 养宠建议')
+      return
+    }
+    const { list } = await getGuideList({ page: 1, size: 1 })
+    if (list.length > 0) {
+      const guide = list[0]
+      bannerTitle.value = guide.title
+      bannerDesc.value = '来自社区精选攻略'
+      guideSections.value = parseGuideContent(guide.content, guide.title)
+    } else {
+      guideSections.value = [
+        {
+          title: '温馨提示',
+          content: '请先添加宠物，AI 将为你生成更精准的养宠建议。',
+        },
+      ]
+    }
+  } catch {
+    uni.showToast({ title: '加载失败', icon: 'none' })
+    guideSections.value = [
+      { title: '加载失败', content: '请检查网络后重试' },
+    ]
+  } finally {
     loading.value = false
-  }, 1000)
+  }
 }
 
 const saveImage = () => {
@@ -349,4 +371,135 @@ const shareToCircle = () => {
   background: #f9f2f2;
   border-radius: 32rpx;
   border-left: 8rpx solid #71585c;
-}{"file_path": "/Users/mac/Desktop/code/pet-community/app/src/pages/mine/aiTips.vue", "content": 
+}
+
+.section-text {
+  font-size: 28rpx;
+  color: #4f4446;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.progress-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #d2c3c4;
+}
+
+.progress-bar {
+  width: 120rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: linear-gradient(90deg, #71585c, #ffdde2);
+}
+
+.tips-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 24rpx;
+  padding: 40rpx;
+  background: rgba(218, 234, 216, 0.3);
+  border-radius: 48rpx;
+  border: 2rpx solid rgba(218, 234, 216, 0.5);
+  margin-bottom: 32rpx;
+}
+
+.tips-icon {
+  width: 48rpx;
+  height: 48rpx;
+  flex-shrink: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23546254'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.tips-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.tips-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #3c4a3d;
+}
+
+.tips-text {
+  font-size: 26rpx;
+  color: #3c4a3d;
+  line-height: 1.6;
+}
+
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx 40rpx calc(24rpx + env(safe-area-inset-bottom));
+  background: #fff8f7;
+  box-shadow: 0 -8rpx 32rpx rgba(168, 155, 157, 0.12);
+}
+
+.action-btn {
+  flex: 1;
+  height: 96rpx;
+  border-radius: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+
+  &.secondary {
+    background: #ffffff;
+    border: 2rpx solid rgba(113, 88, 92, 0.2);
+  }
+
+  &.primary {
+    background: #71585c;
+    box-shadow: 0 8rpx 24rpx rgba(113, 88, 92, 0.25);
+  }
+}
+
+.btn-text {
+  font-size: 28rpx;
+  font-weight: 600;
+
+  .secondary & {
+    color: #71585c;
+  }
+
+  .primary & {
+    color: #ffffff;
+  }
+}
+
+.btn-icon {
+  width: 40rpx;
+  height: 40rpx;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  &.download {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z'/%3E%3C/svg%3E");
+  }
+
+  &.share {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z'/%3E%3C/svg%3E");
+  }
+}
+</style> 

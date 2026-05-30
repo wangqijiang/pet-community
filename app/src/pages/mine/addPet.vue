@@ -4,7 +4,7 @@
     <TopNavBar :title="isEdit ? '编辑宠物' : '添加宠物'" :showBack="true" />
 
     <view class="form-container">
-      <scroll-view class="form-scroll" scroll-y>
+      <scroll-view class="form-scroll" scroll-y :style="scrollPaddingStyle">
         <view class="avatar-section">
           <view class="avatar-wrapper" @tap="chooseAvatar">
             <image
@@ -24,7 +24,7 @@
         <view class="section">
           <text class="section-title">基本信息</text>
           <view class="card">
-            <view class="item">
+            <view class="item item-field" :class="{ 'has-error': errors.name }">
               <view class="left">
                 <view class="icon"></view>
                 <text class="label">宠物名字</text>
@@ -32,6 +32,7 @@
               <view class="right-input">
                 <input
                   class="input-field"
+                  :class="{ 'input-error': errors.name }"
                   :value="formData.name"
                   @input="(e: any) => handleInput('name', e.detail.value)"
                   @blur="handleBlur('name')"
@@ -42,52 +43,66 @@
               </view>
             </view>
 
-            <view class="item" @tap="openModal('speciesModal')">
+            <view class="item item-picker" :class="{ 'has-error': errors.type }" @tap="openModal('speciesModal')">
               <view class="left">
                 <view class="icon"></view>
                 <text class="label">宠物种类</text>
               </view>
-              <view class="right">
-                <text class="value-text">{{ formData.type || "请选择" }}</text>
-                <text class="arrow">›</text>
+              <view class="right-col">
+                <view class="right">
+                  <text class="value-text" :class="{ 'is-placeholder': !formData.type }">{{ formData.type || "请选择" }}</text>
+                  <text class="arrow">›</text>
+                </view>
+                <text v-if="errors.type" class="error-text">{{ errors.type }}</text>
               </view>
             </view>
 
-            <view class="item" @tap="openModal('breedModal')">
+            <view class="item item-picker" :class="{ 'has-error': errors.breed }" @tap="openBreedModal">
               <view class="left">
                 <view class="icon"></view>
                 <text class="label">品种</text>
               </view>
-              <view class="right">
-                <text class="value-text">{{ formData.breed || "请选择" }}</text>
-                <text class="arrow">›</text>
+              <view class="right-col">
+                <view class="right">
+                  <text class="value-text" :class="{ 'is-placeholder': !formData.breed }">{{ displayBreed }}</text>
+                  <text class="arrow">›</text>
+                </view>
+                <text v-if="errors.breed" class="error-text">{{ errors.breed }}</text>
               </view>
             </view>
 
-            <view class="item" @tap="openModal('genderModal')">
+            <view class="item item-picker" :class="{ 'has-error': errors.gender }" @tap="openModal('genderModal')">
               <view class="left">
                 <view class="icon"></view>
                 <text class="label">性别</text>
               </view>
-              <view class="right">
-                <text class="value-text">{{ displayGender }}</text>
-                <text class="arrow">›</text>
+              <view class="right-col">
+                <view class="right">
+                  <text class="value-text" :class="{ 'is-placeholder': !formData.gender }">{{ displayGender }}</text>
+                  <text class="arrow">›</text>
+                </view>
+                <text v-if="errors.gender" class="error-text">{{ errors.gender }}</text>
               </view>
             </view>
 
-            <view class="item">
+            <view class="item item-field" :class="{ 'has-error': errors.age }">
               <view class="left">
                 <view class="icon"></view>
                 <text class="label">年龄</text>
               </view>
               <view class="right-input">
                 <input
+                  id="age-input"
+                  :key="ageInputKey"
                   class="input-field"
+                  :class="{ 'input-error': errors.age }"
                   :value="formData.age"
-                  @input="(e: any) => handleInput('age', e.detail.value)"
-                  @blur="handleBlur('age')"
-                  placeholder="请输入"
-                  maxlength="10"
+                  @input="(e: any) => applyNumericInput('age', e.detail.value)"
+                  @compositionend="(e: any) => applyNumericInput('age', e.detail.value)"
+                  @blur="handleNumericBlur('age')"
+                  type="digit"
+                  placeholder="请输入月龄"
+                  maxlength="3"
                 />
                 <text v-if="errors.age" class="error-text">{{ errors.age }}</text>
               </view>
@@ -98,7 +113,7 @@
         <view class="section">
           <text class="section-title">外观特征</text>
           <view class="card">
-            <view class="item">
+            <view class="item item-field" :class="{ 'has-error': errors.color }">
               <view class="left">
                 <view class="icon"></view>
                 <text class="label">毛色</text>
@@ -106,29 +121,35 @@
               <view class="right-input">
                 <input
                   class="input-field"
+                  :class="{ 'input-error': errors.color }"
                   :value="formData.color"
                   @input="(e: any) => handleInput('color', e.detail.value)"
                   @blur="handleBlur('color')"
                   placeholder="请输入"
-                  maxlength="20"
+                  maxlength="30"
                 />
                 <text v-if="errors.color" class="error-text">{{ errors.color }}</text>
               </view>
             </view>
 
-            <view class="item">
+            <view class="item item-field" :class="{ 'has-error': errors.weight }">
               <view class="left">
                 <view class="icon"></view>
                 <text class="label">体重 (kg)</text>
               </view>
               <view class="right-input">
                 <input
+                  id="weight-input"
+                  :key="weightInputKey"
                   class="input-field"
+                  :class="{ 'input-error': errors.weight }"
                   :value="formData.weight"
-                  @input="(e: any) => handleInput('weight', e.detail.value)"
-                  @blur="handleBlur('weight')"
+                  @input="(e: any) => applyNumericInput('weight', e.detail.value)"
+                  @compositionend="(e: any) => applyNumericInput('weight', e.detail.value)"
+                  @blur="handleNumericBlur('weight')"
                   type="digit"
                   placeholder="请输入"
+                  maxlength="6"
                 />
                 <text v-if="errors.weight" class="error-text">{{ errors.weight }}</text>
               </view>
@@ -193,7 +214,8 @@
           <view class="textarea-wrap">
             <textarea
               class="textarea-field"
-              v-model="formData.habits"
+              :value="formData.habits"
+              @input="(e: any) => handleHabitsInput(e.detail.value)"
               placeholder="描述一下宠物的特殊习惯或行为特点..."
               maxlength="200"
             />
@@ -230,7 +252,7 @@
       </scroll-view>
     </view>
 
-    <view class="footer">
+    <view class="footer" id="add-pet-footer">
       <view v-if="isEdit" class="btn delete-btn" @tap="handleDelete">
         删除宠物
       </view>
@@ -311,10 +333,23 @@
           v-for="(item, index) in filteredBreedList"
           :key="index"
           class="breed-item"
-          :class="{ active: formData.breed === item }"
+          :class="{ active: isBreedOptionActive(item) }"
           @tap="selectBreed(item)"
         >
           {{ item }}
+        </view>
+      </view>
+      <view v-if="showCustomBreedInput" class="custom-breed-box">
+        <input
+          class="custom-breed-input"
+          :value="customBreedDraft"
+          @input="(e: any) => (customBreedDraft = e.detail.value.slice(0, 50))"
+          placeholder="请输入品种名称"
+          maxlength="50"
+        />
+        <view class="custom-breed-actions">
+          <view class="custom-breed-btn cancel" @tap="cancelCustomBreed">取消</view>
+          <view class="custom-breed-btn confirm" @tap="confirmCustomBreed">确认</view>
         </view>
       </view>
     </BottomSheet>
@@ -324,7 +359,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, nextTick, watch, getCurrentInstance } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
 import Loading from "@/components/common/Loading.vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import BottomSheet from "@/components/common/BottomSheet.vue";
@@ -335,22 +371,71 @@ import {
   deletePet,
   type PetFormData,
 } from "@/api/pet";
+import {
+  parseJsonArray,
+  PET_GENDER_OPTIONS,
+  normalizePetGender,
+  formatPetGender,
+} from "@/utils/format";
+import { resolveMediaUrl } from "@/utils/media";
+
+const instance = getCurrentInstance();
+const footerHeight = ref(0);
+
+const scrollPaddingStyle = computed(() => ({
+  paddingBottom: footerHeight.value ? `${footerHeight.value}px` : undefined,
+}));
+
+const measureFooter = () => {
+  nextTick(() => {
+    uni
+      .createSelectorQuery()
+      .in(instance)
+      .select("#add-pet-footer")
+      .boundingClientRect((rect) => {
+        if (rect && !Array.isArray(rect) && rect.height) {
+          footerHeight.value = rect.height;
+        }
+      })
+      .exec();
+  });
+};
 
 const loading = ref(false);
 const isEdit = ref(false);
 const petId = ref<number | null>(null);
 const activeModal = ref<string | null>(null);
-const breedSearch = ref('');
+const breedSearch = ref("");
+const showCustomBreedInput = ref(false);
+const customBreedDraft = ref("");
 
-const genderMap: Record<string, string> = {
-  male: "公",
-  female: "母",
+const TYPE_TO_UI: Record<string, string> = {
+  dog: "狗狗",
+  cat: "猫咪",
+  other: "其他",
+  hamster: "其他",
+  bird: "其他",
 };
 
-const genderOptions = [
-  { label: "公", value: "male" },
-  { label: "母", value: "female" }
-];
+const UI_TO_TYPE: Record<string, string> = {
+  狗狗: "dog",
+  猫咪: "cat",
+  其他: "other",
+};
+
+const SIZE_TO_UI: Record<string, string> = {
+  small: "小型",
+  medium: "中型",
+  large: "大型",
+};
+
+const UI_TO_SIZE: Record<string, string> = {
+  小型: "small",
+  中型: "medium",
+  大型: "large",
+};
+
+const genderOptions = PET_GENDER_OPTIONS;
 
 const speciesList = ["狗狗", "猫咪", "其他"];
 const sizeList = ["小型", "中型", "大型"];
@@ -373,8 +458,82 @@ const personalityTags = [
 ];
 
 const displayGender = computed(() => {
-  return genderMap[formData.value.gender] || formData.value.gender || "请选择";
+  if (!formData.value.gender) return "请选择";
+  return formatPetGender(formData.value.gender) || "请选择";
 });
+
+const displayBreed = computed(() => {
+  return formData.value.breed || "请选择";
+});
+
+const getPresetBreeds = (type = formData.value.type) => {
+  if (!type || !breedMap[type]) return [];
+  return breedMap[type];
+};
+
+const isCustomBreedValue = (breed: string, type = formData.value.type) => {
+  if (!breed) return false;
+  const presets = getPresetBreeds(type).filter((item) => item !== "其他");
+  return !presets.includes(breed);
+};
+
+const isBreedOptionActive = (item: string) => {
+  if (item === "其他") {
+    return isCustomBreedValue(formData.value.breed) || showCustomBreedInput.value;
+  }
+  return formData.value.breed === item;
+};
+
+const mapTypeToUi = (type?: string) => {
+  if (!type) return "";
+  if (speciesList.includes(type)) return type;
+  return TYPE_TO_UI[type] || "其他";
+};
+
+const mapTypeToDb = (type?: string) => {
+  if (!type) return "";
+  return UI_TO_TYPE[type] || type;
+};
+
+const mapSizeToUi = (size?: string) => {
+  if (!size) return "";
+  if (sizeList.includes(size)) return size;
+  return SIZE_TO_UI[size] || "";
+};
+
+const mapSizeToDb = (size?: string) => {
+  if (!size) return "";
+  return UI_TO_SIZE[size] || size;
+};
+
+const parsePersonality = (value?: string) => {
+  if (!value) return [];
+  const result: string[] = [];
+  for (const part of value.split(",")) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const byId = personalityTags.find((tag) => tag.id === trimmed);
+    if (byId) {
+      if (!result.includes(byId.id)) result.push(byId.id);
+      continue;
+    }
+    const byLabel = personalityTags.find((tag) => tag.label === trimmed);
+    if (byLabel) {
+      if (!result.includes(byLabel.id)) result.push(byLabel.id);
+      continue;
+    }
+    for (const tag of personalityTags) {
+      if (trimmed.includes(tag.label) && !result.includes(tag.id)) {
+        result.push(tag.id);
+      }
+    }
+  }
+  return result;
+};
+
+const normalizePhotos = (photos: unknown) => {
+  return parseJsonArray<string>(photos).map((url) => resolveMediaUrl(url));
+};
 
 const filteredBreedList = computed(() => {
   const list = formData.value.type && breedMap[formData.value.type] 
@@ -394,16 +553,18 @@ const getFullAvatarUrl = (avatar: string) => {
   return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
 };
 
-onMounted(() => {
-  const pages = getCurrentPages();
-  const currentPage = pages[pages.length - 1] as any;
-  const options = currentPage.options;
+watch(isEdit, measureFooter);
 
-  if (options && options.id) {
-    petId.value = parseInt(options.id);
+onLoad((options) => {
+  if (options?.id) {
+    petId.value = parseInt(String(options.id), 10);
     isEdit.value = true;
     loadPetData();
   }
+});
+
+onMounted(() => {
+  measureFooter();
 });
 
 const loadPetData = async () => {
@@ -434,25 +595,28 @@ const loadPetData = async () => {
       }
 
       formData.value = {
-        avatar: data.avatar || "",
+        avatar: data.avatar ? resolveMediaUrl(data.avatar) : "",
         name: data.name || "",
-        type: data.type || "",
+        type: mapTypeToUi(data.type),
         breed: data.breed || "",
-        gender: data.gender || "",
-        age: data.age || "",
+        gender: normalizePetGender(data.gender) || "",
+        age:
+          data.age !== undefined && data.age !== null ? String(data.age) : "",
         color: data.color || "",
         weight:
           data.weight !== undefined && data.weight !== null
             ? String(data.weight)
             : "",
-        size: data.size || "",
+        size: mapSizeToUi(data.size),
         neutered,
         vaccinated,
         healthCertificate,
-        personality: data.personality ? data.personality.split(",") : [],
+        personality: parsePersonality(data.personality),
         habits: data.habits || "",
-        photos: data.photos ? JSON.parse(data.photos) : [],
+        photos: normalizePhotos(data.photos),
       };
+      ageInputRaw.value = formData.value.age;
+      weightInputRaw.value = formData.value.weight;
     }
   } catch (error) {
     console.error("获取宠物详情失败:", error);
@@ -484,57 +648,311 @@ const formData = ref({
 });
 
 const errors = ref<Record<string, string>>({});
+const ageInputKey = ref(0);
+const weightInputKey = ref(0);
+const ageInputRaw = ref("");
+const weightInputRaw = ref("");
 
-const fieldRules = {
-  name: { min: 1, max: 20, message: "宠物名字长度应在1-20个字符之间" },
-  age: { min: 1, max: 10, message: "年龄长度应在1-10个字符之间" },
-  color: { min: 1, max: 20, message: "毛色长度应在1-20个字符之间" },
-  breed: { min: 1, max: 20, message: "品种长度应在1-20个字符之间" },
-  weight: { min: 0.1, max: 200, message: "体重应在0.1-200kg之间", isNumber: true },
+type FieldRule = {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  message: string;
+  isNumber?: boolean;
+  integer?: boolean;
 };
 
-const validateField = (field: string, value: string): boolean => {
-  const rule = fieldRules[field as keyof typeof fieldRules];
-  if (!rule) return true;
+const fieldRules: Record<string, FieldRule> = {
+  name: {
+    required: true,
+    minLength: 1,
+    maxLength: 20,
+    message: "请输入宠物名字",
+  },
+  type: {
+    required: true,
+    message: "请选择宠物种类",
+  },
+  breed: {
+    required: true,
+    message: "请选择或填写品种",
+  },
+  gender: {
+    required: true,
+    message: "请选择性别",
+  },
+  color: {
+    maxLength: 30,
+    message: "毛色长度不能超过30个字符",
+  },
+};
 
-  if (rule.isNumber) {
-    const numValue = parseFloat(value);
-    if (value && (isNaN(numValue) || numValue < rule.min || numValue > rule.max)) {
-      errors.value[field] = rule.message;
-      return false;
+const getAgeError = (value: string, required = false): string | null => {
+  const trimmed = (value ?? "").trim();
+  if (!trimmed) {
+    return required ? "请输入年龄" : null;
+  }
+  if (!/^\d+$/.test(trimmed)) return "年龄只能输入数字";
+  const num = parseInt(trimmed, 10);
+  if (num < 1) return "年龄至少为1个月";
+  if (num > 360) return "年龄不能超过360个月";
+  return null;
+};
+
+const getWeightError = (value: string): string | null => {
+  const trimmed = (value ?? "").trim();
+  if (!trimmed) return null;
+  if (!/^\d+(\.\d+)?$/.test(trimmed) || trimmed.endsWith(".")) {
+    return "体重格式不正确，请输入有效数字";
+  }
+  const num = parseFloat(trimmed);
+  if (Number.isNaN(num)) return "体重格式不正确，请输入有效数字";
+  if (num < 0.01) return "体重至少为0.01kg";
+  if (num > 999.99) return "体重不能超过999.99kg";
+  return null;
+};
+
+const getFieldError = (field: string, value: string): string | null => {
+  if (field === "age") return getAgeError(value, true);
+  if (field === "weight") return getWeightError(value);
+
+  const rule = fieldRules[field];
+  if (!rule) return null;
+
+  const trimmed = (value ?? "").trim();
+
+  if (!trimmed) {
+    if (rule.required) {
+      return rule.message;
     }
-  } else {
-    if (value.length < rule.min || value.length > rule.max) {
-      errors.value[field] = rule.message;
-      return false;
-    }
+    return null;
   }
 
+  if (
+    rule.minLength !== undefined &&
+    (trimmed.length < rule.minLength || trimmed.length > (rule.maxLength ?? Infinity))
+  ) {
+    return rule.message;
+  }
+
+  if (rule.maxLength !== undefined && trimmed.length > rule.maxLength) {
+    return rule.message;
+  }
+
+  return null;
+};
+
+const setFieldError = (field: string, message: string | null) => {
+  if (message) {
+    errors.value[field] = message;
+    return false;
+  }
   delete errors.value[field];
   return true;
 };
 
-const handleInput = (field: string, value: string) => {
-  if (field === 'weight') {
-    const cleaned = value.replace(/[^\d.]/g, '');
-    const parts = cleaned.split('.');
-    if (parts.length > 2) {
-      (formData.value as any)[field] = parts[0] + '.' + parts.slice(1).join('');
-    } else {
-      (formData.value as any)[field] = cleaned;
+const validateField = (field: string, value: string): boolean => {
+  return setFieldError(field, getFieldError(field, value));
+};
+
+const syncNumericInputsFromDom = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (!instance) {
+      resolve();
+      return;
     }
-  } else {
-    (formData.value as any)[field] = value;
+
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+
+    let pending = 2;
+    const done = () => {
+      pending -= 1;
+      if (pending <= 0) finish();
+    };
+
+    setTimeout(finish, 300);
+
+    uni
+      .createSelectorQuery()
+      .in(instance)
+      .select("#age-input")
+      .fields({ properties: ["value"] }, (res) => {
+        const val = (res as { value?: string } | null)?.value;
+        if (val !== undefined && val !== null) {
+          ageInputRaw.value = String(val);
+        }
+        done();
+      })
+      .select("#weight-input")
+      .fields({ properties: ["value"] }, (res) => {
+        const val = (res as { value?: string } | null)?.value;
+        if (val !== undefined && val !== null) {
+          weightInputRaw.value = String(val);
+        }
+        done();
+      })
+      .exec();
+  });
+};
+
+const validateNumericFieldOnSave = (field: "age" | "weight", raw: string): boolean => {
+  const trimmed = (raw ?? "").trim();
+  const sanitized = sanitizeInput(field, trimmed);
+  (formData.value as Record<string, string>)[field] = sanitized;
+
+  if (!trimmed) {
+    if (field === "age") {
+      ageInputRaw.value = "";
+      return setFieldError(field, "请输入年龄");
+    }
+    if (field === "weight") {
+      weightInputRaw.value = "";
+      return setFieldError(field, null);
+    }
+    return setFieldError(field, null);
   }
-  
-  validateField(field, (formData.value as any)[field]);
+
+  if (field === "age") {
+    if (!/^\d+$/.test(trimmed)) {
+      ageInputKey.value += 1;
+      ageInputRaw.value = sanitized;
+      return setFieldError(field, "年龄只能输入数字");
+    }
+    ageInputRaw.value = sanitized;
+    return setFieldError(field, getAgeError(sanitized, true));
+  }
+
+  if (!/^\d+(\.\d+)?$/.test(trimmed) || trimmed.endsWith(".")) {
+    weightInputKey.value += 1;
+    weightInputRaw.value = sanitized;
+    return setFieldError(field, "体重格式不正确，请输入有效数字");
+  }
+
+  weightInputRaw.value = sanitized;
+  return setFieldError(field, getWeightError(sanitized));
+};
+
+const validateForm = async (): Promise<boolean> => {
+  await syncNumericInputsFromDom();
+
+  let valid = true;
+
+  if (!validateField("name", formData.value.name.trim())) {
+    valid = false;
+  }
+
+  if (!validateField("type", formData.value.type)) {
+    valid = false;
+  }
+
+  if (!validateField("breed", formData.value.breed)) {
+    valid = false;
+  }
+
+  if (!validateField("gender", formData.value.gender)) {
+    valid = false;
+  }
+
+  if (!validateNumericFieldOnSave("age", ageInputRaw.value || formData.value.age)) {
+    valid = false;
+  }
+
+  if (
+    !validateNumericFieldOnSave("weight", weightInputRaw.value || formData.value.weight)
+  ) {
+    valid = false;
+  }
+
+  if (!validateField("color", formData.value.color)) {
+    valid = false;
+  }
+
+  return valid;
+};
+
+const sanitizeInput = (field: string, value: string): string => {
+  if (field === "age") {
+    return String(value ?? "")
+      .replace(/[^\d]/g, "")
+      .slice(0, 3);
+  }
+
+  if (field === "weight") {
+    let cleaned = String(value ?? "").replace(/[^\d.]/g, "");
+    const dotIndex = cleaned.indexOf(".");
+    if (dotIndex !== -1) {
+      cleaned =
+        cleaned.slice(0, dotIndex + 1) +
+        cleaned.slice(dotIndex + 1).replace(/\./g, "");
+    }
+    const parts = cleaned.split(".");
+    if (parts.length === 2) {
+      cleaned = `${parts[0]}.${parts[1].slice(0, 2)}`;
+    }
+    if (cleaned && Number(cleaned) > 999.99) {
+      cleaned = "999.99";
+    }
+    return cleaned.slice(0, 6);
+  }
+
+  if (field === "name") {
+    return value.slice(0, 20);
+  }
+
+  if (field === "color") {
+    return value.slice(0, 30);
+  }
+
+  return value;
+};
+
+const handleInput = (field: string, value: string) => {
+  const sanitized = sanitizeInput(field, value);
+  (formData.value as any)[field] = sanitized;
+  if (errors.value[field]) {
+    validateField(field, sanitized);
+  }
+};
+
+const applyNumericInput = (field: "age" | "weight", value: string) => {
+  if (field === "age") {
+    ageInputRaw.value = value;
+  } else {
+    weightInputRaw.value = value;
+  }
+
+  const sanitized = sanitizeInput(field, value);
+  (formData.value as any)[field] = sanitized;
+  if (sanitized !== value) {
+    nextTick(() => {
+      if (field === "age") ageInputKey.value += 1;
+      else weightInputKey.value += 1;
+    });
+  }
+  if (errors.value[field]) {
+    validateField(field, sanitized);
+  }
+};
+
+const handleNumericBlur = (field: "age" | "weight") => {
+  const raw = field === "age" ? ageInputRaw.value : weightInputRaw.value;
+  applyNumericInput(field, raw ?? "");
+  validateNumericFieldOnSave(field, raw ?? "");
+};
+
+const handleHabitsInput = (value: string) => {
+  formData.value.habits = value.slice(0, 200);
 };
 
 const handleBlur = (field: string) => {
-  const value = (formData.value as any)[field];
-  if (value) {
-    validateField(field, value);
-  }
+  validateField(field, (formData.value as any)[field] ?? "");
 };
 
 const openModal = (modalName: string) => {
@@ -542,9 +960,31 @@ const openModal = (modalName: string) => {
   activeModal.value = modalName;
 };
 
+const openBreedModal = () => {
+  if (!formData.value.type) {
+    uni.showToast({
+      title: "请先选择宠物种类",
+      icon: "none",
+    });
+    return;
+  }
+
+  if (isCustomBreedValue(formData.value.breed)) {
+    showCustomBreedInput.value = true;
+    customBreedDraft.value = formData.value.breed;
+  } else {
+    showCustomBreedInput.value = false;
+    customBreedDraft.value = "";
+  }
+
+  openModal("breedModal");
+};
+
 const closeModal = () => {
   activeModal.value = null;
   breedSearch.value = "";
+  showCustomBreedInput.value = false;
+  customBreedDraft.value = "";
 };
 
 const toggleSwitch = (field: string) => {
@@ -554,8 +994,19 @@ const toggleSwitch = (field: string) => {
 
 const selectOption = (field: string, value: any) => {
   uni.vibrateShort({ type: "light" });
+
+  if (field === "type" && value !== formData.value.type) {
+    formData.value.breed = "";
+    showCustomBreedInput.value = false;
+    customBreedDraft.value = "";
+  }
+
   (formData.value as any)[field] = value;
-  
+
+  if (["type", "gender", "breed", "name"].includes(field)) {
+    validateField(field, String(value ?? ""));
+  }
+
   setTimeout(() => {
     closeModal();
   }, 180);
@@ -563,11 +1014,45 @@ const selectOption = (field: string, value: any) => {
 
 const selectBreed = (breed: string) => {
   uni.vibrateShort({ type: "light" });
+
+  if (breed === "其他") {
+    showCustomBreedInput.value = true;
+    customBreedDraft.value = isCustomBreedValue(formData.value.breed)
+      ? formData.value.breed
+      : "";
+    return;
+  }
+
+  showCustomBreedInput.value = false;
+  customBreedDraft.value = "";
   formData.value.breed = breed;
-  
+
   setTimeout(() => {
     closeModal();
+    validateField("breed", breed);
   }, 180);
+};
+
+const cancelCustomBreed = () => {
+  showCustomBreedInput.value = false;
+  customBreedDraft.value = "";
+};
+
+const confirmCustomBreed = () => {
+  const value = customBreedDraft.value.trim();
+  if (!value) {
+    uni.showToast({
+      title: "请输入品种名称",
+      icon: "none",
+    });
+    return;
+  }
+
+  formData.value.breed = value.slice(0, 50);
+  showCustomBreedInput.value = false;
+  customBreedDraft.value = "";
+  validateField("breed", formData.value.breed);
+  closeModal();
 };
 
 const chooseAvatar = () => {
@@ -653,28 +1138,8 @@ const togglePersonality = (tagId: string) => {
   }
 };
 
-const handleSave = () => {
-  let isValid = true;
-  
-  validateField('name', formData.value.name);
-  validateField('age', formData.value.age);
-  validateField('color', formData.value.color);
-  validateField('weight', formData.value.weight);
-  
-  if (Object.keys(errors.value).length > 0) {
-    isValid = false;
-    uni.showToast({
-      title: "请检查输入内容",
-      icon: "none",
-    });
-    return;
-  }
-
-  if (!formData.value.name.trim()) {
-    uni.showToast({
-      title: "请输入宠物名字",
-      icon: "none",
-    });
+const handleSave = async () => {
+  if (!(await validateForm())) {
     return;
   }
 
@@ -683,13 +1148,13 @@ const handleSave = () => {
 
   const data: PetFormData = {
     name: formData.value.name,
-    type: formData.value.type || undefined,
+    type: mapTypeToDb(formData.value.type) || undefined,
     breed: formData.value.breed || undefined,
-    age: formData.value.age || undefined,
+    age: formData.value.age ? Number(formData.value.age) : undefined,
     gender: formData.value.gender || undefined,
     color: formData.value.color || undefined,
-    weight: formData.value.weight || undefined,
-    size: formData.value.size || undefined,
+    weight: formData.value.weight ? Number(formData.value.weight) : undefined,
+    size: mapSizeToDb(formData.value.size) || undefined,
     neutered: formData.value.neutered,
     vaccinated: formData.value.vaccinated ? "已接种" : "未接种",
     healthCertificate: formData.value.healthCertificate,
@@ -699,10 +1164,7 @@ const handleSave = () => {
         : undefined,
     habits: formData.value.habits || undefined,
     avatar: formData.value.avatar || undefined,
-    photos:
-      formData.value.photos.length > 0
-        ? JSON.stringify(formData.value.photos)
-        : undefined,
+    photos: formData.value.photos,
   };
 
   if (isEdit.value && petId.value) {
@@ -712,13 +1174,9 @@ const handleSave = () => {
           title: "更新成功",
           icon: "success",
         });
+        uni.$emit("refreshPetList");
         setTimeout(() => {
-          uni.navigateBack({
-            delta: 1,
-            success: () => {
-              uni.$emit("refreshPetList");
-            },
-          });
+          uni.navigateBack({ delta: 1 });
         }, 1500);
       })
       .catch((error) => {
@@ -738,13 +1196,9 @@ const handleSave = () => {
           title: "添加成功",
           icon: "success",
         });
+        uni.$emit("refreshPetList");
         setTimeout(() => {
-          uni.navigateBack({
-            delta: 1,
-            success: () => {
-              uni.$emit("refreshPetList");
-            },
-          });
+          uni.navigateBack({ delta: 1 });
         }, 1500);
       })
       .catch((error) => {
@@ -775,12 +1229,9 @@ const handleDelete = () => {
               title: "删除成功",
               icon: "success",
             });
+            uni.$emit("refreshPetList");
             setTimeout(() => {
-              uni.navigateBack({
-                success: () => {
-                  uni.$emit("refreshPetList");
-                },
-              });
+              uni.navigateBack();
             }, 1500);
           })
           .catch((error) => {
@@ -803,13 +1254,19 @@ const handleDelete = () => {
 @import "@/styles/variables.scss";
 
 .page-container {
+  width: 100%;
+  height: 100vh;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: rgb(255, 247, 241);
   color: #4b3d3f;
 }
 
 .form-container {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -818,8 +1275,9 @@ const handleDelete = () => {
 .form-scroll {
   flex: 1;
   height: 0;
+  min-height: 0;
   box-sizing: border-box;
-  padding: 32rpx 32rpx calc(280rpx + env(safe-area-inset-bottom));
+  padding: 32rpx;
 }
 
 .avatar-section {
@@ -881,6 +1339,55 @@ const handleDelete = () => {
   margin-bottom: 56rpx;
 }
 
+.item-field {
+  align-items: flex-start;
+  padding: 28rpx 36rpx;
+  min-height: auto;
+}
+
+.item-field .left {
+  padding-top: 8rpx;
+}
+
+.item-picker {
+  align-items: flex-start;
+  padding: 28rpx 36rpx;
+  min-height: auto;
+}
+
+.item-picker .left {
+  padding-top: 8rpx;
+}
+
+.item-picker.has-error .value-text {
+  color: #ff6b6b;
+}
+
+.right-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.right-col .error-text {
+  align-self: stretch;
+  text-align: right;
+}
+
+.value-text.is-placeholder {
+  color: #b7a9ab;
+}
+
+.item-field.has-error .input-field {
+  color: #ff6b6b;
+}
+
+.input-field.input-error {
+  color: #ff6b6b;
+}
+
 .right-input {
   flex: 1;
   display: flex;
@@ -889,9 +1396,12 @@ const handleDelete = () => {
 }
 
 .error-text {
+  align-self: stretch;
+  text-align: right;
   font-size: 22rpx;
   color: #ff6b6b;
   margin-top: 8rpx;
+  line-height: 1.4;
   animation: shake 0.3s ease-in-out;
 }
 
@@ -1204,6 +1714,49 @@ const handleDelete = () => {
 
 .breed-item.active {
   background: linear-gradient(135deg, #ffb7cb, #ffd39d);
+  color: white;
+}
+
+.custom-breed-box {
+  margin-top: 32rpx;
+  padding-top: 32rpx;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.custom-breed-input {
+  width: 100%;
+  height: 96rpx;
+  background: #f7f4f4;
+  border-radius: 32rpx;
+  padding: 0 32rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.custom-breed-actions {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 24rpx;
+}
+
+.custom-breed-btn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.custom-breed-btn.cancel {
+  background: #f7f4f4;
+  color: #68595b;
+}
+
+.custom-breed-btn.confirm {
+  background: linear-gradient(135deg, #f6a9c0, #f7c39d);
   color: white;
 }
 

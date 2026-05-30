@@ -56,7 +56,7 @@ const handleLogin = async () => {
   isLoading.value = true
   
   try {
-    const result = await loginByCode('13800138000', '1234')
+    const result = await loginByCode('13800138001', '1234')
     
     setUserInfo(result.user, result.token)
     

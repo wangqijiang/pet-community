@@ -69,103 +69,78 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import Loading from "@/components/common/Loading.vue";
+import { getFollowingList, unfollowUser } from "@/api/user";
+import { resolveMediaUrl } from "@/utils/media";
 
 const loading = ref(false);
 const searchText = ref("");
 
-const userList = ref([
-  {
-    id: 1,
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-    nickname: "豆包妈",
-    level: 8,
-    levelClass: "level-green",
-    desc: "家里有三只可爱的小柴～",
-    isFollowed: true,
-    isOnline: true,
-  },
-  {
-    id: 2,
-    avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop",
-    nickname: "汪汪特工队",
-    level: 5,
-    levelClass: "level-yellow",
-    desc: "专业训犬日常分享",
-    isFollowed: true,
-    isOnline: false,
-  },
-  {
-    id: 3,
-    avatar:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop",
-    nickname: "大金毛嘟嘟",
-    level: 12,
-    levelClass: "level-pink",
-    desc: "一个温暖的大个子～",
-    isFollowed: true,
-    isOnline: false,
-  },
-  {
-    id: 4,
-    avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=400&auto=format&fit=crop",
-    nickname: "法斗皮皮",
-    level: 3,
-    levelClass: "level-green",
-    desc: "丑萌天花板代言人",
-    isFollowed: true,
-    isOnline: false,
-  },
-]);
+const userList = ref<
+  Array<{
+    id: number;
+    avatar: string;
+    nickname: string;
+    desc: string;
+    isFollowed: boolean;
+    isOnline: boolean;
+  }>
+>([]);
 
-onMounted(() => {
-  loadFollowList();
-});
-
-const loadFollowList = () => {
+const loadFollowList = async () => {
   loading.value = true;
-  setTimeout(() => {
+  try {
+    const res = await getFollowingList(1, 50);
+    let list = res.list.map((u) => ({
+      id: u.id,
+      avatar: resolveMediaUrl(u.avatar),
+      nickname: u.username,
+      desc: u.signature || "",
+      isFollowed: true,
+      isOnline: false,
+    }));
+    if (searchText.value) {
+      const kw = searchText.value.toLowerCase();
+      list = list.filter(
+        (u) =>
+          u.nickname.toLowerCase().includes(kw) ||
+          u.desc.toLowerCase().includes(kw),
+      );
+    }
+    userList.value = list;
+  } catch {
+    uni.showToast({ title: "加载失败", icon: "none" });
+  } finally {
     loading.value = false;
-  }, 1000);
+  }
 };
 
-const onRefresh = () => {
-  loadFollowList();
+onMounted(loadFollowList);
+
+const onRefresh = () => loadFollowList();
+const loadMore = () => {};
+
+const goToUserProfile = (id: number) => {
+  uni.navigateTo({ url: `/pages/mine/userProfile?id=${id}` });
 };
 
-const loadMore = () => {
-  console.log("Load more");
-};
-
-const handleUnfollow = (user) => {
-  uni.vibrateShort({ type: "medium" });
+const handleUnfollow = (user: { id: number; nickname: string }) => {
   uni.showModal({
     title: "提示",
     content: `确定取消关注 ${user.nickname} 吗？`,
-    success: (res) => {
-      if (res.confirm) {
-        const index = userList.value.findIndex((u) => u.id === user.id);
-        if (index > -1) {
-          userList.value.splice(index, 1);
-        }
-        uni.showToast({
-          title: "已取消关注",
-          icon: "success",
-        });
+    success: async (res) => {
+      if (!res.confirm) return;
+      try {
+        await unfollowUser(user.id);
+        userList.value = userList.value.filter((u) => u.id !== user.id);
+        uni.showToast({ title: "已取消关注", icon: "success" });
+      } catch {
+        uni.showToast({ title: "操作失败", icon: "none" });
       }
     },
-  });
-};
-
-const goToUserProfile = (userId) => {
-  uni.navigateTo({
-    url: `/pages/mine/userProfile?id=${userId}`,
   });
 };
 </script>
@@ -277,10 +252,21 @@ const goToUserProfile = (userId) => {
   gap: 20rpx;
 }
 
+.user-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .user-name {
   font-size: 40rpx;
   font-weight: 800;
   color: #3f3232;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: block;
 }
 
 .level-badge {
@@ -323,6 +309,10 @@ const goToUserProfile = (userId) => {
   font-size: 28rpx;
   color: #a89b9b;
   line-height: 1.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
 }
 
 .action-btn {
