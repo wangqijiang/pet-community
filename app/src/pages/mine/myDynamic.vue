@@ -1,15 +1,15 @@
 <template>
-  <view class="page-container">
-    <TopNavBar title="我的动态" showBack />
+  <PageLayout
+    refresher
+    :refresher-triggered="isRefreshing"
+    @refresh="onRefresh"
+    @scrolltolower="loadMore"
+  >
+    <template #navbar>
+      <TopNavBar title="我的动态" showBack />
+    </template>
 
-    <scroll-view
-      class="page-content"
-      scroll-y
-      @scrolltolower="loadMore"
-      refresher-enabled
-      :refresher-triggered="isRefreshing"
-      @refresherrefresh="onRefresh"
-    >
+    <view class="page-inner my-dynamic-inner">
       <view class="stats-card">
         <view class="stat">
           <text class="stat-num">{{ dynamicList.length }}</text>
@@ -106,21 +106,23 @@
         <view v-if="dynamicList.length > 0" class="bottom-hint">
           <text class="hint-text">已经到底啦～</text>
         </view>
-      </view>
-    </scroll-view>
-
-    <view class="fab" @click="goToPublish">
-      <view class="fab-icon"></view>
     </view>
 
+    <template #fixed>
+      <view class="fab" @click="goToPublish">
+        <view class="fab-icon"></view>
+      </view>
+    </template>
+
     <PostSharePanel v-model:visible="shareVisible" :post="sharePost" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import PostSharePanel from "@/components/common/PostSharePanel.vue";
 import PostProtagonistPets from "@/components/common/PostProtagonistPets.vue";
 import { getPostList, deletePost, toggleLikePost } from "@/api/post";
@@ -309,8 +311,10 @@ const goToPublish = () => {
 </script>
 
 <style lang="scss" scoped>
-.page-container {
-  min-height: 100vh;
+@import "@/styles/layout.scss";
+
+.my-dynamic-inner {
+  padding-top: 0;
   background: #fff8f5;
 }
 

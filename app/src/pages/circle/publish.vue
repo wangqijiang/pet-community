@@ -115,40 +115,16 @@
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
-import { ref, computed, getCurrentInstance, nextTick, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { createPost, updatePost, getPostDetail } from "@/api/post";
 import { getPetList, type Pet } from "@/api/pet";
 import { resolveMediaUrl } from "@/utils/media";
-import { getLayoutMetrics } from "@/composables/useLayout";
+import { useFixedFooterHeight } from "@/composables/useLayout";
 
 const LAST_PUBLISH_PET_IDS_KEY = "lastPublishPetIds";
 
-const instance = getCurrentInstance();
-const layoutMetrics = getLayoutMetrics();
-/** 底部按钮区高度（px），用于 PageLayout 计算可滚动区域 */
-const footerHeight = ref(
-  uni.upx2px(24 + 96 + 24) + layoutMetrics.safeBottom,
-);
-
-const measureFooterHeight = () => {
-  nextTick(() => {
-    uni
-      .createSelectorQuery()
-      .in(instance)
-      .select("#publish-action-bar")
-      .boundingClientRect((rect) => {
-        if (rect && !Array.isArray(rect) && rect.height > 0) {
-          footerHeight.value = Math.ceil(rect.height);
-        }
-      })
-      .exec();
-  });
-};
-
-onMounted(() => {
-  measureFooterHeight();
-});
+const { footerHeight } = useFixedFooterHeight("#publish-action-bar", 24 + 96 + 24);
 
 const content = ref("");
 const images = ref<string[]>([]);

@@ -1,6 +1,6 @@
 <template>
   <view class="page-layout" :style="pageStyle">
-    <view class="page-layout__navbar">
+    <view v-if="$slots.navbar" class="page-layout__navbar">
       <slot name="navbar" />
     </view>
     <view v-if="$slots.header" class="page-layout__header">
@@ -12,6 +12,8 @@
       :style="contentStyle"
       :refresher-enabled="refresher"
       :refresher-triggered="refresherTriggered"
+      :scroll-into-view="scrollIntoView"
+      :scroll-with-animation="scrollWithAnimation"
       @refresherrefresh="$emit('refresh')"
       @scrolltolower="$emit('scrolltolower')"
     >
@@ -37,6 +39,9 @@ const props = withDefaults(
     footerHeight?: number;
     refresher?: boolean;
     refresherTriggered?: boolean;
+    /** 滚动到指定子元素 id（不含 #） */
+    scrollIntoView?: string;
+    scrollWithAnimation?: boolean;
   }>(),
   {
     tabBar: false,
@@ -44,6 +49,8 @@ const props = withDefaults(
     footerHeight: 0,
     refresher: false,
     refresherTriggered: false,
+    scrollIntoView: "",
+    scrollWithAnimation: false,
   },
 );
 

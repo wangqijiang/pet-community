@@ -1,9 +1,10 @@
 <template>
-  <view class="pet-profile-page">
-    <TopNavBar title="宠物主页" :showBack="true" />
+  <PageLayout>
+    <template #navbar>
+      <TopNavBar title="宠物主页" :showBack="true" />
+    </template>
 
-    <view class="page-content">
-      <scroll-view class="content-scroll" scroll-y>
+    <view class="page-inner pet-profile-inner">
         <!-- 宠物头部信息 -->
         <view class="pet-header">
           <image
@@ -220,17 +221,17 @@
             </view>
           </view>
         </view>  -->
-      </scroll-view>
     </view>
 
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getPublicPetDetail, type Pet } from "@/api/pet";
 import { resolveMediaUrl } from "@/utils/media";
@@ -341,22 +342,12 @@ const previewImage = (index) => {
 </script>
 
 <style lang="scss" scoped>
-.pet-profile-page {
-  width: 100%;
-  min-height: 100vh;
+@import "@/styles/layout.scss";
+
+.pet-profile-inner {
+  padding-top: 0;
   background: #fff8f7;
-}
-
-.page-content {
-  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
-}
-
-.content-scroll {
-  width: 100%;
-  box-sizing: border-box;
-  height: calc(100vh - 200rpx);
-  padding: 0 40rpx;
-  padding-top: 16rpx;
+  min-height: 100%;
 }
 
 /* 宠物头部 */

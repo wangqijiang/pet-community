@@ -1,10 +1,10 @@
 <template>
-  <view class="page-container">
-    <view class="header-safe"></view>
-    <TopNavBar :title="isEdit ? '编辑宠物' : '添加宠物'" :showBack="true" />
+  <PageLayout :footer-height="footerHeight">
+    <template #navbar>
+      <TopNavBar :title="isEdit ? '编辑宠物' : '添加宠物'" :showBack="true" />
+    </template>
 
-    <view class="form-container">
-      <scroll-view class="form-scroll" scroll-y :style="scrollPaddingStyle">
+    <view class="page-inner add-pet-inner">
         <view class="avatar-section">
           <view class="avatar-wrapper" @tap="chooseAvatar">
             <image
@@ -249,9 +249,9 @@
             </view>
           </view>
         </view>
-      </scroll-view>
     </view>
 
+    <template #fixed>
     <view class="footer" id="add-pet-footer">
       <view v-if="isEdit" class="btn delete-btn" @tap="handleDelete">
         删除宠物
@@ -260,6 +260,7 @@
         保存
       </view>
     </view>
+    </template>
 
     <BottomSheet
       :visible="activeModal === 'speciesModal'"
@@ -355,14 +356,15 @@
     </BottomSheet>
 
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick, watch, getCurrentInstance } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import Loading from "@/components/common/Loading.vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import BottomSheet from "@/components/common/BottomSheet.vue";
 import {
   getPetDetail,
@@ -378,28 +380,12 @@ import {
   formatPetGender,
 } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
+import { useFixedFooterHeight } from "@/composables/useLayout";
 
-const instance = getCurrentInstance();
-const footerHeight = ref(0);
-
-const scrollPaddingStyle = computed(() => ({
-  paddingBottom: footerHeight.value ? `${footerHeight.value}px` : undefined,
-}));
-
-const measureFooter = () => {
-  nextTick(() => {
-    uni
-      .createSelectorQuery()
-      .in(instance)
-      .select("#add-pet-footer")
-      .boundingClientRect((rect) => {
-        if (rect && !Array.isArray(rect) && rect.height) {
-          footerHeight.value = rect.height;
-        }
-      })
-      .exec();
-  });
-};
+const { footerHeight, measureFooterHeight: measureFooter } = useFixedFooterHeight(
+  "#add-pet-footer",
+  24 + 96 + 24,
+);
 
 const loading = ref(false);
 const isEdit = ref(false);
@@ -1252,32 +1238,12 @@ const handleDelete = () => {
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
+@import "@/styles/layout.scss";
 
-.page-container {
-  width: 100%;
-  height: 100vh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+.add-pet-inner {
   background: rgb(255, 247, 241);
   color: #4b3d3f;
-}
-
-.form-container {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.form-scroll {
-  flex: 1;
-  height: 0;
-  min-height: 0;
-  box-sizing: border-box;
-  padding: 32rpx;
+  padding-bottom: 24rpx;
 }
 
 .avatar-section {

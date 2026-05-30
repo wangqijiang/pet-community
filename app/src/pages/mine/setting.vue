@@ -1,8 +1,10 @@
 <template>
-  <view class="page-container">
-    <TopNavBar class="chat-nav" :showBack="true" title="个人资料编辑" />
-    <!-- Main Content -->
-    <scroll-view class="page-content" scroll-y>
+  <PageLayout :footer-height="footerHeight">
+    <template #navbar>
+      <TopNavBar class="chat-nav" :showBack="true" title="个人资料编辑" />
+    </template>
+
+    <view class="page-inner setting-inner">
       <!-- Avatar Upload Section -->
       <view class="avatar-section">
         <view class="avatar-wrapper" @tap="chooseAvatar">
@@ -61,26 +63,31 @@
           >完善个人资料可以让更多的宠友认识你哦！别忘了上传一张最可爱的头像。</text
         >
       </view>
-    </scroll-view>
-
-    <!-- Bottom Action Button -->
-    <view class="footer">
-      <view class="save-btn" @tap="saveProfile">
-        <text class="save-text">保存修改</text>
-        <view class="save-icon"></view>
-      </view>
     </view>
 
+    <template #fixed>
+      <view id="setting-footer" class="footer">
+        <view class="save-btn" @tap="saveProfile">
+          <text class="save-text">保存修改</text>
+          <view class="save-icon"></view>
+        </view>
+      </view>
+    </template>
+
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import { ref, onMounted } from "vue";
 import Loading from "@/components/common/Loading.vue";
 import { getUserInfo, updateUserInfo, uploadAvatar } from "@/api/user";
 import { resolveMediaUrl } from "@/utils/media";
+import { useFixedFooterHeight } from "@/composables/useLayout";
+
+const { footerHeight } = useFixedFooterHeight("#setting-footer", 24 + 96 + 24);
 
 const loading = ref(false);
 const isUploading = ref(false);
@@ -167,22 +174,13 @@ const saveProfile = async () => {
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
+@import "@/styles/layout.scss";
 
-.profile-page {
-  min-height: 100vh;
-  background: $color-bg-primary;
-  display: flex;
-  flex-direction: column;
+.setting-inner {
+  padding-bottom: 16rpx;
 }
 
 /* Page Content */
-.page-content {
-  flex: 1;
-  box-sizing: border-box;
-  padding: 40rpx 40rpx 180rpx;
-}
-
-/* Avatar Section */
 .avatar-section {
   display: flex;
   flex-direction: column;

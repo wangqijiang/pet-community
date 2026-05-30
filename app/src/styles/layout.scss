@@ -33,6 +33,18 @@
   box-sizing: border-box;
 }
 
+/** 子页面内容区内边距（配合 PageLayout 使用） */
+.page-inner {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16rpx 40rpx 32rpx;
+}
+
+.page-inner--flush {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .page-layout__tabbar {
   flex-shrink: 0;
   z-index: $z-index-tab;

@@ -1,4 +1,14 @@
-import { computed, ref, unref, type MaybeRef } from "vue";
+import {
+  computed,
+  getCurrentInstance,
+  nextTick,
+  onMounted,
+  ref,
+  unref,
+  watch,
+  type MaybeRef,
+  type WatchSource,
+} from "vue";
 
 export interface LayoutMetrics {
   windowHeight: number;
@@ -83,4 +93,48 @@ export function useLayout(options: MaybeRef<LayoutOptions> = {}) {
     tabbarSpacerStyle,
     pageStyle,
   };
+}
+
+/**
+ * 测量底部固定栏高度，供 PageLayout 的 footer-height 使用。
+ * @param selector 固定栏元素 id 或 class 选择器
+ * @param estimateRpx 初始估算高度（rpx，不含 safeBottom）
+ */
+export function useFixedFooterHeight(
+  selector: string,
+  estimateRpx: number,
+  watchSources: WatchSource<unknown>[] = [],
+) {
+  const instance = getCurrentInstance();
+  const metrics = getLayoutMetrics();
+  const footerHeight = ref(uni.upx2px(estimateRpx) + metrics.safeBottom);
+
+  const measureFooterHeight = () => {
+    nextTick(() => {
+      const query = uni.createSelectorQuery();
+      const scope = instance?.proxy ?? instance;
+      if (scope) {
+        query.in(scope as unknown as UniApp.ComponentInternalInstance);
+      }
+      query
+        .select(selector)
+        .boundingClientRect((rect) => {
+          if (rect && !Array.isArray(rect) && rect.height > 0) {
+            footerHeight.value = Math.ceil(rect.height);
+          }
+        })
+        .exec();
+    });
+  };
+
+  onMounted(() => {
+    measureFooterHeight();
+    setTimeout(measureFooterHeight, 120);
+  });
+
+  for (const source of watchSources) {
+    watch(source, measureFooterHeight);
+  }
+
+  return { footerHeight, measureFooterHeight };
 }

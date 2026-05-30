@@ -1,9 +1,10 @@
 <template>
-  <view class="user-profile-page">
-    <TopNavBar title="用户主页" :showBack="true" />
+  <PageLayout>
+    <template #navbar>
+      <TopNavBar title="用户主页" :showBack="true" />
+    </template>
 
-    <view class="page-content">
-      <scroll-view class="content-scroll" scroll-y>
+    <view class="page-inner user-profile-inner">
         <!-- 个人资料头部 -->
         <view class="profile-header">
           <view class="avatar-wrapper">
@@ -126,17 +127,17 @@
             <text>暂无动态</text>
           </view>
         </view>
-      </scroll-view>
     </view>
 
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
 import {
   getUserById,
@@ -248,23 +249,12 @@ const goToFeedDetail = (feedId: number) => {
 </script>
 
 <style lang="scss" scoped>
-.user-profile-page {
-  width: 100%;
-  min-height: 100vh;
+@import "@/styles/layout.scss";
+
+.user-profile-inner {
+  padding-top: 0;
   background: #fff8f7;
-}
-
-.page-content {
-  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
-  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
-}
-
-.content-scroll {
-  width: 100%;
-  box-sizing: border-box;
-  height: calc(100vh - 200rpx);
-  padding: 0 40rpx;
-  padding-top: 16rpx;
+  min-height: 100%;
 }
 
 /* 个人资料头部 */
@@ -364,10 +354,15 @@ const goToFeedDetail = (feedId: number) => {
   gap: 12rpx;
   padding: 24rpx;
   border-radius: 48rpx;
+  background: #ffdde2;
   transition: transform 0.2s ease;
 
+  .btn-text {
+    color: #71585c;
+  }
+
   &:active {
-    transform: scale(1);
+    transform: scale(0.98);
   }
 
   &.followed {

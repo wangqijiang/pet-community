@@ -1,8 +1,10 @@
 <template>
-  <view class="page-container">
-    <TopNavBar class="chat-nav" :showBack="true" title="我的宠物" />
-    <!-- Main Content -->
-    <scroll-view class="page-content" scroll-y>
+  <PageLayout>
+    <template #navbar>
+      <TopNavBar class="chat-nav" :showBack="true" title="我的宠物" />
+    </template>
+
+    <view class="page-inner my-pets-inner">
       <!-- Welcome Section -->
       <!-- Pet List -->
       <view class="pet-list">
@@ -60,22 +62,24 @@
         buttonText="去添加宠物"
         @click="goToAddPet"
       />
-    </scroll-view>
-
-    <!-- Floating Action Button -->
-    <view class="fab-container">
-      <view class="fab-btn" @tap="goToAddPet">
-        <view class="fab-icon"></view>
-        <text class="fab-text">新增爱宠</text>
-      </view>
     </view>
 
+    <template #fixed>
+      <view class="fab-container">
+        <view class="fab-btn" @tap="goToAddPet">
+          <view class="fab-icon"></view>
+          <text class="fab-text">新增爱宠</text>
+        </view>
+      </view>
+    </template>
+
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import Empty from "@/components/common/Empty.vue";
 import { ref, onMounted, onUnmounted } from "vue";
 import { onShow } from "@dcloudio/uni-app";
@@ -218,21 +222,14 @@ const editPet = (pet: Pet) => {
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
-.page-content {
+@import "@/styles/layout.scss";
+
+.my-pets-inner {
   background: rgb(255, 247, 241);
-}
-.my-pets-page {
-  min-height: 100vh;
-  background: $color-bg-primary;
+  padding-bottom: 160rpx;
 }
 
-/* Page Content */
-.page-content {
-  height: 100vh;
-  background: rgb(255, 247, 241);
-  box-sizing: border-box;
-  padding: 40rpx 40rpx 200rpx;
-}
+/* Pet List */
 
 /* Welcome Section */
 .welcome-section {

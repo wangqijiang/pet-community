@@ -175,6 +175,7 @@
 
     <template #fixed>
     <view 
+      id="comment-input-bar"
       class="comment-input-bar"
       :class="{ 'show-reply': replyingComment }"
     >
@@ -221,7 +222,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
@@ -243,10 +244,10 @@ import { getUserInfo } from "@/api/auth";
 import type { PostShareInput } from "@/utils/postShare";
 import { usePostShareRegistry } from "@/composables/usePostShare";
 import { resolveAvatarUrl, resolveMediaUrl } from "@/utils/media";
+import { getLayoutMetrics, useFixedFooterHeight } from "@/composables/useLayout";
 
 usePostShareRegistry();
 
-const commentBarHeight = uni.upx2px(120);
 const postId = ref(0);
 /** 是否从用户主页进入（用于点头像返回而非重复打开主页） */
 const fromUserProfile = ref(false);
@@ -327,6 +328,13 @@ const size = ref(10);
 const currentUser = ref(getUserInfo());
 const replyingComment = ref<Comment | null>(null);
 const showInputFocus = ref(false);
+
+const { footerHeight: commentBarHeight } = useFixedFooterHeight(
+  "#comment-input-bar",
+  24 + 88 + 24,
+  [replyingComment, loading],
+);
+
 const showActionSheet = ref(false);
 const selectedComment = ref<Comment | null>(null);
 const shareVisible = ref(false);
@@ -583,7 +591,8 @@ onLoad((options) => {
 }
 
 .detail-inner {
-  padding: 0 32rpx 24rpx;
+  padding: 0 32rpx;
+  padding-bottom: 32rpx;
   box-sizing: border-box;
 }
 
@@ -595,7 +604,7 @@ onLoad((options) => {
 }
 
 .detail-content {
-  padding: 32rpx;
+  padding: 32rpx 0 0;
 }
 
 .detail-card {

@@ -1,8 +1,11 @@
 <template>
-  <view class="friend-list-container">
-    <TopNavBar title="附近狗友" :showBack="true" />
+  <PageLayout>
+    <template #navbar>
+      <TopNavBar title="附近狗友" :showBack="true" />
+    </template>
 
-    <view class="search-bar">
+    <view class="page-inner friend-list-inner">
+      <view class="search-bar">
       <view class="search-input">
         <view class="search-icon"></view>
         <input
@@ -58,11 +61,13 @@
     <view v-if="friendList.length > 0" class="list-footer">
       <text class="footer-text">- 已显示全部狗友 -</text>
     </view>
-  </view>
+    </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import { ref, onMounted } from "vue";
 import { getNearbyUsers, type NearbyUser } from "@/api/user";
 import { resolveMediaUrl } from "@/utils/media";
@@ -123,9 +128,8 @@ onMounted(() => {
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
 
-.friend-list-container {
-  min-height: 100vh;
-  background: $color-bg-primary;
+.friend-list-inner {
+  padding-top: 0;
 }
 
 .search-bar {

@@ -1,15 +1,10 @@
 <template>
-  <view class="follow-page">
-    <TopNavBar title="关注列表" :showBack="true" />
+  <PageLayout refresher @refresh="onRefresh" @scrolltolower="loadMore">
+    <template #navbar>
+      <TopNavBar title="关注列表" :showBack="true" />
+    </template>
 
-    <view class="page-content">
-      <scroll-view
-        class="content-scroll"
-        scroll-y
-        @scrolltolower="loadMore"
-        refresher-enabled
-        @refresherrefresh="onRefresh"
-      >
+    <view class="page-inner follow-inner">
         <!-- 搜索框 -->
         <view class="search-bar">
           <view class="search-icon"></view>
@@ -62,16 +57,16 @@
           <view class="empty-icon"></view>
           <text class="empty-text">去发现更多可爱的 TA 吧</text>
         </view>
-      </scroll-view>
     </view>
 
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getFollowingList, unfollowUser } from "@/api/user";
 import { resolveMediaUrl } from "@/utils/media";
@@ -146,20 +141,12 @@ const handleUnfollow = (user: { id: number; nickname: string }) => {
 </script>
 
 <style lang="scss" scoped>
-.follow-page {
-  width: 100%;
-  min-height: 100vh;
+@import "@/styles/layout.scss";
+
+.follow-inner {
+  padding-top: 0;
   background: linear-gradient(180deg, #fff8f5 0%, #fff6f2 100%);
-}
-
-.page-content {
-  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
-}
-
-.content-scroll {
-  width: 100%;
-  box-sizing: border-box;
-  height: calc(100vh - 200rpx);
+  min-height: 100%;
 }
 
 .search-bar {

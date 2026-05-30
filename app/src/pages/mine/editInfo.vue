@@ -1,9 +1,10 @@
 <template>
-  <view class="edit-info-page">
-    <TopNavBar title="编辑资料" :showBack="true" />
+  <PageLayout>
+    <template #navbar>
+      <TopNavBar title="编辑资料" :showBack="true" />
+    </template>
 
-    <view class="page-content">
-      <view class="form-scroll">
+    <view class="page-inner edit-info-inner">
         <!-- 头像 -->
         <view class="form-item" @tap="chooseAvatar">
           <text class="item-label">头像</text>
@@ -98,21 +99,20 @@
           ></textarea>
           <text class="char-count">{{ formData.signature.length }}/50</text>
         </view>
-      </view>
 
-      <!-- 保存按钮 -->
       <view class="save-btn" @tap="handleSave">
         <text class="btn-text">保存</text>
       </view>
     </view>
 
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getUserInfo, updateUserInfo, uploadAvatar } from "@/api/user";
 import {
@@ -274,23 +274,10 @@ const handleSave = async () => {
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
+@import "@/styles/layout.scss";
 
-.edit-info-page {
-  width: 100%;
-  min-height: 100vh;
-  background: $color-bg-primary;
-}
-
-.page-content {
-  padding-top: $nav-bar-height;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-scroll {
-  box-sizing: border-box;
-  padding: 0 $spacing-page-horizontal;
+.edit-info-inner {
+  padding-top: 0;
 }
 
 .form-item {

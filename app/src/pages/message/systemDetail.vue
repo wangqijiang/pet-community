@@ -1,8 +1,10 @@
 <template>
-  <view class="system-detail-page">
-    <TopNavBar title="系统通知" :showBack="true" />
+  <PageLayout>
+    <template #navbar>
+      <TopNavBar title="系统通知" :showBack="true" />
+    </template>
 
-    <view class="page-content">
+    <view class="page-inner system-detail-inner">
       <view class="notice-card">
         <view class="notice-icon-wrapper">
           <image
@@ -27,13 +29,14 @@
     </view>
 
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getNotificationDetail } from "@/api/notification";
 import { formatRelativeTime } from "@/utils/format";
@@ -82,16 +85,10 @@ onLoad((options) => {
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
+@import "@/styles/layout.scss";
 
-.system-detail-page {
-  min-height: 100vh;
-  background: $color-bg-primary;
-}
-
-.page-content {
-  padding-top: calc(#{$nav-bar-height} + 20rpx);
-  padding: calc(#{$nav-bar-height} + 20rpx) $spacing-page-horizontal;
-  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+.system-detail-inner {
+  padding-top: 20rpx;
 }
 
 .notice-card {

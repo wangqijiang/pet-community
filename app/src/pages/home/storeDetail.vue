@@ -1,5 +1,6 @@
 <template>
-  <view class="store-detail-container">
+  <PageLayout>
+    <view class="store-detail-inner page-inner--flush">
     <view class="hero">
       <image
         class="hero-image"
@@ -122,12 +123,14 @@
 
       <view class="bottom-space"></view>
     </view>
-  </view>
+    </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
+import PageLayout from "@/components/common/PageLayout.vue";
 import { getPlaceDetail, getPlaceReviews, togglePlaceLike, type Place, type PlaceReview } from "@/api/place";
 import { PLACE_TYPE_LABEL, formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
@@ -182,8 +185,8 @@ onLoad(async (options) => {
 </script>
 
 <style lang="scss" scoped>
-.store-detail-container {
-  min-height: 100vh;
+.store-detail-inner {
+  min-height: 100%;
   background: #FFF8F5;
 }
 

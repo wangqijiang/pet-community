@@ -1,68 +1,62 @@
 <template>
-  <view class="fans-page">
-    <TopNavBar title="我的粉丝" :showBack="true" />
-    <view class="page-content">
-      <scroll-view
-        class="content-scroll"
-        scroll-y
-        @scrolltolower="loadMore"
-        refresher-enabled
-        @refresherrefresh="onRefresh"
-      >
-        <!-- 用户列表 -->
-        <view class="user-list">
-          <view
-            v-for="user in userList"
-            :key="user.id"
-            class="user-card"
-            @tap="goToUserProfile(user.id)"
-          >
-            <view class="user-left">
-              <view class="avatar-wrapper">
-                <image
-                  class="user-avatar"
-                  :src="user.avatar"
-                  mode="aspectFill"
-                ></image>
-                <view v-if="user.isPetLover" class="pet-badge">
-                  <view class="pet-icon"></view>
-                </view>
+  <PageLayout refresher @refresh="onRefresh" @scrolltolower="loadMore">
+    <template #navbar>
+      <TopNavBar title="我的粉丝" :showBack="true" />
+    </template>
+
+    <view class="page-inner fans-inner">
+      <view class="user-list">
+        <view
+          v-for="user in userList"
+          :key="user.id"
+          class="user-card"
+          @tap="goToUserProfile(user.id)"
+        >
+          <view class="user-left">
+            <view class="avatar-wrapper">
+              <image
+                class="user-avatar"
+                :src="user.avatar"
+                mode="aspectFill"
+              ></image>
+              <view v-if="user.isPetLover" class="pet-badge">
+                <view class="pet-icon"></view>
               </view>
-              <view class="user-info">
-                <text class="user-name">{{ user.nickname }}</text>
-                <text class="user-desc">{{ user.desc }}</text>
-              </view>
+            </view>
+            <view class="user-info">
+              <text class="user-name">{{ user.nickname }}</text>
+              <text class="user-desc">{{ user.desc }}</text>
             </view>
           </view>
         </view>
+      </view>
 
-        <!-- 底部提示 -->
-        <view class="bottom-hint">
-          <view class="hint-bg">
-            <text class="hint-text">暂时只有这么多粉丝啦 (•⌄•)</text>
-          </view>
+      <view class="bottom-hint">
+        <view class="hint-bg">
+          <text class="hint-text">暂时只有这么多粉丝啦 (•⌄•)</text>
         </view>
-      </scroll-view>
+      </view>
     </view>
+
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getFollowersList } from "@/api/user";
 import { resolveMediaUrl } from "@/utils/media";
 
 const loading = ref(false);
-
 const userList = ref<
   Array<{
     id: number;
-    avatar: string;
     nickname: string;
     desc: string;
+    avatar: string;
     isPetLover: boolean;
   }>
 >([]);
@@ -73,9 +67,9 @@ const loadFansList = async () => {
     const res = await getFollowersList(1, 50);
     userList.value = res.list.map((u) => ({
       id: u.id,
-      avatar: resolveMediaUrl(u.avatar),
       nickname: u.username,
       desc: u.signature || "",
+      avatar: resolveMediaUrl(u.avatar),
       isPetLover: true,
     }));
   } catch {
@@ -85,84 +79,63 @@ const loadFansList = async () => {
   }
 };
 
-onMounted(loadFansList);
 const onRefresh = () => loadFansList();
 const loadMore = () => {};
-const goToUserProfile = (userId: number) => {
-  uni.navigateTo({ url: `/pages/mine/userProfile?id=${userId}` });
+
+const goToUserProfile = (id: number) => {
+  uni.navigateTo({ url: `/pages/mine/userProfile?id=${id}` });
 };
+
+onMounted(() => {
+  loadFansList();
+});
 </script>
 
 <style lang="scss" scoped>
-.fans-page {
-  width: 100%;
-  min-height: 100vh;
+@import "@/styles/layout.scss";
+
+.fans-inner {
+  padding-top: 0;
   background: #fff8f7;
+  min-height: 100%;
 }
 
-.page-content {
-  padding-bottom: calc(152rpx + env(safe-area-inset-bottom));
-}
-
-.content-scroll {
-  width: 100%;
-  box-sizing: border-box;
-  height: calc(100vh - 200rpx);
-  padding: 0 40rpx;
-  padding-top: 16rpx;
-}
-
-/* 用户列表 */
 .user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
+  padding: 24rpx 0 0;
 }
 
 .user-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  border-radius: 48rpx;
-  padding: 32rpx;
-  box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
-  border: 2rpx solid rgba(255, 221, 226, 0.4);
-  transition: transform 0.2s ease;
-
-  &:active {
-    transform: scale(1);
-  }
+  padding: 28rpx 0;
+  border-bottom: 1rpx solid rgba(210, 195, 196, 0.25);
 }
 
 .user-left {
   display: flex;
   align-items: center;
-  gap: 28rpx;
+  gap: 24rpx;
   flex: 1;
+  min-width: 0;
 }
 
 .avatar-wrapper {
   position: relative;
-  width: 112rpx;
-  height: 112rpx;
-  border-radius: 50%;
-  border: 4rpx solid #ffdde2;
-  overflow: hidden;
-  padding: 4rpx;
-  background: #ffffff;
+  flex-shrink: 0;
 }
 
 .user-avatar {
-  width: 100%;
-  height: 100%;
+  width: 96rpx;
+  height: 96rpx;
   border-radius: 50%;
+  border: 4rpx solid #ffdde2;
 }
 
 .pet-badge {
   position: absolute;
-  right: -8rpx;
-  bottom: -8rpx;
+  right: -4rpx;
+  bottom: -4rpx;
   width: 40rpx;
   height: 40rpx;
   background: #71585c;
@@ -170,7 +143,7 @@ const goToUserProfile = (userId: number) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 4rpx solid #ffffff;
+  border: 3rpx solid #fff;
 }
 
 .pet-icon {
@@ -182,49 +155,41 @@ const goToUserProfile = (userId: number) => {
 }
 
 .user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
   flex: 1;
   min-width: 0;
-  overflow: hidden;
 }
 
 .user-name {
   font-size: 32rpx;
-  font-weight: 600;
-  color: #1e1b1b;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 700;
+  color: #71585c;
+  display: block;
+  margin-bottom: 8rpx;
 }
 
 .user-desc {
   font-size: 24rpx;
-  color: #4f4446;
-  opacity: 0.7;
+  color: #8a7f7f;
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .bottom-hint {
-  padding: 64rpx 0;
+  padding: 48rpx 0 32rpx;
   display: flex;
   justify-content: center;
 }
 
 .hint-bg {
-  padding: 20rpx 40rpx;
-  background: rgba(234, 223, 189, 0.3);
-  border-radius: 100rpx;
+  padding: 16rpx 32rpx;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 999rpx;
 }
 
 .hint-text {
   font-size: 24rpx;
-  color: #6a6347;
-  opacity: 0.6;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  color: #b0a6a6;
 }
 </style>

@@ -1,9 +1,10 @@
 <template>
-  <view class="ai-guide-page">
-    <TopNavBar title="专属养宠攻略" :showBack="true" />
+  <PageLayout :footer-height="footerHeight">
+    <template #navbar>
+      <TopNavBar title="专属养宠攻略" :showBack="true" />
+    </template>
 
-    <view class="page-content">
-      <scroll-view class="content-scroll" scroll-y>
+    <view class="page-inner ai-guide-inner">
         <!-- AI Banner -->
         <view class="ai-banner">
           <view class="ai-content">
@@ -67,11 +68,10 @@
             <text class="tips-text">点击下方按钮可一键生成海报，保存这份心动攻略哦～</text>
           </view>
         </view>
-      </scroll-view>
     </view>
 
-    <!-- 底部操作栏 -->
-    <view class="bottom-actions">
+    <template #fixed>
+    <view id="ai-guide-footer" class="bottom-actions">
       <view class="action-btn secondary" @tap="saveImage">
         <view class="btn-icon download"></view>
         <text class="btn-text">保存图片</text>
@@ -81,15 +81,20 @@
         <text class="btn-text">分享到萌宠圈</text>
       </view>
     </view>
+    </template>
 
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import TopNavBar from '@/components/common/TopNavBar.vue'
+import PageLayout from '@/components/common/PageLayout.vue'
 import Loading from '@/components/common/Loading.vue'
+import { useFixedFooterHeight } from '@/composables/useLayout'
+
+const { footerHeight } = useFixedFooterHeight('#ai-guide-footer', 24 + 96 + 24)
 import { getPetList } from '@/api/pet'
 import { sendAiChat } from '@/api/ai'
 import { getGuideList } from '@/api/guide'
@@ -184,22 +189,12 @@ const shareToCircle = () => {
 </script>
 
 <style lang="scss" scoped>
-.ai-guide-page {
-  width: 100%;
-  min-height: 100vh;
+@import "@/styles/layout.scss";
+
+.ai-guide-inner {
+  padding-top: 0;
   background: #fff8f7;
-}
-
-.page-content {
-  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
-}
-
-.content-scroll {
-  width: 100%;
-  box-sizing: border-box;
-  height: calc(100vh - 200rpx);
-  padding: 0 40rpx;
-  padding-top: 16rpx;
+  min-height: 100%;
 }
 
 /* AI Banner */
