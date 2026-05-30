@@ -7,7 +7,7 @@
       <slot name="header" />
     </view>
     <scroll-view
-      scroll-y
+      :scroll-y="true"
       class="page-layout__content"
       :style="contentStyle"
       :refresher-enabled="refresher"
@@ -15,7 +15,9 @@
       @refresherrefresh="$emit('refresh')"
       @scrolltolower="$emit('scrolltolower')"
     >
-      <slot />
+      <view class="page-layout__inner">
+        <slot />
+      </view>
     </scroll-view>
     <view v-if="tabBar" class="page-layout__tabbar">
       <slot name="tabbar" />
@@ -25,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useLayout } from "@/composables/useLayout";
 
 const props = withDefaults(
@@ -49,11 +52,13 @@ defineEmits<{
   scrolltolower: [];
 }>();
 
-const { contentStyle, pageStyle } = useLayout({
+const layoutOptions = computed(() => ({
   tabBar: props.tabBar,
   headerHeight: props.headerHeight,
   footerHeight: props.footerHeight,
-});
+}));
+
+const { contentStyle, pageStyle } = useLayout(layoutOptions);
 </script>
 
 <style lang="scss" scoped>

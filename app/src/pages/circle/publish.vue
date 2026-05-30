@@ -1,6 +1,8 @@
 <template>
-  <view class="page-container">
-    <TopNavBar title="发布萌宠日常" :showBack="true" rightIcon="icon-bell" />
+  <PageLayout :footer-height="footerHeight">
+    <template #navbar>
+      <TopNavBar :title="navTitle" :showBack="true" rightIcon="icon-bell" />
+    </template>
 
     <view class="publish-content">
       <view class="text-area">
@@ -33,6 +35,50 @@
         </view>
       </view>
 
+      <view class="pet-section">
+        <view class="section-header">
+          <view class="section-icon pet-icon"></view>
+          <view class="section-title-wrap">
+            <text class="section-title">主角宠物</text>
+            <text class="section-sub">可多选，标记这条动态的主角是谁</text>
+          </view>
+        </view>
+
+        <scroll-view v-if="pets.length" scroll-x class="pet-scroll" :show-scrollbar="false">
+          <view class="pet-list">
+            <view
+              v-for="pet in pets"
+              :key="pet.id"
+              class="pet-item"
+              :class="{ active: isPetSelected(pet.id) }"
+              @click="togglePet(pet.id)"
+            >
+              <view class="pet-avatar-wrap">
+                <image
+                  v-if="getPetAvatar(pet)"
+                  class="pet-avatar"
+                  :src="getPetAvatar(pet)"
+                  mode="aspectFill"
+                />
+                <view v-else class="pet-avatar pet-avatar-placeholder">
+                  <text>{{ pet.name.slice(0, 1) }}</text>
+                </view>
+                <view v-if="isPetSelected(pet.id)" class="pet-check">
+                  <text>✓</text>
+                </view>
+              </view>
+              <text class="pet-name">{{ pet.name }}</text>
+              <text class="pet-meta">{{ formatPetType(pet.type) }}</text>
+            </view>
+          </view>
+        </scroll-view>
+
+        <view v-else class="pet-empty" @click="goAddPet">
+          <view class="pet-empty-icon"></view>
+          <text class="pet-empty-text">还没有宠物，去添加一只吧</text>
+        </view>
+      </view>
+
       <view class="category-section">
         <view class="section-header">
           <view class="section-icon"></view>
@@ -52,33 +98,170 @@
       </view>
     </view>
 
-    <view class="action-bar">
-      <view class="publish-btn" :class="{ active: canPublish }" @click="handlePublish">
-        <view class="publish-icon"></view>
-        <text class="publish-text">确认发布</text>
+    <template #fixed>
+      <view id="publish-action-bar" class="action-bar">
+        <view class="publish-btn" :class="{ active: canPublish }" @click="handlePublish">
+          <view class="publish-icon"></view>
+          <text class="publish-text">{{ editId ? "保存修改" : "确认发布" }}</text>
+        </view>
       </view>
-    </view>
+    </template>
 
     <Loading :visible="loading" />
-  </view>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
-import { ref, computed } from "vue";
-import { createPost } from "@/api/post";
+import { ref, computed, getCurrentInstance, nextTick, onMounted } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
+import { createPost, updatePost, getPostDetail } from "@/api/post";
+import { getPetList, type Pet } from "@/api/pet";
+import { resolveMediaUrl } from "@/utils/media";
+import { getLayoutMetrics } from "@/composables/useLayout";
+
+const LAST_PUBLISH_PET_IDS_KEY = "lastPublishPetIds";
+
+const instance = getCurrentInstance();
+const layoutMetrics = getLayoutMetrics();
+/** 底部按钮区高度（px），用于 PageLayout 计算可滚动区域 */
+const footerHeight = ref(
+  uni.upx2px(24 + 96 + 24) + layoutMetrics.safeBottom,
+);
+
+const measureFooterHeight = () => {
+  nextTick(() => {
+    uni
+      .createSelectorQuery()
+      .in(instance)
+      .select("#publish-action-bar")
+      .boundingClientRect((rect) => {
+        if (rect && !Array.isArray(rect) && rect.height > 0) {
+          footerHeight.value = Math.ceil(rect.height);
+        }
+      })
+      .exec();
+  });
+};
+
+onMounted(() => {
+  measureFooterHeight();
+});
 
 const content = ref("");
 const images = ref<string[]>([]);
 const selectedCategory = ref(-1);
 const loading = ref(false);
+const editId = ref<number | null>(null);
+const pets = ref<Pet[]>([]);
+const selectedPetIds = ref<number[]>([]);
+
+const navTitle = computed(() => (editId.value ? "编辑动态" : "发布萌宠日常"));
 
 const categories = ["修勾日常", "技能秀场", "寻宠启事", "遛狗搭子", "养宠种草"];
 
 const canPublish = computed(() => {
   return content.value.trim().length > 0 || images.value.length > 0;
 });
+
+onLoad(async (options) => {
+  await loadPets();
+  if (options?.editId) {
+    editId.value = Number(options.editId);
+    await loadPostForEdit();
+  } else {
+    applyDefaultPetSelection();
+  }
+});
+
+const loadPets = async () => {
+  try {
+    pets.value = await getPetList();
+  } catch {
+    uni.showToast({ title: "加载宠物失败", icon: "none" });
+  }
+};
+
+const readSavedPetIds = (): number[] => {
+  try {
+    const saved = uni.getStorageSync(LAST_PUBLISH_PET_IDS_KEY);
+    if (Array.isArray(saved)) {
+      return saved.map((id) => Number(id)).filter((id) => id > 0);
+    }
+    if (typeof saved === "string" && saved) {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed)
+        ? parsed.map((id) => Number(id)).filter((id) => id > 0)
+        : [];
+    }
+  } catch {
+    /* ignore */
+  }
+  return [];
+};
+
+const applyDefaultPetSelection = () => {
+  const savedIds = readSavedPetIds();
+  const validIds = savedIds.filter((id) => pets.value.some((pet) => pet.id === id));
+  if (validIds.length) {
+    selectedPetIds.value = validIds;
+    return;
+  }
+  if (pets.value.length === 1) {
+    selectedPetIds.value = [pets.value[0].id];
+  }
+};
+
+const saveLastSelectedPets = () => {
+  uni.setStorageSync(LAST_PUBLISH_PET_IDS_KEY, selectedPetIds.value);
+};
+
+const formatPetType = (type?: string) => {
+  if (type === "dog") return "狗狗";
+  if (type === "cat") return "猫咪";
+  return type || "宠物";
+};
+
+const getPetAvatar = (pet: Pet) => {
+  const source = pet.avatar || (Array.isArray(pet.photos) ? pet.photos[0] : "");
+  return source ? resolveMediaUrl(source) : "";
+};
+
+const isPetSelected = (petId: number) => selectedPetIds.value.includes(petId);
+
+const togglePet = (petId: number) => {
+  uni.vibrateShort({ type: "light" });
+  if (isPetSelected(petId)) {
+    selectedPetIds.value = selectedPetIds.value.filter((id) => id !== petId);
+  } else {
+    selectedPetIds.value = [...selectedPetIds.value, petId];
+  }
+};
+
+const goAddPet = () => {
+  uni.navigateTo({ url: "/pages/mine/addPet" });
+};
+
+const loadPostForEdit = async () => {
+  if (!editId.value) return;
+  loading.value = true;
+  try {
+    const post = await getPostDetail(editId.value);
+    content.value = post.content || "";
+    images.value = (post.images || []).map((url) => resolveMediaUrl(url));
+    selectedPetIds.value = (post.pets || []).map((pet) => pet.id);
+    if (!selectedPetIds.value.length && post.pet_ids?.length) {
+      selectedPetIds.value = [...post.pet_ids];
+    }
+  } catch {
+    uni.showToast({ title: "加载动态失败", icon: "none" });
+    setTimeout(() => uni.navigateBack(), 1500);
+  } finally {
+    loading.value = false;
+  }
+};
 
 const chooseImage = () => {
   const maxCount = 9 - images.value.length;
@@ -116,21 +299,39 @@ const handlePublish = async () => {
   loading.value = true;
 
   try {
-    await createPost(content.value, images.value);
-    
-    uni.showToast({
-      title: "发布成功",
-      icon: "success",
-    });
-    
+    if (editId.value) {
+      await updatePost(
+        editId.value,
+        content.value,
+        images.value,
+        selectedPetIds.value,
+      );
+      uni.showToast({
+        title: "保存成功",
+        icon: "success",
+      });
+    } else {
+      await createPost(content.value, images.value, selectedPetIds.value);
+      saveLastSelectedPets();
+      uni.showToast({
+        title: "发布成功",
+        icon: "success",
+      });
+    }
+
+    if (editId.value) {
+      saveLastSelectedPets();
+    }
+
+    uni.$emit("refreshPostList");
+
     setTimeout(() => {
-      uni.$emit('postCreated');
       uni.navigateBack();
     }, 1500);
   } catch (error) {
-    console.error("发布失败:", error);
+    console.error(editId.value ? "保存失败:" : "发布失败:", error);
     uni.showToast({
-      title: "发布失败",
+      title: editId.value ? "保存失败" : "发布失败",
       icon: "none",
     });
   } finally {
@@ -142,14 +343,8 @@ const handlePublish = async () => {
 <style lang="scss" scoped>
 @import '@/styles/variables.scss';
 
-.page-container {
-  min-height: 100vh;
-  background: $color-bg-primary;
-  padding-bottom: 140rpx;
-}
-
 .publish-content {
-  padding: 24rpx 32rpx;
+  padding: 24rpx 32rpx 32rpx;
   box-sizing: border-box;
 }
 
@@ -254,12 +449,17 @@ const handlePublish = async () => {
   color: #9B9090;
 }
 
+.pet-section,
 .category-section {
   background: $color-bg-white;
   border-radius: $border-radius-large;
   padding: 32rpx;
   box-shadow: 0 8rpx 32rpx rgba(168, 155, 157, 0.12);
   border: 1rpx solid rgba(113, 88, 92, 0.1);
+}
+
+.pet-section {
+  margin-bottom: 32rpx;
 }
 
 .section-header {
@@ -274,12 +474,138 @@ const handlePublish = async () => {
   height: 40rpx;
   background: linear-gradient(135deg, #FFC1E9, #FFD4F0);
   border-radius: 12rpx;
+  flex-shrink: 0;
+
+  &.pet-icon {
+    background: linear-gradient(135deg, #FFD4A8, #FFC1E9);
+  }
+}
+
+.section-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
 }
 
 .section-title {
   font-size: $font-size-title;
   font-weight: $font-weight-bold;
   color: $color-gray-dark;
+}
+
+.section-sub {
+  font-size: 22rpx;
+  color: $color-gray-medium;
+}
+
+.pet-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.pet-list {
+  display: inline-flex;
+  gap: 20rpx;
+  padding-bottom: 4rpx;
+}
+
+.pet-item {
+  width: 168rpx;
+  padding: 20rpx 16rpx;
+  border-radius: 28rpx;
+  background: #F8F5F5;
+  border: 2rpx solid transparent;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.2s ease;
+
+  &.active {
+    background: linear-gradient(135deg, rgba(255, 182, 193, 0.18), rgba(255, 193, 233, 0.28));
+    border-color: rgba(255, 182, 193, 0.85);
+    box-shadow: 0 10rpx 24rpx rgba(255, 182, 193, 0.22);
+  }
+}
+
+.pet-avatar-wrap {
+  position: relative;
+  margin-bottom: 12rpx;
+}
+
+.pet-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 32rpx;
+  background: #F0E8E8;
+}
+
+.pet-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #8B6D73;
+}
+
+.pet-check {
+  position: absolute;
+  right: -8rpx;
+  bottom: -8rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFB6C1, #FFC1E9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 22rpx;
+  font-weight: 700;
+  box-shadow: 0 4rpx 12rpx rgba(255, 182, 193, 0.45);
+}
+
+.pet-name {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: $color-gray-dark;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pet-meta {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: $color-gray-medium;
+}
+
+.pet-empty {
+  padding: 40rpx 24rpx;
+  border-radius: 24rpx;
+  background: #F8F5F5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.pet-empty-icon {
+  width: 64rpx;
+  height: 64rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C4B5B5' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3Z'/%3E%3Cpath d='M7 21c0-2.76 2.24-5 5-5s5 2.24 5 5'/%3E%3Cpath d='M19 8v6'/%3E%3Cpath d='M22 11h-6'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.pet-empty-text {
+  font-size: 26rpx;
+  color: $color-gray-medium;
+}
+
+.category-section {
+  margin-bottom: 32rpx;
 }
 
 .category-list {

@@ -1,8 +1,24 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
 import { isLoggedIn } from "@/api/auth";
+import {
+  PENDING_SHARE_ROUTE_KEY,
+  resolveSharedPostRoute,
+} from "@/utils/postShare";
 
-onLaunch(() => {
+onLaunch((options) => {
+  const sharedRoute = resolveSharedPostRoute(
+    (options?.query as Record<string, string | undefined>) || undefined,
+  );
+
+  if (sharedRoute) {
+    if (isLoggedIn()) {
+      uni.reLaunch({ url: sharedRoute });
+      return;
+    }
+    uni.setStorageSync(PENDING_SHARE_ROUTE_KEY, sharedRoute);
+  }
+
   const pages = getCurrentPages();
   const route = pages.length ? (pages[0] as { route?: string }).route : "";
   if (!isLoggedIn() && route && !route.includes("login")) {

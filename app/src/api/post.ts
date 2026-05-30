@@ -1,5 +1,13 @@
-import { get, post, del } from "@/utils/request";
+import { get, post, put, del } from "@/utils/request";
 import { parseJsonArray } from "@/utils/format";
+
+export interface PostPet {
+  id: number;
+  name: string;
+  type: string;
+  breed?: string;
+  avatar?: string;
+}
 
 export interface Post {
   id: number;
@@ -14,6 +22,8 @@ export interface Post {
   comments?: number;
   created_at: string;
   liked?: boolean;
+  pet_ids?: number[];
+  pets?: PostPet[];
 }
 
 export interface Comment {
@@ -47,6 +57,7 @@ function normalizePost(post: Post): Post {
     images: parseJsonArray<string>(post.images),
     likes: post.likes_count ?? post.likes ?? 0,
     comments: post.comments_count ?? post.comments ?? 0,
+    liked: !!post.liked,
   };
 }
 
@@ -81,8 +92,23 @@ export async function getPostDetail(id: number): Promise<Post> {
 export async function createPost(
   content: string,
   images: string[] = [],
+  petIds: number[] = [],
 ): Promise<Post> {
-  const res = await post<Post>("/post", { content, images });
+  const res = await post<Post>("/post", { content, images, pet_ids: petIds });
+  return normalizePost(res.data);
+}
+
+export async function updatePost(
+  id: number,
+  content: string,
+  images: string[] = [],
+  petIds?: number[],
+): Promise<Post> {
+  const payload: Record<string, unknown> = { content, images };
+  if (petIds !== undefined) {
+    payload.pet_ids = petIds;
+  }
+  const res = await put<Post>(`/post/${id}`, payload);
   return normalizePost(res.data);
 }
 

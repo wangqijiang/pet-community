@@ -41,12 +41,12 @@
         <!-- 数据统计 -->
         <view class="stats-bar">
           <view class="stat-item">
-            <text class="stat-number">{{ profile?.posts_count ?? 0 }}</text>
+            <text class="stat-number">{{ postsTotal }}</text>
             <text class="stat-label">动态</text>
           </view>
           <view class="stat-divider"></view>
           <view class="stat-item">
-            <text class="stat-number">{{ profile?.pets_count ?? 0 }}</text>
+            <text class="stat-number">{{ petsTotal }}</text>
             <text class="stat-label">宠物</text>
           </view>
           <view class="stat-divider"></view>
@@ -147,7 +147,7 @@ import {
 } from "@/api/user";
 import { getUserPets, type Pet } from "@/api/pet";
 import { getPostList, type Post } from "@/api/post";
-import { resolveMediaUrl } from "@/utils/media";
+import { resolveAvatarUrl, resolveMediaUrl } from "@/utils/media";
 import { formatPetAge, parseJsonArray } from "@/utils/format";
 
 const loading = ref(false);
@@ -155,14 +155,15 @@ const userId = ref(0);
 const profile = ref<UserInfo | null>(null);
 const pets = ref<Pet[]>([]);
 const posts = ref<Post[]>([]);
+const postsTotal = ref(0);
+const petsTotal = ref(0);
 const isFollowing = ref(false);
-const defaultAvatar = "/static/images/avatar-default.png";
 
-const avatarUrl = computed(() =>
-  profile.value?.avatar
-    ? resolveMediaUrl(profile.value.avatar)
-    : defaultAvatar,
-);
+/** 用户主页需展示全部动态，避免统计与列表条数不一致 */
+const PROFILE_POST_PAGE_SIZE = 100;
+const PROFILE_PET_PAGE_SIZE = 50;
+
+const avatarUrl = computed(() => resolveAvatarUrl(profile.value?.avatar));
 
 const formatAge = formatPetAge;
 const petAvatar = (url?: string) =>
@@ -183,13 +184,15 @@ const loadUserProfile = async () => {
   try {
     const [user, petRes, postRes, following] = await Promise.all([
       getUserById(userId.value),
-      getUserPets(userId.value, 1, 10),
-      getPostList(1, 10, userId.value),
+      getUserPets(userId.value, 1, PROFILE_PET_PAGE_SIZE),
+      getPostList(1, PROFILE_POST_PAGE_SIZE, userId.value),
       checkFollowing(userId.value).catch(() => false),
     ]);
     profile.value = user;
     pets.value = petRes.list;
+    petsTotal.value = petRes.pagination.total;
     posts.value = postRes.list;
+    postsTotal.value = postRes.pagination.total;
     isFollowing.value = following;
   } catch {
     uni.showToast({ title: "加载失败", icon: "none" });
@@ -238,7 +241,9 @@ const goToPetProfile = (petId: number) => {
 };
 
 const goToFeedDetail = (feedId: number) => {
-  uni.navigateTo({ url: `/pages/circle/detail?id=${feedId}` });
+  uni.navigateTo({
+    url: `/pages/circle/detail?id=${feedId}&fromUserProfile=1&profileUserId=${userId.value}`,
+  });
 };
 </script>
 

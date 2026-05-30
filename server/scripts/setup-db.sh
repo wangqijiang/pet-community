@@ -17,8 +17,10 @@ mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} -
 echo "Running migrations..."
 mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "$DB_NAME" < migrations/001_create_tables.sql
 mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "$DB_NAME" < migrations/003_user_location.sql
+mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "$DB_NAME" < migrations/004_post_pets.sql
 
 echo "Inserting test data..."
 mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "$DB_NAME" < migrations/002_insert_test_data.sql
+mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "$DB_NAME" < migrations/005_sync_user_post_pet_counts.sql
 
 echo "Done."

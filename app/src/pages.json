@@ -35,7 +35,9 @@
       "style": {
         "navigationStyle": "custom",
         "navigationBarTitleText": "动态详情",
-        "navigationBarBackgroundColor": "#ffffff"
+        "navigationBarBackgroundColor": "#ffffff",
+        "enableShareAppMessage": true,
+        "enableShareTimeline": true
       }
     },
     {
@@ -68,7 +70,9 @@
       "style": {
         "navigationStyle": "custom",
         "navigationBarTitleText": "我的动态",
-        "navigationBarBackgroundColor": "#ffffff"
+        "navigationBarBackgroundColor": "#ffffff",
+        "enableShareAppMessage": true,
+        "enableShareTimeline": true
       }
     },
     {

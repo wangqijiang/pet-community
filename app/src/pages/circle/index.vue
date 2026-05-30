@@ -77,17 +77,19 @@
 
       <PostImageGrid :images="item.images" />
 
+      <PostProtagonistPets :pets="item.pets" />
+
       <view class="card-footer">
         <view class="footer-left">
           <view class="footer-item" @click.stop="handleLike(item)">
             <view class="footer-icon" :class="{ liked: item.liked }">
-              <view class="like-icon"></view>
+              <text class="like-icon">{{ item.liked ? '♥' : '♡' }}</text>
             </view>
             <text class="footer-count">{{ item.likes }}</text>
           </view>
           <view class="footer-item">
             <view class="footer-icon">
-              <view class="comment-icon"></view>
+              <text class="comment-icon">💬</text>
             </view>
             <text class="footer-count">{{ item.comments }}</text>
           </view>
@@ -119,20 +121,21 @@ import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import PostImageGrid from "@/components/common/PostImageGrid.vue";
+import PostProtagonistPets from "@/components/common/PostProtagonistPets.vue";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { getLayoutMetrics } from "@/composables/useLayout";
 import {
   getPostList,
   toggleLikePost,
   deletePost,
-  checkLiked,
   type Post,
 } from "@/api/post";
 import { getUserInfo } from "@/api/auth";
 import { resolveMediaUrl } from "@/utils/media";
 import { formatRelativeTime } from "@/utils/format";
 
-const categoryTabsHeight = uni.upx2px(112);
+// 分类 Tab 实际高度：上下 padding 36rpx + 标签行约 60rpx
+const categoryTabsHeight = uni.upx2px(120);
 const fabStyle = computed(() => ({
   bottom: `${getLayoutMetrics().tabbarHeight + uni.upx2px(32)}px`,
   right: "32rpx",
@@ -183,30 +186,17 @@ const loadPosts = async (pageNum: number, isRefresh = false) => {
   loading.value = true;
   try {
     const response = await getPostList(pageNum, size.value);
-    const list = await Promise.all(
-      response.list.map(async (post) => {
-        const postData = {
-          ...post,
-          images: (
-            typeof post.images === "string"
-              ? JSON.parse(post.images as string)
-              : post.images || []
-          ).map((url: string) => resolveMediaUrl(url)),
-          liked: false,
-          likes: post.likes_count ?? post.likes ?? 0,
-          comments: post.comments_count ?? post.comments ?? 0,
-        };
-        if (currentUser.value) {
-          try {
-            const likedResult = await checkLiked(post.id);
-            postData.liked = likedResult.liked;
-          } catch {
-            /* ignore */
-          }
-        }
-        return postData;
-      }),
-    );
+    const list = response.list.map((post) => ({
+      ...post,
+      images: (
+        typeof post.images === "string"
+          ? JSON.parse(post.images as string)
+          : post.images || []
+      ).map((url: string) => resolveMediaUrl(url)),
+      liked: !!post.liked,
+      likes: post.likes_count ?? post.likes ?? 0,
+      comments: post.comments_count ?? post.comments ?? 0,
+    }));
     feedList.value = isRefresh ? list : [...feedList.value, ...list];
     hasMore.value = response.pagination.page < response.pagination.pages;
   } catch {
@@ -300,8 +290,8 @@ onUnmounted(() => {
   }
 }
 
-.page-layout__content {
-  padding: 0 32rpx;
+:deep(.page-layout__inner) {
+  padding: 0 32rpx 24rpx;
   box-sizing: border-box;
 }
 
@@ -396,15 +386,33 @@ onUnmounted(() => {
   gap: 8rpx;
 }
 
+.footer-icon {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.liked .like-icon {
+    color: #ff6b6b;
+  }
+}
+
+.like-icon {
+  font-size: 36rpx;
+  color: #c4b5b5;
+  line-height: 1;
+}
+
+.comment-icon {
+  font-size: 32rpx;
+  color: #c4b5b5;
+  line-height: 1;
+}
+
 .footer-count {
   font-size: 24rpx;
   color: #8a7f7f;
-}
-
-.like-icon,
-.comment-icon {
-  width: 36rpx;
-  height: 36rpx;
 }
 
 .loading-more,

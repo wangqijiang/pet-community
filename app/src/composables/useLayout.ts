@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed, ref, unref, type MaybeRef } from "vue";
 
 export interface LayoutMetrics {
   windowHeight: number;
@@ -39,23 +39,23 @@ export function getLayoutMetrics(): LayoutMetrics {
   return cachedMetrics;
 }
 
-export function useLayout(options?: {
+export interface LayoutOptions {
   /** 是否包含底部 TabBar */
   tabBar?: boolean;
   /** 导航栏下方额外固定区域高度（px），如分类 Tab */
   headerHeight?: number;
   /** 底部额外固定区域（px），如聊天输入框 */
   footerHeight?: number;
-}) {
+}
+
+export function useLayout(options: MaybeRef<LayoutOptions> = {}) {
   const metrics = ref(getLayoutMetrics());
-  const headerExtra = options?.headerHeight ?? 0;
-  const footerExtra = options?.footerHeight ?? 0;
-  const hasTabBar = options?.tabBar ?? false;
 
   const contentHeight = computed(() => {
     const m = metrics.value;
-    let h = m.windowHeight - m.navbarHeight - headerExtra - footerExtra;
-    if (hasTabBar) h -= m.tabbarHeight;
+    const { headerHeight = 0, footerHeight = 0, tabBar = false } = unref(options);
+    let h = m.windowHeight - m.navbarHeight - headerHeight - footerHeight;
+    if (tabBar) h -= m.tabbarHeight;
     return Math.max(0, Math.floor(h));
   });
 

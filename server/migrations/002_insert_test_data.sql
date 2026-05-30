@@ -13,12 +13,12 @@
 
 -- 插入用户（密码为 123456 的 bcrypt 哈希值）
 INSERT INTO `users` (`username`, `phone`, `password`, `avatar`, `signature`, `gender`, `region`, `followers_count`, `following_count`, `posts_count`, `pets_count`) VALUES
-('铲屎官小明', '13800138001', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix', '爱猫人士，欢迎交流', 'male', '北京市 朝阳区', 15, 8, 5, 2),
-('狗狗妈妈', '13800138002', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bella', '金毛控，每天遛狗', 'female', '上海市 浦东新区', 23, 12, 8, 2),
-('宠物达人', '13800138003', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Max', '专业宠物训练师', 'male', '广州市 天河区', 56, 30, 15, 1),
-('猫咪控', '13800138004', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi', '每天都要吸猫', 'female', '上海市 浦东新区', 18, 10, 6, 2),
-('哈士奇主人', '13800138005', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Husky', '拆家小能手的铲屎官', 'male', '广州市 天河区', 12, 7, 4, 2),
-('仓鼠达人', '13800138006', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hamster', '小仓鼠超级可爱', 'female', '深圳市 南山区', 8, 5, 3, 1);
+('铲屎官小明', '13800138001', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix', '爱猫人士，欢迎交流', 'male', '北京市 朝阳区', 15, 8, 2, 2),
+('狗狗妈妈', '13800138002', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bella', '金毛控，每天遛狗', 'female', '上海市 浦东新区', 23, 12, 2, 2),
+('宠物达人', '13800138003', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Max', '专业宠物训练师', 'male', '广州市 天河区', 56, 30, 1, 1),
+('猫咪控', '13800138004', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi', '每天都要吸猫', 'female', '上海市 浦东新区', 18, 10, 1, 2),
+('哈士奇主人', '13800138005', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Husky', '拆家小能手的铲屎官', 'male', '广州市 天河区', 12, 7, 1, 2),
+('仓鼠达人', '13800138006', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hamster', '小仓鼠超级可爱', 'female', '深圳市 南山区', 8, 5, 1, 1);
 
 -- 插入宠物
 INSERT INTO `pets` (`user_id`, `name`, `type`, `breed`, `age`, `gender`, `color`, `weight`, `size`, `neutered`, `vaccinated`, `health_certificate`, `personality`, `habits`, `description`) VALUES

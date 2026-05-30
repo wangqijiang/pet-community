@@ -5,6 +5,13 @@ const { auth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
 const { upload, toPublicUrl } = require('../utils/upload')
 
+/** 动态/宠物数以实际数据为准，避免与 users 表缓存字段不一致 */
+const USER_COUNT_FIELDS = `
+  followers_count, following_count,
+  (SELECT COUNT(*) FROM posts WHERE user_id = users.id AND status = 1) AS posts_count,
+  (SELECT COUNT(*) FROM pets WHERE user_id = users.id AND status = 1) AS pets_count
+`
+
 /**
  * 获取当前用户信息
  */
@@ -12,7 +19,7 @@ router.get('/info', auth, async (req, res) => {
   try {
     const users = await query(`
       SELECT id, username, phone, avatar, signature, gender, birthday, region,
-        followers_count, following_count, posts_count, pets_count, created_at
+        ${USER_COUNT_FIELDS}, created_at
       FROM users WHERE id = ?
     `, [req.user.id])
     
@@ -36,7 +43,7 @@ router.get('/info/:id', async (req, res) => {
   try {
     const users = await query(`
       SELECT id, username, avatar, signature, gender, region,
-        followers_count, following_count, posts_count, pets_count, created_at
+        ${USER_COUNT_FIELDS}, created_at
       FROM users WHERE id = ? AND status = 1
     `, [id])
     
@@ -104,7 +111,7 @@ router.put('/info', auth, async (req, res) => {
     
     const user = await query(`
       SELECT id, username, phone, avatar, signature, gender, birthday, region,
-        followers_count, following_count, posts_count, pets_count, created_at
+        ${USER_COUNT_FIELDS}, created_at
       FROM users WHERE id = ?
     `, [req.user.id])
     

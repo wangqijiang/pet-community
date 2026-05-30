@@ -22,10 +22,15 @@
 }
 
 .page-layout__content {
-  flex: 1;
   width: 100%;
   box-sizing: border-box;
+  flex-shrink: 0;
   overflow: hidden;
+}
+
+.page-layout__inner {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .page-layout__tabbar {

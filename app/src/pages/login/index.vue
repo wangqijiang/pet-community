@@ -49,6 +49,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { loginByCode, setUserInfo } from '../../api/auth'
+import { PENDING_SHARE_ROUTE_KEY } from '@/utils/postShare'
 
 const isLoading = ref(false)
 
@@ -66,6 +67,12 @@ const handleLogin = async () => {
     })
     
     setTimeout(() => {
+      const pendingRoute = uni.getStorageSync(PENDING_SHARE_ROUTE_KEY)
+      if (pendingRoute) {
+        uni.removeStorageSync(PENDING_SHARE_ROUTE_KEY)
+        uni.reLaunch({ url: pendingRoute })
+        return
+      }
       uni.reLaunch({
         url: '/pages/home/index',
       })

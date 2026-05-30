@@ -1,14 +1,102 @@
 const express = require('express')
 const router = express.Router()
 const { query } = require('../config/db')
-const { auth } = require('../middleware/auth')
+const { auth, optionalAuth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
+
+async function fetchPetsForPosts(postIds) {
+  if (!postIds.length) return {}
+
+  const placeholders = postIds.map(() => '?').join(',')
+  const rows = await query(
+    `SELECT pp.post_id, p.id, p.name, p.type, p.breed, p.avatar
+     FROM post_pets pp
+     JOIN pets p ON pp.pet_id = p.id
+     WHERE pp.post_id IN (${placeholders}) AND p.status = 1
+     ORDER BY pp.id ASC`,
+    postIds
+  )
+
+  const map = {}
+  for (const row of rows) {
+    if (!map[row.post_id]) map[row.post_id] = []
+    map[row.post_id].push({
+      id: row.id,
+      name: row.name,
+      type: row.type,
+      breed: row.breed,
+      avatar: row.avatar,
+    })
+  }
+  return map
+}
+
+async function attachPetsToPosts(posts) {
+  if (!posts.length) return posts
+
+  const petMap = await fetchPetsForPosts(posts.map((post) => post.id))
+  for (const post of posts) {
+    post.pets = petMap[post.id] || []
+    post.pet_ids = post.pets.map((pet) => pet.id)
+  }
+  return posts
+}
+
+/** 批量附加当前用户是否已点赞（一次查询，避免 N+1） */
+async function attachLikedStatus(posts, userId) {
+  if (!posts.length) {
+    return posts
+  }
+
+  if (!userId) {
+    for (const post of posts) {
+      post.liked = false
+    }
+    return posts
+  }
+
+  const postIds = posts.map((post) => post.id)
+  const placeholders = postIds.map(() => '?').join(',')
+  const rows = await query(
+    `SELECT target_id FROM likes
+     WHERE user_id = ? AND target_type = 'post' AND target_id IN (${placeholders})`,
+    [userId, ...postIds]
+  )
+  const likedSet = new Set(rows.map((row) => row.target_id))
+
+  for (const post of posts) {
+    post.liked = likedSet.has(post.id)
+  }
+  return posts
+}
+
+async function setPostPets(postId, userId, petIds) {
+  await query('DELETE FROM post_pets WHERE post_id = ?', [postId])
+
+  if (!Array.isArray(petIds) || petIds.length === 0) return
+
+  const ids = [...new Set(petIds.map((id) => parseInt(id, 10)).filter((id) => id > 0))]
+  if (!ids.length) return
+
+  const placeholders = ids.map(() => '?').join(',')
+  const ownedPets = await query(
+    `SELECT id FROM pets WHERE user_id = ? AND status = 1 AND id IN (${placeholders})`,
+    [userId, ...ids]
+  )
+
+  for (const pet of ownedPets) {
+    await query(
+      'INSERT INTO post_pets (post_id, pet_id, created_at) VALUES (?, ?, NOW())',
+      [postId, pet.id]
+    )
+  }
+}
 
 /**
  * 创建动态
  */
 router.post('/', auth, async (req, res) => {
-  const { content, images } = req.body
+  const { content, images, pet_ids: petIds } = req.body
 
   if (!content) {
     return res.status(400).json(error('请填写内容', 400))
@@ -20,6 +108,8 @@ router.post('/', auth, async (req, res) => {
       [req.user.id, content, JSON.stringify(images || [])]
     )
 
+    await setPostPets(result.insertId, req.user.id, petIds)
+
     // 更新用户动态数
     await query('UPDATE users SET posts_count = posts_count + 1 WHERE id = ?', [req.user.id])
 
@@ -28,7 +118,9 @@ router.post('/', auth, async (req, res) => {
       [result.insertId]
     )
 
-    res.json(success(post[0], '发布成功'))
+    const [postWithPets] = await attachPetsToPosts(post)
+
+    res.json(success(postWithPets, '发布成功'))
   } catch (err) {
     console.error('发布动态失败:', err)
     res.status(500).json(error('发布失败', 500))
@@ -38,7 +130,7 @@ router.post('/', auth, async (req, res) => {
 /**
  * 获取动态列表
  */
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   const { page = 1, size = 10, user_id, keyword } = req.query
   const pageNum = parseInt(page)
   const sizeNum = parseInt(size)
@@ -76,6 +168,9 @@ router.get('/', async (req, res) => {
         post.images = JSON.parse(post.images)
       }
     }
+
+    await attachPetsToPosts(posts)
+    await attachLikedStatus(posts, req.user?.id)
 
     let countSql = 'SELECT COUNT(*) as count FROM posts WHERE status = 1'
     const countParams = []
@@ -116,7 +211,7 @@ router.get('/:id/liked', auth, async (req, res) => {
 /**
  * 获取单条动态
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', optionalAuth, async (req, res) => {
   const { id } = req.params
 
   try {
@@ -138,6 +233,9 @@ router.get('/:id', async (req, res) => {
       post.images = JSON.parse(post.images)
     }
 
+    await attachPetsToPosts([post])
+    await attachLikedStatus([post], req.user?.id)
+
     res.json(success(post, '获取成功'))
   } catch (err) {
     console.error('获取动态详情失败:', err)
@@ -150,7 +248,7 @@ router.get('/:id', async (req, res) => {
  */
 router.put('/:id', auth, async (req, res) => {
   const { id } = req.params
-  const { content, images } = req.body
+  const { content, images, pet_ids: petIds } = req.body
 
   try {
     const posts = await query('SELECT * FROM posts WHERE id = ? AND user_id = ?', [id, req.user.id])
@@ -163,12 +261,18 @@ router.put('/:id', auth, async (req, res) => {
       [content || posts[0].content, JSON.stringify(images || JSON.parse(posts[0].images || '[]')), id]
     )
 
+    if (petIds !== undefined) {
+      await setPostPets(id, req.user.id, petIds)
+    }
+
     const updatedPost = await query(
       'SELECT p.*, u.username, u.avatar FROM posts p JOIN users u ON p.user_id = u.id WHERE p.id = ?',
       [id]
     )
 
-    res.json(success(updatedPost[0], '更新成功'))
+    const [postWithPets] = await attachPetsToPosts(updatedPost)
+
+    res.json(success(postWithPets, '更新成功'))
   } catch (err) {
     console.error('更新动态失败:', err)
     res.status(500).json(error('更新失败', 500))
@@ -471,6 +575,9 @@ router.get('/user/favorites', auth, async (req, res) => {
       ORDER BY f.created_at DESC
       LIMIT ? OFFSET ?
     `, [req.user.id, parseInt(size), parseInt(offset)])
+
+    await attachPetsToPosts(posts)
+    await attachLikedStatus(posts, req.user.id)
 
     const total = await query(
       'SELECT COUNT(*) as count FROM favorites WHERE user_id = ? AND target_type = ?',

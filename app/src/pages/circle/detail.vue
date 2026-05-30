@@ -11,27 +11,26 @@
       <view v-else class="detail-content">
         <view class="detail-card">
           <view class="card-header">
-            <view class="user-left">
+            <view
+              class="user-left"
+              :class="{ 'user-left--link': !isOwner }"
+              @click="goToAuthorProfile"
+            >
               <view class="user-avatar">
-                <image v-if="post.avatar" :src="getAvatarUrl(post.avatar)" mode="aspectFill" />
-                <view v-else class="avatar-placeholder"></view>
+                <image :src="resolveAvatarUrl(post.avatar)" mode="aspectFill" />
               </view>
               <view class="user-info">
                 <text class="user-name">{{ post.username }}</text>
                 <text class="user-meta">{{ formatTime(post.created_at) }}</text>
               </view>
             </view>
-            <view class="header-right">
-              <view v-if="isOwnPost()" class="delete-btn" @click="handleDelete">
-                <view class="delete-icon"></view>
-              </view>
-              <view v-else class="more-icon"></view>
-            </view>
           </view>
 
           <text class="card-content">{{ post.content }}</text>
 
           <PostImageGrid :images="post.images" />
+
+          <PostProtagonistPets :pets="post.pets" />
 
           <view class="card-footer">
             <view class="footer-left">
@@ -41,15 +40,30 @@
                 </view>
                 <text class="footer-count">{{ likes }}</text>
               </view>
-              <view class="footer-item">
+              <view class="footer-item" @click="focusCommentInput">
                 <view class="footer-icon">
                   <text class="comment-icon">💬</text>
                 </view>
                 <text class="footer-count">{{ comments }}</text>
               </view>
+              <view class="footer-item" @click="handleShare">
+                <view class="footer-icon">
+                  <text class="share-icon">↗</text>
+                </view>
+                <text class="footer-count">分享</text>
+              </view>
             </view>
-            <view class="footer-item" @click="handleShare">
-              <text class="share-icon">↗</text>
+
+            <!-- 发布者：编辑 / 删除 -->
+            <view v-if="isOwner" class="footer-right">
+              <view class="manage-btn edit-btn" @click="handleEdit">
+                <view class="edit-icon"></view>
+                <text>编辑</text>
+              </view>
+              <view class="manage-btn delete-btn" @click="handleDelete">
+                <view class="delete-icon-svg"></view>
+                <text>删除</text>
+              </view>
             </view>
           </view>
         </view>
@@ -69,8 +83,7 @@
               @longpress="showCommentAction(comment)"
             >
               <view class="comment-avatar">
-                <image v-if="comment.avatar" :src="getAvatarUrl(comment.avatar)" mode="aspectFill" />
-                <view v-else class="avatar-placeholder"></view>
+                <image :src="resolveAvatarUrl(comment.avatar)" mode="aspectFill" />
               </view>
               <view class="comment-content-wrapper">
                 <view class="comment-content">
@@ -118,8 +131,7 @@
                 @longpress="showCommentAction(reply)"
               >
                 <view class="reply-avatar">
-                  <image v-if="reply.avatar" :src="getAvatarUrl(reply.avatar)" mode="aspectFill" />
-                  <view v-else class="avatar-placeholder"></view>
+                  <image :src="resolveAvatarUrl(reply.avatar)" mode="aspectFill" />
                 </view>
                 <view class="reply-content-wrapper">
                   <view class="reply-content">
@@ -204,14 +216,18 @@
     </template>
 
     <Loading :visible="submitLoading" />
+    <PostSharePanel v-model:visible="shareVisible" :post="sharePost" />
   </PageLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import PostImageGrid from "@/components/common/PostImageGrid.vue";
+import PostProtagonistPets from "@/components/common/PostProtagonistPets.vue";
+import PostSharePanel from "@/components/common/PostSharePanel.vue";
 import Loading from "@/components/common/Loading.vue";
 import {
   getPostDetail,
@@ -220,13 +236,21 @@ import {
   addComment,
   deletePost,
   deleteComment,
-  checkLiked,
   type Post,
   type Comment,
 } from "@/api/post";
 import { getUserInfo } from "@/api/auth";
+import type { PostShareInput } from "@/utils/postShare";
+import { usePostShareRegistry } from "@/composables/usePostShare";
+import { resolveAvatarUrl, resolveMediaUrl } from "@/utils/media";
+
+usePostShareRegistry();
 
 const commentBarHeight = uni.upx2px(120);
+const postId = ref(0);
+/** 是否从用户主页进入（用于点头像返回而非重复打开主页） */
+const fromUserProfile = ref(false);
+const profileUserId = ref(0);
 
 const loading = ref(false);
 const loadingComments = ref(false);
@@ -305,21 +329,20 @@ const replyingComment = ref<Comment | null>(null);
 const showInputFocus = ref(false);
 const showActionSheet = ref(false);
 const selectedComment = ref<Comment | null>(null);
+const shareVisible = ref(false);
+const sharePost = ref<PostShareInput | null>(null);
 
-const isOwnPost = () => {
-  return currentUser.value && currentUser.value.id === post.value.user_id;
-};
+/** 当前登录用户是否为该动态的发布者 */
+const isOwner = computed(
+  () => !!currentUser.value && currentUser.value.id === post.value.user_id,
+);
 
 const canDeleteComment = (comment: Comment) => {
   if (!currentUser.value) return false;
-  return currentUser.value.id === comment.user_id || isOwnPost();
+  return currentUser.value.id === comment.user_id || isOwner.value;
 };
 
-const getAvatarUrl = (avatar: string) => {
-  if (!avatar) return "";
-  if (avatar.startsWith("http")) return avatar;
-  return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
-};
+const getAvatarUrl = (avatar: string) => resolveMediaUrl(avatar);
 
 const formatTime = (timestamp: string) => {
   const date = new Date(timestamp);
@@ -339,32 +362,19 @@ const formatTime = (timestamp: string) => {
 };
 
 const loadPost = async () => {
+  if (!postId.value) return;
   loading.value = true;
   try {
-    const pages = getCurrentPages();
-    const currentPage = pages[pages.length - 1] as any;
-    const options = currentPage.options;
-    
-    if (options && options.id) {
-      const data = await getPostDetail(parseInt(options.id));
-      post.value = {
-        ...data,
-        images: typeof data.images === 'string' ? JSON.parse(data.images) : data.images
-      };
-      likes.value = data.likes;
-      comments.value = data.comments;
-      
-      if (currentUser.value) {
-        try {
-          const likedResult = await checkLiked(data.id);
-          liked.value = likedResult.liked;
-        } catch (error) {
-          console.warn("检查点赞状态失败:", error);
-        }
-      }
-      
-      await loadComments();
-    }
+    const data = await getPostDetail(postId.value);
+    post.value = {
+      ...data,
+      images: typeof data.images === 'string' ? JSON.parse(data.images) : data.images
+    };
+    likes.value = data.likes;
+    comments.value = data.comments;
+    liked.value = !!data.liked;
+
+    await loadComments();
   } catch (error) {
     console.error("获取动态详情失败:", error);
     uni.showToast({ title: "加载失败", icon: "none" });
@@ -386,6 +396,10 @@ const loadComments = async () => {
 };
 
 const handleLike = async () => {
+  if (!currentUser.value) {
+    uni.showToast({ title: "请先登录", icon: "none" });
+    return;
+  }
   uni.vibrateShort({ type: "light" });
   try {
     const res = await toggleLikePost(post.value.id);
@@ -397,12 +411,63 @@ const handleLike = async () => {
 };
 
 const handleShare = () => {
-  uni.showShareMenu({
-    withShareTicket: true,
+  uni.vibrateShort({ type: "light" });
+  sharePost.value = {
+    id: post.value.id,
+    userName: post.value.username,
+    avatar: resolveAvatarUrl(post.value.avatar),
+    time: formatTime(post.value.created_at),
+    content: post.value.content,
+    images: (post.value.images || []).map((url) => getAvatarUrl(url)),
+    likes: likes.value,
+    comments: comments.value,
+    pets: (post.value.pets || []).map((pet) => ({
+      id: pet.id,
+      name: pet.name,
+      avatar: getAvatarUrl(pet.avatar || ""),
+      type: pet.type,
+    })),
+  };
+  shareVisible.value = true;
+};
+
+const handleEdit = () => {
+  if (!isOwner.value) return;
+  uni.vibrateShort({ type: "light" });
+  uni.navigateTo({
+    url: `/pages/circle/publish?editId=${post.value.id}`,
   });
 };
 
+const goToAuthorProfile = () => {
+  if (isOwner.value || !post.value.user_id) return;
+  uni.vibrateShort({ type: "light" });
+
+  // 从该用户主页进入详情时，点头像直接返回，避免主页 ↔ 详情无限叠层
+  if (
+    fromUserProfile.value &&
+    profileUserId.value === post.value.user_id
+  ) {
+    uni.navigateBack();
+    return;
+  }
+
+  uni.navigateTo({
+    url: `/pages/mine/userProfile?id=${post.value.user_id}&name=${encodeURIComponent(post.value.username)}`,
+  });
+};
+
+const focusCommentInput = () => {
+  if (!currentUser.value) {
+    uni.showToast({ title: "请先登录", icon: "none" });
+    return;
+  }
+  cancelReply();
+  showInputFocus.value = true;
+};
+
 const handleDelete = async () => {
+  if (!isOwner.value) return;
   uni.showModal({
     title: "确认删除",
     content: "确定要删除这条动态吗？",
@@ -410,6 +475,7 @@ const handleDelete = async () => {
       if (res.confirm) {
         try {
           await deletePost(post.value.id);
+          uni.$emit("refreshPostList");
           uni.showToast({ title: "删除成功", icon: "success" });
           setTimeout(() => {
             uni.navigateBack();
@@ -496,8 +562,13 @@ const previewImage = (item: any, index: number) => {
   });
 };
 
-onMounted(() => {
-  loadPost();
+onLoad((options) => {
+  fromUserProfile.value = options?.fromUserProfile === "1";
+  profileUserId.value = Number(options?.profileUserId || 0);
+  if (options?.id) {
+    postId.value = parseInt(String(options.id), 10);
+    loadPost();
+  }
 });
 </script>
 
@@ -546,6 +617,12 @@ onMounted(() => {
   display: flex;
   gap: 24rpx;
   align-items: center;
+  flex: 1;
+  min-width: 0;
+
+  &--link:active {
+    opacity: 0.85;
+  }
 }
 
 .user-avatar {
@@ -577,45 +654,6 @@ onMounted(() => {
 .user-meta {
   font-size: 24rpx;
   color: #9B9090;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.more-icon {
-  width: 40rpx;
-  height: 40rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28rpx;
-  color: #7A6E6E;
-}
-
-.delete-btn {
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff0f0;
-  border-radius: 50%;
-  
-  &:active {
-    background: #ffe0e0;
-  }
-}
-
-.delete-icon {
-  width: 32rpx;
-  height: 32rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28rpx;
-  color: #E53935;
 }
 
 .card-content {
@@ -698,6 +736,45 @@ onMounted(() => {
 .share-icon {
   font-size: 32rpx;
   color: #C4B5B5;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  flex-shrink: 0;
+}
+
+.manage-btn {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+
+  &.edit-btn {
+    color: #b0a6a6;
+  }
+
+  &.delete-btn {
+    color: #e07a7a;
+  }
+}
+
+.edit-icon {
+  width: 28rpx;
+  height: 28rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B0A6A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.delete-icon-svg {
+  width: 28rpx;
+  height: 28rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E07A7A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6'/%3E%3Cpath d='M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
 }
 
 .comment-section {

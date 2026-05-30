@@ -20,3 +20,12 @@ export function resolveMediaUrl(url?: string | null): string {
   const origin = getApiOrigin();
   return url.startsWith("/") ? `${origin}${url}` : `${origin}/${url}`;
 }
+
+/** 与用户主页一致的用户头像默认图 */
+export const DEFAULT_USER_AVATAR = "/static/images/avatar-default.png";
+
+/** 解析用户头像 URL，空值时使用默认头像 */
+export function resolveAvatarUrl(url?: string | null): string {
+  if (!url) return DEFAULT_USER_AVATAR;
+  return resolveMediaUrl(url) || DEFAULT_USER_AVATAR;
+}

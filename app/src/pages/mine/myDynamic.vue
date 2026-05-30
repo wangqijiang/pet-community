@@ -1,6 +1,6 @@
 <template>
   <view class="page-container">
-    <TopNavBar title="我的动态" showBack @rightClick="handleMore" />
+    <TopNavBar title="我的动态" showBack />
 
     <scroll-view
       class="page-content"
@@ -26,7 +26,12 @@
       </view>
 
       <view class="feed-list">
-        <view v-for="item in dynamicList" :key="item.id" class="post-card">
+        <view
+          v-for="item in dynamicList"
+          :key="item.id"
+          class="post-card"
+          @click="goToDetail(item)"
+        >
           <view class="post-header">
             <view class="user">
               <image class="avatar" :src="item.avatar" mode="aspectFill" />
@@ -35,12 +40,9 @@
                 <text class="time">{{ item.time }}</text>
               </view>
             </view>
-            <view class="more-btn" @click.stop="showMoreActions(item)">
-              <view class="more-icon"></view>
-            </view>
           </view>
 
-          <text class="post-content">{{ item.content }}</text>
+          <text class="post-content" @click.stop="goToDetail(item)">{{ item.content }}</text>
 
           <view
             class="image-grid"
@@ -57,6 +59,8 @@
             />
           </view>
 
+          <PostProtagonistPets :pets="item.pets" />
+
           <view class="post-footer">
             <view class="left-actions">
               <view class="action" @click.stop="handleLike(item)">
@@ -65,16 +69,28 @@
                 </view>
                 <text class="action-count">{{ item.likes }}</text>
               </view>
-              <view class="action">
+              <view class="action" @click.stop="goToDetail(item)">
                 <view class="action-icon">
                   <view class="icon-comment"></view>
                 </view>
                 <text class="action-count">{{ item.comments }}</text>
               </view>
+              <view class="action" @click.stop="handleShare(item)">
+                <view class="action-icon">
+                  <view class="icon-share"></view>
+                </view>
+                <text class="action-count">分享</text>
+              </view>
             </view>
-            <view class="edit-btn" @click.stop="handleEdit(item)">
-              <view class="edit-icon"></view>
-              <text class="edit-text">编辑</text>
+            <view class="right-actions">
+              <view class="edit-btn" @click.stop="handleEdit(item)">
+                <view class="edit-icon"></view>
+                <text class="edit-text">编辑</text>
+              </view>
+              <view class="delete-btn" @click.stop="handleDelete(item)">
+                <view class="delete-icon"></view>
+                <text class="delete-text">删除</text>
+              </view>
             </view>
           </view>
         </view>
@@ -96,34 +112,63 @@
     <view class="fab" @click="goToPublish">
       <view class="fab-icon"></view>
     </view>
+
+    <PostSharePanel v-model:visible="shareVisible" :post="sharePost" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { onShow } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
+import PostSharePanel from "@/components/common/PostSharePanel.vue";
+import PostProtagonistPets from "@/components/common/PostProtagonistPets.vue";
 import { getPostList, deletePost, toggleLikePost } from "@/api/post";
 import { getUserInfo as getStoredUser } from "@/api/auth";
 import { formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
+import type { PostShareInput } from "@/utils/postShare";
+import { usePostShareRegistry } from "@/composables/usePostShare";
+
+usePostShareRegistry();
+
+import type { Post } from "@/api/post";
+
+type SharePet = {
+  id: number;
+  name: string;
+  avatar: string;
+  type?: string;
+};
+
+type DynamicItem = {
+  id: number;
+  userName: string;
+  avatar: string;
+  time: string;
+  content: string;
+  images: Array<{ url: string }>;
+  likes: number;
+  comments: number;
+  liked: boolean;
+  pets: SharePet[];
+};
+
+const mapPostPets = (pets?: Post["pets"]): SharePet[] =>
+  (pets || []).map((pet) => ({
+    id: pet.id,
+    name: pet.name,
+    avatar: resolveMediaUrl(pet.avatar || ""),
+    type: pet.type,
+  }));
 
 const loading = ref(false);
 const isRefreshing = ref(false);
 const myUserId = ref(0);
 
-const dynamicList = ref<
-  Array<{
-    id: number;
-    userName: string;
-    avatar: string;
-    time: string;
-    content: string;
-    images: Array<{ url: string }>;
-    likes: number;
-    comments: number;
-    liked: boolean;
-  }>
->([]);
+const dynamicList = ref<DynamicItem[]>([]);
+const shareVisible = ref(false);
+const sharePost = ref<PostShareInput | null>(null);
 
 const totalLikes = computed(() => {
   return dynamicList.value.reduce((sum, item) => sum + item.likes, 0);
@@ -145,9 +190,10 @@ const loadDynamics = async () => {
       time: formatRelativeTime(p.created_at),
       content: p.content,
       images: (p.images || []).map((url) => ({ url: resolveMediaUrl(url) })),
-      likes: p.likes || 0,
-      comments: p.comments || 0,
-      liked: false,
+      likes: p.likes_count ?? p.likes ?? 0,
+      comments: p.comments_count ?? p.comments ?? 0,
+      liked: !!p.liked,
+      pets: mapPostPets(p.pets),
     }));
   } catch {
     uni.showToast({ title: "加载失败", icon: "none" });
@@ -168,27 +214,48 @@ onMounted(() => {
   const u = getStoredUser();
   if (u) {
     myUserId.value = u.id;
+  }
+  uni.$on("refreshPostList", loadDynamics);
+});
+
+onShow(() => {
+  if (myUserId.value) {
     loadDynamics();
+  } else {
+    const u = getStoredUser();
+    if (u) {
+      myUserId.value = u.id;
+      loadDynamics();
+    }
   }
 });
 
-const showMoreActions = (item: any) => {
+onUnmounted(() => {
+  uni.$off("refreshPostList", loadDynamics);
+});
+
+const goToDetail = (item: DynamicItem) => {
   uni.vibrateShort({ type: "light" });
-  uni.showActionSheet({
-    itemList: ["编辑动态", "删除动态", "分享动态"],
-    success: (res) => {
-      if (res.tapIndex === 0) {
-        handleEdit(item);
-      } else if (res.tapIndex === 1) {
-        handleDelete(item);
-      } else if (res.tapIndex === 2) {
-        handleShare(item);
-      }
-    },
-  });
+  uni.navigateTo({ url: `/pages/circle/detail?id=${item.id}` });
 };
 
-const handleLike = async (item: any) => {
+const handleShare = (item: DynamicItem) => {
+  uni.vibrateShort({ type: "light" });
+  sharePost.value = {
+    id: item.id,
+    userName: item.userName,
+    avatar: item.avatar,
+    time: item.time,
+    content: item.content,
+    images: item.images.map((img) => img.url),
+    likes: item.likes,
+    comments: item.comments,
+    pets: item.pets,
+  };
+  shareVisible.value = true;
+};
+
+const handleLike = async (item: DynamicItem) => {
   uni.vibrateShort({ type: "light" });
   try {
     const res = await toggleLikePost(item.id);
@@ -199,7 +266,7 @@ const handleLike = async (item: any) => {
   }
 };
 
-const handleEdit = (item: any) => {
+const handleEdit = (item: DynamicItem) => {
   uni.vibrateShort({ type: "light" });
   uni.navigateTo({
     url: `/pages/circle/publish?editId=${item.id}`,
@@ -217,6 +284,7 @@ const handleDelete = (item: { id: number }) => {
       try {
         await deletePost(item.id);
         dynamicList.value = dynamicList.value.filter((d) => d.id !== item.id);
+        uni.$emit("refreshPostList");
         uni.showToast({ title: "删除成功", icon: "success" });
       } catch {
         uni.showToast({ title: "删除失败", icon: "none" });
@@ -225,15 +293,8 @@ const handleDelete = (item: { id: number }) => {
   });
 };
 
-const handleShare = (item: any) => {
-  uni.vibrateShort({ type: "light" });
-  uni.showShareMenu({
-    withShareTicket: true,
-  });
-};
-
-const previewImage = (item: any, index: number) => {
-  const imageUrls = item.images.map((img: any) => img.url);
+const previewImage = (item: DynamicItem, index: number) => {
+  const imageUrls = item.images.map((img) => img.url);
   uni.previewImage({
     urls: imageUrls,
     current: index,
@@ -244,10 +305,6 @@ const goToPublish = () => {
   uni.navigateTo({
     url: "/pages/circle/publish",
   });
-};
-
-const handleMore = () => {
-  uni.vibrateShort({ type: "light" });
 };
 </script>
 
@@ -349,23 +406,6 @@ const handleMore = () => {
   color: #b0a6a6;
 }
 
-.more-btn {
-  width: 80rpx;
-  height: 80rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #b0a6a6;
-}
-
-.more-icon {
-  width: 40rpx;
-  height: 40rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B0A6A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='1'/%3E%3Ccircle cx='12' cy='5' r='1'/%3E%3Ccircle cx='12' cy='19' r='1'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-}
-
 .post-content {
   margin-top: 36rpx;
   font-size: 34rpx;
@@ -452,19 +492,49 @@ const handleMore = () => {
   background-size: 100%;
 }
 
+.icon-share {
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6E6E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8'/%3E%3Cpolyline points='16 6 12 2 8 6'/%3E%3Cline x1='12' y1='2' x2='12' y2='15'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
 .action-count {
   font-size: 30rpx;
   font-weight: 700;
   color: #7a6e6e;
 }
 
-.edit-btn {
+.right-actions {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  color: #b0a6a6;
-  font-size: 30rpx;
+  gap: 28rpx;
+}
+
+.edit-btn,
+.delete-btn {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 28rpx;
   font-weight: 700;
+}
+
+.edit-btn {
+  color: #b0a6a6;
+}
+
+.delete-btn {
+  color: #e07a7a;
+}
+
+.delete-icon {
+  width: 36rpx;
+  height: 36rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E07A7A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6'/%3E%3Cpath d='M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2'/%3E%3Cline x1='10' y1='11' x2='10' y2='17'/%3E%3Cline x1='14' y1='11' x2='14' y2='17'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
 }
 
 .edit-icon {
