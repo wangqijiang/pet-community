@@ -106,6 +106,7 @@
         <view v-if="dynamicList.length > 0" class="bottom-hint">
           <text class="hint-text">已经到底啦～</text>
         </view>
+      </view>
     </view>
 
     <template #fixed>

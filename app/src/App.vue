@@ -5,6 +5,7 @@ import {
   PENDING_SHARE_ROUTE_KEY,
   resolveSharedPostRoute,
 } from "@/utils/postShare";
+import { connectRealtime, disconnectRealtime } from "@/utils/realtime";
 
 onLaunch((options) => {
   const sharedRoute = resolveSharedPostRoute(
@@ -23,13 +24,15 @@ onLaunch((options) => {
   const route = pages.length ? (pages[0] as { route?: string }).route : "";
   if (!isLoggedIn() && route && !route.includes("login")) {
     uni.reLaunch({ url: "/pages/login/index" });
+    return;
   }
+  if (isLoggedIn()) connectRealtime();
 });
 onShow(() => {
-  console.log("App Show");
+  if (isLoggedIn()) connectRealtime();
 });
 onHide(() => {
-  console.log("App Hide");
+  disconnectRealtime();
 });
 </script>
 <style lang="scss">

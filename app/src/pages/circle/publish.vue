@@ -86,13 +86,13 @@
         </view>
         <view class="category-list">
           <view
-            v-for="(cat, index) in categories"
-            :key="index"
+            v-for="cat in categories"
+            :key="cat.key"
             class="category-item"
-            :class="{ active: selectedCategory === index }"
-            @click="selectedCategory = selectedCategory === index ? -1 : index"
+            :class="{ active: selectedCategory === cat.key }"
+            @click="toggleCategory(cat.key)"
           >
-            {{ cat }}
+            {{ cat.label }}
           </view>
         </view>
       </view>
@@ -117,7 +117,7 @@ import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
-import { createPost, updatePost, getPostDetail } from "@/api/post";
+import { createPost, updatePost, getPostDetail, getPostCategories, type PostCategory } from "@/api/post";
 import { getPetList, type Pet } from "@/api/pet";
 import { resolveMediaUrl } from "@/utils/media";
 import { useFixedFooterHeight } from "@/composables/useLayout";
@@ -128,22 +128,21 @@ const { footerHeight } = useFixedFooterHeight("#publish-action-bar", 24 + 96 + 2
 
 const content = ref("");
 const images = ref<string[]>([]);
-const selectedCategory = ref(-1);
+const selectedCategory = ref<string | null>(null);
 const loading = ref(false);
 const editId = ref<number | null>(null);
 const pets = ref<Pet[]>([]);
 const selectedPetIds = ref<number[]>([]);
+const categories = ref<PostCategory[]>([]);
 
 const navTitle = computed(() => (editId.value ? "编辑动态" : "发布萌宠日常"));
-
-const categories = ["修勾日常", "技能秀场", "寻宠启事", "遛狗搭子", "养宠种草"];
 
 const canPublish = computed(() => {
   return content.value.trim().length > 0 || images.value.length > 0;
 });
 
 onLoad(async (options) => {
-  await loadPets();
+  await Promise.all([loadPets(), loadCategories()]);
   if (options?.editId) {
     editId.value = Number(options.editId);
     await loadPostForEdit();
@@ -151,6 +150,18 @@ onLoad(async (options) => {
     applyDefaultPetSelection();
   }
 });
+
+const loadCategories = async () => {
+  try {
+    categories.value = await getPostCategories();
+  } catch {
+    uni.showToast({ title: "加载分类失败", icon: "none" });
+  }
+};
+
+const toggleCategory = (key: string) => {
+  selectedCategory.value = selectedCategory.value === key ? null : key;
+};
 
 const loadPets = async () => {
   try {
@@ -231,6 +242,7 @@ const loadPostForEdit = async () => {
     if (!selectedPetIds.value.length && post.pet_ids?.length) {
       selectedPetIds.value = [...post.pet_ids];
     }
+    selectedCategory.value = post.category || null;
   } catch {
     uni.showToast({ title: "加载动态失败", icon: "none" });
     setTimeout(() => uni.navigateBack(), 1500);
@@ -281,13 +293,19 @@ const handlePublish = async () => {
         content.value,
         images.value,
         selectedPetIds.value,
+        selectedCategory.value || undefined,
       );
       uni.showToast({
         title: "保存成功",
         icon: "success",
       });
     } else {
-      await createPost(content.value, images.value, selectedPetIds.value);
+      await createPost(
+        content.value,
+        images.value,
+        selectedPetIds.value,
+        selectedCategory.value || undefined,
+      );
       saveLastSelectedPets();
       uni.showToast({
         title: "发布成功",

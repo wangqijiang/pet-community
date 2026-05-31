@@ -16,6 +16,7 @@ export interface Post {
   avatar: string;
   content: string;
   images: string[] | string;
+  category?: string | null;
   likes_count?: number;
   comments_count?: number;
   likes?: number;
@@ -24,6 +25,11 @@ export interface Post {
   liked?: boolean;
   pet_ids?: number[];
   pets?: PostPet[];
+}
+
+export interface PostCategory {
+  key: string;
+  label: string;
 }
 
 export interface Comment {
@@ -61,17 +67,24 @@ function normalizePost(post: Post): Post {
   };
 }
 
+export async function getPostCategories(): Promise<PostCategory[]> {
+  const res = await get<PostCategory[]>("/post/categories");
+  return res.data || [];
+}
+
 export async function getPostList(
   page = 1,
   size = 10,
   userId?: number,
   keyword?: string,
+  category?: string,
 ): Promise<PostListResponse> {
   const res = await get<PostListResponse>("/post", {
     page,
     size,
     user_id: userId,
     keyword,
+    category,
   });
   return {
     list: (res.data?.list || []).map(normalizePost),
@@ -93,8 +106,14 @@ export async function createPost(
   content: string,
   images: string[] = [],
   petIds: number[] = [],
+  category?: string,
 ): Promise<Post> {
-  const res = await post<Post>("/post", { content, images, pet_ids: petIds });
+  const res = await post<Post>("/post", {
+    content,
+    images,
+    pet_ids: petIds,
+    category,
+  });
   return normalizePost(res.data);
 }
 
@@ -103,10 +122,14 @@ export async function updatePost(
   content: string,
   images: string[] = [],
   petIds?: number[],
+  category?: string,
 ): Promise<Post> {
   const payload: Record<string, unknown> = { content, images };
   if (petIds !== undefined) {
     payload.pet_ids = petIds;
+  }
+  if (category !== undefined) {
+    payload.category = category;
   }
   const res = await put<Post>(`/post/${id}`, payload);
   return normalizePost(res.data);

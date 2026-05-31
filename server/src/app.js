@@ -1,8 +1,10 @@
 require('dotenv').config()
 
 const express = require('express')
+const http = require('http')
 const cors = require('cors')
 const path = require('path')
+const { initWebSocket } = require('./ws')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -92,12 +94,16 @@ app.use((err, req, res, next) => {
 })
 
 // 启动服务
-app.listen(PORT, () => {
+const server = http.createServer(app)
+initWebSocket(server)
+
+server.listen(PORT, () => {
   console.log(`
 ╔════════════════════════════════════════════════╗
 ║     WaggleWorld 宠物社交小程序 - 后端服务      ║
 ╠════════════════════════════════════════════════╣
 ║  Server running on: http://localhost:${PORT}     ║
+║  WebSocket:         ws://localhost:${PORT}/ws    ║
 ║  API docs:          http://localhost:${PORT}/api ║
 ╚════════════════════════════════════════════════╝
   `)

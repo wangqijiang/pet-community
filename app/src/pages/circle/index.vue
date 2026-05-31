@@ -22,10 +22,10 @@
           <view class="tab-list">
             <view
               v-for="(tab, index) in tabs"
-              :key="index"
+              :key="tab.key"
               class="tab-item"
               :class="{ active: currentTab === index }"
-              @click="currentTab = index"
+              @click="switchTab(index)"
             >
               {{ tab.label }}
             </view>
@@ -126,9 +126,11 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { getLayoutMetrics } from "@/composables/useLayout";
 import {
   getPostList,
+  getPostCategories,
   toggleLikePost,
   deletePost,
   type Post,
+  type PostCategory,
 } from "@/api/post";
 import { getUserInfo } from "@/api/auth";
 import { resolveMediaUrl } from "@/utils/media";
@@ -150,14 +152,12 @@ const size = ref(10);
 const hasMore = ref(true);
 const currentUser = ref(getUserInfo());
 
-const tabs = [
-  { label: "全部动态", key: "all" },
-  { label: "修勾日常", key: "daily" },
-  { label: "技能秀场", key: "skill" },
-  { label: "寻宠启事", key: "lost" },
-  { label: "遛狗搭子", key: "walk" },
-  { label: "养宠种草", key: "share" },
-];
+const ALL_TAB: PostCategory = { key: "all", label: "全部动态" };
+const categories = ref<PostCategory[]>([]);
+const tabs = computed(() => [ALL_TAB, ...categories.value]);
+const activeCategoryKey = computed(
+  () => tabs.value[currentTab.value]?.key || "all",
+);
 
 const filteredList = computed(() => feedList.value);
 
@@ -181,11 +181,29 @@ const goToDetail = (item: Post) => {
   uni.navigateTo({ url: `/pages/circle/detail?id=${item.id}` });
 };
 
+const loadCategories = async () => {
+  try {
+    categories.value = await getPostCategories();
+  } catch {
+    uni.showToast({ title: "加载分类失败", icon: "none" });
+  }
+};
+
+const switchTab = (index: number) => {
+  if (currentTab.value === index) return;
+  currentTab.value = index;
+  page.value = 1;
+  hasMore.value = true;
+  loadPosts(1, true);
+};
+
 const loadPosts = async (pageNum: number, isRefresh = false) => {
   if (loading.value) return;
   loading.value = true;
   try {
-    const response = await getPostList(pageNum, size.value);
+    const category =
+      activeCategoryKey.value === "all" ? undefined : activeCategoryKey.value;
+    const response = await getPostList(pageNum, size.value, undefined, undefined, category);
     const list = response.list.map((post) => ({
       ...post,
       images: (
@@ -248,6 +266,7 @@ const handleDelete = async (item: Post) => {
 };
 
 onMounted(() => {
+  loadCategories();
   loadPosts(1, true);
   uni.$on("refreshPostList", () => onRefresh());
 });

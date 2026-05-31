@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
@@ -93,8 +93,9 @@ import { getNotifications } from "@/api/notification";
 import { getConversations } from "@/api/message";
 import { formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
+import { ensureRealtimeConnected, getActiveChatUserId } from "@/utils/realtime";
 import type { Notification } from "@/api/notification";
-import type { Conversation } from "@/api/message";
+import type { Conversation, ChatMessage } from "@/api/message";
 
 const tabsHeight = uni.upx2px(120);
 const currentTab = ref(0);
@@ -128,18 +129,70 @@ const notifTypeIcon: Record<string, string> = {
   message: "message",
 };
 
+const mapNotification = (n: Notification) => ({
+  id: n.id,
+  type: notifTypeIcon[n.type] || "badge",
+  title: n.title,
+  desc: n.content || "",
+  time: formatRelativeTime(n.created_at),
+  unread: !n.is_read,
+});
+
+const refreshSystemBadge = () => {
+  systemBadge.value = systemMessages.value.filter((m) => m.unread).length;
+};
+
+const upsertChatFromMessage = (msg: ChatMessage) => {
+  const stored = uni.getStorageSync("user");
+  const me = stored ? JSON.parse(stored).id : 0;
+  if (!me) return;
+
+  const otherId = msg.from_id === me ? msg.to_id : msg.from_id;
+  const otherName =
+    msg.from_id === me ? msg.to_username || "用户" : msg.from_username || "用户";
+  const otherAvatar =
+    msg.from_id === me ? msg.to_avatar || "" : msg.from_avatar || "";
+  const incoming = msg.to_id === me;
+  const inActiveChat = getActiveChatUserId() === otherId;
+
+  const idx = chatList.value.findIndex((c) => c.id === otherId);
+  const item = {
+    id: otherId,
+    name: idx >= 0 ? chatList.value[idx].name : otherName,
+    avatar: resolveMediaUrl(
+      idx >= 0 && chatList.value[idx].avatar
+        ? chatList.value[idx].avatar
+        : otherAvatar,
+    ),
+    lastMessage: msg.content,
+    time: formatRelativeTime(msg.created_at),
+    unreadCount:
+      idx >= 0
+        ? chatList.value[idx].unreadCount + (incoming && !inActiveChat ? 1 : 0)
+        : incoming && !inActiveChat
+          ? 1
+          : 0,
+  };
+
+  if (idx >= 0) {
+    chatList.value.splice(idx, 1);
+  }
+  chatList.value.unshift(item);
+};
+
+const prependNotification = (n: Notification) => {
+  const mapped = mapNotification(n);
+  const idx = systemMessages.value.findIndex((item) => item.id === mapped.id);
+  if (idx >= 0) systemMessages.value.splice(idx, 1);
+  systemMessages.value.unshift(mapped);
+  refreshSystemBadge();
+};
+
 const loadData = async () => {
   try {
     const notifRes = await getNotifications(1, 50);
-    systemMessages.value = notifRes.list.map((n: Notification) => ({
-      id: n.id,
-      type: notifTypeIcon[n.type] || "badge",
-      title: n.title,
-      desc: n.content || "",
-      time: formatRelativeTime(n.created_at),
-      unread: !n.is_read,
-    }));
-    systemBadge.value = systemMessages.value.filter((m) => m.unread).length;
+    systemMessages.value = notifRes.list.map(mapNotification);
+    refreshSystemBadge();
 
     const chats = await getConversations();
     chatList.value = chats.map((c: Conversation) => ({
@@ -167,8 +220,22 @@ const goToChat = (item: { id: number; name: string }) => {
   });
 };
 
-onMounted(loadData);
-onShow(loadData);
+onMounted(() => {
+  ensureRealtimeConnected();
+  loadData();
+  uni.$on("realtime:message", upsertChatFromMessage);
+  uni.$on("realtime:notification", prependNotification);
+});
+
+onUnmounted(() => {
+  uni.$off("realtime:message", upsertChatFromMessage);
+  uni.$off("realtime:notification", prependNotification);
+});
+
+onShow(() => {
+  ensureRealtimeConnected();
+  loadData();
+});
 </script>
 
 <style lang="scss" scoped>

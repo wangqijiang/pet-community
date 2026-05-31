@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { query } = require('../config/db')
+const { pushNotificationById } = require('../utils/realtime')
 const { auth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
 const { upload, toPublicUrl } = require('../utils/upload')
@@ -164,10 +165,11 @@ router.post('/follow', auth, async (req, res) => {
     await query('UPDATE users SET followers_count = followers_count + 1 WHERE id = ?', [followId])
 
     // 创建通知
-    await query(
+    const notifResult = await query(
       'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [followId, req.user.id, 'follow', '关注通知', '关注了你', req.user.id, 'user']
     )
+    await pushNotificationById(notifResult.insertId)
 
     res.json(success(null, '关注成功'))
   } catch (err) {

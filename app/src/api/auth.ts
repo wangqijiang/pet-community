@@ -1,13 +1,15 @@
 import { post } from '../utils/request'
+import { disconnectRealtime } from '@/utils/realtime'
+import {
+  getToken,
+  isLoggedIn,
+  setStoredUser,
+  getStoredUser,
+  clearSession,
+  type StoredUserInfo,
+} from '@/utils/session'
 
-export interface UserInfo {
-  id: number
-  username: string
-  phone: string
-  avatar?: string
-  signature?: string
-  created_at?: string
-}
+export type UserInfo = StoredUserInfo
 
 export interface LoginResponse {
   user: UserInfo
@@ -40,25 +42,17 @@ export async function logout(): Promise<void> {
   } catch (error) {
     console.error('退出登录失败:', error)
   } finally {
-    uni.removeStorageSync('token')
-    uni.removeStorageSync('user')
+    disconnectRealtime()
+    clearSession()
   }
 }
 
 export function setUserInfo(user: UserInfo, token: string): void {
-  uni.setStorageSync('token', token)
-  uni.setStorageSync('user', JSON.stringify(user))
+  setStoredUser(user, token)
 }
 
 export function getUserInfo(): UserInfo | null {
-  const userStr = uni.getStorageSync('user')
-  return userStr ? JSON.parse(userStr) : null
+  return getStoredUser()
 }
 
-export function getToken(): string | null {
-  return uni.getStorageSync('token') || null
-}
-
-export function isLoggedIn(): boolean {
-  return !!uni.getStorageSync('token')
-}
+export { getToken, isLoggedIn }

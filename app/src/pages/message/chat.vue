@@ -7,16 +7,19 @@
     <template #navbar>
       <TopNavBar :title="friendName" :showBack="true" />
     </template>
-
     <view
-      v-for="(msg, index) in messages"
-      :key="index"
-      :id="'msg-' + index"
+      v-for="msg in messages"
+      :key="msg.id"
+      :id="'msg-' + msg.id"
       class="message"
       :class="{ right: msg.isMe }"
     >
       <view class="message-wrap">
-        <image class="avatar" :src="msg.isMe ? myAvatar : msg.avatar" mode="aspectFill" />
+        <image
+          class="avatar"
+          :src="msg.isMe ? myAvatar : msg.avatar"
+          mode="aspectFill"
+        />
         <view class="bubble-group">
           <view class="bubble">{{ msg.content }}</view>
           <text class="time">{{ msg.time }}</text>
@@ -38,7 +41,11 @@
           placeholder="输入消息..."
           @confirm="sendMessage"
         />
-        <view class="send-btn" :class="{ active: inputText.trim() }" @click="sendMessage">
+        <view
+          class="send-btn"
+          :class="{ active: inputText.trim() }"
+          @click="sendMessage"
+        >
           <text class="send-text">发送</text>
         </view>
       </view>
@@ -47,16 +54,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
-import { getChatMessages, sendMessage as sendMsgApi } from "@/api/message";
+import {
+  getChatMessages,
+  sendMessage as sendMsgApi,
+  type ChatMessage,
+} from "@/api/message";
 import { getUserInfo as getStoredUser } from "@/api/auth";
 import { getUserInfo } from "@/api/user";
 import { formatTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 import { useFixedFooterHeight } from "@/composables/useLayout";
+import { ensureRealtimeConnected, setActiveChatUserId } from "@/utils/realtime";
 
 const { footerHeight } = useFixedFooterHeight("#chat-input-bar", 24 + 88 + 24);
 
@@ -67,32 +79,53 @@ const scrollToId = ref("");
 const myAvatar = ref("");
 const myUserId = ref(0);
 
-const messages = ref<
-  Array<{
-    id: number;
-    content: string;
-    time: string;
-    isMe: boolean;
-    avatar: string;
-  }>
->([]);
+interface UiMessage {
+  id: number;
+  content: string;
+  time: string;
+  isMe: boolean;
+  avatar: string;
+}
+
+const messages = ref<UiMessage[]>([]);
+
+const scrollToBottom = () => {
+  setTimeout(() => {
+    const last = messages.value[messages.value.length - 1];
+    if (last) scrollToId.value = `msg-${last.id}`;
+  }, 100);
+};
+
+const mapMessage = (m: ChatMessage): UiMessage => ({
+  id: m.id,
+  content: m.content,
+  time: formatTime(m.created_at),
+  isMe: m.from_id === myUserId.value,
+  avatar: resolveMediaUrl(
+    m.from_id === myUserId.value ? myAvatar.value : m.from_avatar,
+  ),
+});
+
+const appendMessage = (m: ChatMessage) => {
+  if (messages.value.some((item) => item.id === m.id)) return;
+  if (
+    m.from_id !== peerUserId.value &&
+    m.to_id !== peerUserId.value &&
+    m.from_id !== myUserId.value &&
+    m.to_id !== myUserId.value
+  ) {
+    return;
+  }
+  messages.value.push(mapMessage(m));
+  scrollToBottom();
+};
 
 const loadMessages = async () => {
   if (!peerUserId.value) return;
   try {
     const list = await getChatMessages(peerUserId.value, 1, 100);
-    messages.value = list.map((m) => ({
-      id: m.id,
-      content: m.content,
-      time: formatTime(m.created_at),
-      isMe: m.from_id === myUserId.value,
-      avatar: resolveMediaUrl(
-        m.from_id === myUserId.value ? myAvatar.value : m.from_avatar,
-      ),
-    }));
-    setTimeout(() => {
-      scrollToId.value = "msg-" + Math.max(0, messages.value.length - 1);
-    }, 100);
+    messages.value = list.map(mapMessage);
+    scrollToBottom();
   } catch {
     uni.showToast({ title: "加载失败", icon: "none" });
   }
@@ -102,25 +135,27 @@ const sendMessage = async () => {
   const text = inputText.value.trim();
   if (!text || !peerUserId.value) return;
   try {
-    await sendMsgApi(peerUserId.value, text);
+    const sent = await sendMsgApi(peerUserId.value, text);
     inputText.value = "";
-    await loadMessages();
+    appendMessage(sent);
   } catch {
     uni.showToast({ title: "发送失败", icon: "none" });
   }
 };
 
+const onRealtimeMessage = (raw: ChatMessage) => {
+  appendMessage(raw);
+};
+
 watch(
   () => messages.value.length,
-  () => {
-    setTimeout(() => {
-      scrollToId.value = "msg-" + Math.max(0, messages.value.length - 1);
-    }, 100);
-  },
+  () => scrollToBottom(),
 );
 
 onLoad(async (options) => {
+  ensureRealtimeConnected();
   peerUserId.value = Number(options?.userId || 0);
+  setActiveChatUserId(peerUserId.value);
   friendName.value = decodeURIComponent(options?.name || "聊天");
   const stored = getStoredUser();
   if (stored) {
@@ -138,8 +173,12 @@ onLoad(async (options) => {
 });
 
 onMounted(() => {
-  if (messages.value.length)
-    scrollToId.value = "msg-" + (messages.value.length - 1);
+  uni.$on("realtime:message", onRealtimeMessage);
+});
+
+onUnmounted(() => {
+  setActiveChatUserId(0);
+  uni.$off("realtime:message", onRealtimeMessage);
 });
 </script>
 

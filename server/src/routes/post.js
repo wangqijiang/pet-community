@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { query } = require('../config/db')
+const { pushNotificationById } = require('../utils/realtime')
 const { auth, optionalAuth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
 
@@ -70,6 +71,15 @@ async function attachLikedStatus(posts, userId) {
   return posts
 }
 
+async function isValidCategoryKey(category) {
+  if (!category) return true
+  const rows = await query(
+    'SELECT `key` FROM post_categories WHERE status = 1 AND `key` = ?',
+    [category]
+  )
+  return rows.length > 0
+}
+
 async function setPostPets(postId, userId, petIds) {
   await query('DELETE FROM post_pets WHERE post_id = ?', [postId])
 
@@ -96,16 +106,20 @@ async function setPostPets(postId, userId, petIds) {
  * 创建动态
  */
 router.post('/', auth, async (req, res) => {
-  const { content, images, pet_ids: petIds } = req.body
+  const { content, images, pet_ids: petIds, category } = req.body
 
   if (!content) {
     return res.status(400).json(error('请填写内容', 400))
   }
 
+  if (category && !(await isValidCategoryKey(category))) {
+    return res.status(400).json(error('无效的分类', 400))
+  }
+
   try {
     const result = await query(
-      'INSERT INTO posts (user_id, content, images, created_at) VALUES (?, ?, ?, NOW())',
-      [req.user.id, content, JSON.stringify(images || [])]
+      'INSERT INTO posts (user_id, content, images, category, created_at) VALUES (?, ?, ?, ?, NOW())',
+      [req.user.id, content, JSON.stringify(images || []), category || null]
     )
 
     await setPostPets(result.insertId, req.user.id, petIds)
@@ -131,7 +145,7 @@ router.post('/', auth, async (req, res) => {
  * 获取动态列表
  */
 router.get('/', optionalAuth, async (req, res) => {
-  const { page = 1, size = 10, user_id, keyword } = req.query
+  const { page = 1, size = 10, user_id, keyword, category } = req.query
   const pageNum = parseInt(page)
   const sizeNum = parseInt(size)
   const offset = (pageNum - 1) * sizeNum
@@ -155,6 +169,11 @@ router.get('/', optionalAuth, async (req, res) => {
     if (keyword) {
       sql += ' AND p.content LIKE ?'
       params.push(`%${keyword}%`)
+    }
+
+    if (category && category !== 'all') {
+      sql += ' AND p.category = ?'
+      params.push(category)
     }
 
     sql += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?'
@@ -182,11 +201,30 @@ router.get('/', optionalAuth, async (req, res) => {
       countSql += ' AND content LIKE ?'
       countParams.push(`%${keyword}%`)
     }
+    if (category && category !== 'all') {
+      countSql += ' AND category = ?'
+      countParams.push(category)
+    }
     const total = await query(countSql, countParams)
 
     res.json(pagination(posts, total[0].count, pageNum, sizeNum))
   } catch (err) {
     console.error('获取动态列表失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+/**
+ * 获取动态分类列表
+ */
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await query(
+      'SELECT `key`, label FROM post_categories WHERE status = 1 ORDER BY sort_order ASC, id ASC'
+    )
+    res.json(success(categories, '获取成功'))
+  } catch (err) {
+    console.error('获取动态分类失败:', err)
     res.status(500).json(error('获取失败', 500))
   }
 })
@@ -248,7 +286,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
  */
 router.put('/:id', auth, async (req, res) => {
   const { id } = req.params
-  const { content, images, pet_ids: petIds } = req.body
+  const { content, images, pet_ids: petIds, category } = req.body
 
   try {
     const posts = await query('SELECT * FROM posts WHERE id = ? AND user_id = ?', [id, req.user.id])
@@ -256,9 +294,20 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(404).json(error('动态不存在或无权修改', 404))
     }
 
+    if (category !== undefined && category && !(await isValidCategoryKey(category))) {
+      return res.status(400).json(error('无效的分类', 400))
+    }
+
+    const nextCategory = category !== undefined ? (category || null) : posts[0].category
+
     await query(
-      'UPDATE posts SET content = ?, images = ?, updated_at = NOW() WHERE id = ?',
-      [content || posts[0].content, JSON.stringify(images || JSON.parse(posts[0].images || '[]')), id]
+      'UPDATE posts SET content = ?, images = ?, category = ?, updated_at = NOW() WHERE id = ?',
+      [
+        content || posts[0].content,
+        JSON.stringify(images || JSON.parse(posts[0].images || '[]')),
+        nextCategory,
+        id,
+      ]
     )
 
     if (petIds !== undefined) {
@@ -337,10 +386,11 @@ router.post('/:id/like', auth, async (req, res) => {
       
       // 创建通知
       if (posts[0].user_id !== req.user.id) {
-        await query(
+        const notifResult = await query(
           'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
           [posts[0].user_id, req.user.id, 'like', '点赞通知', `赞了你的动态`, id, 'post']
         )
+        await pushNotificationById(notifResult.insertId)
       }
       
       res.json(success({ liked: true }, '点赞成功'))
@@ -466,17 +516,19 @@ router.post('/:id/comment', auth, async (req, res) => {
     // 创建通知
     const postAuthorId = posts[0].user_id
     if (postAuthorId !== req.user.id) {
-      await query(
+      const notifResult = await query(
         'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [postAuthorId, req.user.id, 'comment', '评论通知', `评论了你的动态`, id, 'post']
       )
+      await pushNotificationById(notifResult.insertId)
     }
 
     if (reply_to_user_id && reply_to_user_id !== req.user.id && reply_to_user_id !== postAuthorId) {
-      await query(
+      const replyNotifResult = await query(
         'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [reply_to_user_id, req.user.id, 'comment', '回复通知', `回复了你的评论`, id, 'post']
       )
+      await pushNotificationById(replyNotifResult.insertId)
     }
 
     res.json(success(comment[0], '评论成功'))

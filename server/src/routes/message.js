@@ -3,6 +3,7 @@ const router = express.Router()
 const { query } = require('../config/db')
 const { auth } = require('../middleware/auth')
 const { success, error } = require('../utils/response')
+const { pushToUser, pushNotificationById } = require('../utils/realtime')
 
 /**
  * 获取会话列表
@@ -102,19 +103,25 @@ router.post('/send', auth, async (req, res) => {
     // 获取完整消息
     const message = await query(`
       SELECT m.*, 
-        u_from.username as from_username, u_from.avatar as from_avatar
+        u_from.username as from_username, u_from.avatar as from_avatar,
+        u_to.username as to_username, u_to.avatar as to_avatar
       FROM messages m
       JOIN users u_from ON m.from_id = u_from.id
+      JOIN users u_to ON m.to_id = u_to.id
       WHERE m.id = ?
     `, [result.insertId])
 
-    // 创建通知
-    await query(
+    const notifResult = await query(
       'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [toId, req.user.id, 'message', '新消息', `${req.user.username}给你发送了一条消息`, req.user.id, 'user']
     )
 
-    res.json(success(message[0], '发送成功'))
+    const payload = message[0]
+    pushToUser(toId, { type: 'message', data: payload })
+    pushToUser(req.user.id, { type: 'message', data: payload })
+    await pushNotificationById(notifResult.insertId)
+
+    res.json(success(payload, '发送成功'))
   } catch (err) {
     console.error('发送消息失败:', err)
     res.status(500).json(error('发送失败', 500))
