@@ -35,6 +35,7 @@ const petRouter = require('./routes/pet')
 const notificationRouter = require('./routes/notification')
 const guideRouter = require('./routes/guide')
 const aiRouter = require('./routes/ai')
+const adminRouter = require('./routes/admin')
 
 app.use('/api/auth', authRouter)
 app.use('/api/user', userRouter)
@@ -45,6 +46,7 @@ app.use('/api/pet', petRouter)
 app.use('/api/notification', notificationRouter)
 app.use('/api/guide', guideRouter)
 app.use('/api/ai', aiRouter)
+app.use('/api/admin', adminRouter)
 
 // Swagger 文档（如果存在）
 try {
