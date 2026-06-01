@@ -4,6 +4,7 @@ import {
   AuthRequiredError,
   UNAUTHORIZED_MESSAGE,
   handleUnauthorized,
+  handleWriteUnauthorized,
   isAuthRequiredResponse,
 } from "./authRedirect";
 
@@ -47,7 +48,7 @@ function rejectUnauthorized<T>(
   const err = new AuthRequiredError(UNAUTHORIZED_MESSAGE);
   // 仅写操作自动引导登录；GET 等读请求静默失败，由页面自行展示空态
   if (method !== "GET") {
-    handleUnauthorized(UNAUTHORIZED_MESSAGE);
+    handleWriteUnauthorized(UNAUTHORIZED_MESSAGE);
   }
   reject(err);
 }
@@ -167,5 +168,10 @@ export function del<T = unknown>(
   return request<T>({ url, method: "DELETE", data });
 }
 
-export { AuthRequiredError, showRequestError, isAuthRequiredError, promptLogin } from "./authRedirect";
+export {
+  AuthRequiredError,
+  showRequestError,
+  isAuthRequiredError,
+  promptLogin,
+} from "./authRedirect";
 export { baseURL };

@@ -23,7 +23,13 @@
       </view>
     </view>
 
-    <view class="friend-list">
+    <view v-if="!isLoggedIn()" class="guest-tip">
+      <text class="guest-tip-title">登录后查看附近狗友</text>
+      <text class="guest-tip-desc">游客模式可浏览地图与动态，认识附近狗友需先登录</text>
+      <view class="guest-tip-btn" @click="goLogin">去登录</view>
+    </view>
+
+    <view class="friend-list" v-else>
       <view
         v-for="friend in friendList"
         :key="friend.id"
@@ -71,6 +77,7 @@ import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import { ref, onMounted } from "vue";
 import { getNearbyUsers, type NearbyUser } from "@/api/user";
+import { isLoggedIn } from "@/api/auth";
 import { resolveMediaUrl } from "@/utils/media";
 
 const searchText = ref("");
@@ -113,7 +120,12 @@ const goToProfile = (friend: NearbyUser) => {
   });
 };
 
+const goLogin = () => {
+  uni.navigateTo({ url: "/pages/login/index" });
+};
+
 onMounted(() => {
+  if (!isLoggedIn()) return;
   uni.getLocation({
     type: "gcj02",
     success: (res) => {
@@ -131,6 +143,40 @@ onMounted(() => {
 
 .friend-list-inner {
   padding-top: 0;
+}
+
+.guest-tip {
+  margin: 24rpx 40rpx;
+  padding: 48rpx 32rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  text-align: center;
+}
+
+.guest-tip-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #3d2f2f;
+}
+
+.guest-tip-desc {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: #8a7f7f;
+  line-height: 1.6;
+}
+
+.guest-tip-btn {
+  margin-top: 32rpx;
+  display: inline-flex;
+  padding: 20rpx 48rpx;
+  border-radius: 999rpx;
+  background: #f4a259;
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
 }
 
 .search-bar {

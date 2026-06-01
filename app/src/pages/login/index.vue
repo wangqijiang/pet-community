@@ -46,11 +46,34 @@
           <text class="guest-text">游客登录</text>
         </view>
 
+        <view v-if="showDevLogin" class="dev-login">
+          <view class="dev-row">
+            <input
+              class="dev-input"
+              v-model="devPhone"
+              type="number"
+              maxlength="11"
+              placeholder="开发用手机号"
+            />
+            <input
+              class="dev-input dev-code"
+              v-model="devCode"
+              type="number"
+              maxlength="6"
+              placeholder="验证码"
+            />
+          </view>
+          <view class="dev-btn" @click="handleDevLogin">
+            <text>开发环境验证码登录</text>
+          </view>
+          <text class="dev-hint">测试账号 13800138001，验证码 1234</text>
+        </view>
+
         <text class="agreement">
           登录即代表同意
-          <text class="agreement-link">《用户协议》</text>
+          <text class="agreement-link" @click.stop="goAgreement">《用户协议》</text>
           与
-          <text class="agreement-link">《隐私政策》</text>
+          <text class="agreement-link" @click.stop="goPrivacy">《隐私政策》</text>
         </text>
       </view>
     </view>
@@ -60,12 +83,21 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { loginWechat, setUserInfo, isLoggedIn, enterGuestMode } from '../../api/auth'
+import {
+  loginWechat,
+  loginByCode,
+  setUserInfo,
+  isLoggedIn,
+  enterGuestMode,
+} from '../../api/auth'
 import { PENDING_SHARE_ROUTE_KEY } from '@/utils/postShare'
 import { connectRealtime } from '@/utils/realtime'
 import { safeReLaunch } from '@/utils/navigation'
 
 const isLoading = ref(false)
+const showDevLogin = import.meta.env.DEV
+const devPhone = ref('13800138001')
+const devCode = ref('1234')
 
 const navigateAfterLogin = () => {
   const pendingRoute = uni.getStorageSync(PENDING_SHARE_ROUTE_KEY)
@@ -90,6 +122,34 @@ const finishLogin = (result: Awaited<ReturnType<typeof loginWechat>>) => {
 const handleGuestLogin = () => {
   enterGuestMode()
   navigateAfterLogin()
+}
+
+const handleDevLogin = async () => {
+  if (isLoading.value) return
+  if (!devPhone.value || !devCode.value) {
+    uni.showToast({ title: '请填写手机号和验证码', icon: 'none' })
+    return
+  }
+  isLoading.value = true
+  try {
+    const result = await loginByCode(devPhone.value, devCode.value)
+    finishLogin(result)
+  } catch (error) {
+    uni.showToast({
+      title: error instanceof Error ? error.message : '登录失败',
+      icon: 'none',
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const goAgreement = () => {
+  uni.navigateTo({ url: '/pages/legal/agreement' })
+}
+
+const goPrivacy = () => {
+  uni.navigateTo({ url: '/pages/legal/privacy' })
 }
 
 const handleGetPhoneNumber = async (event: { detail?: { errMsg?: string; code?: string } }) => {
@@ -345,5 +405,52 @@ onShow(() => {
 
 .agreement-link {
   color: #f4a259;
+}
+
+.dev-login {
+  margin-top: 28rpx;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1rpx dashed rgba(244, 162, 89, 0.5);
+}
+
+.dev-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.dev-input {
+  flex: 1;
+  height: 72rpx;
+  padding: 0 20rpx;
+  border-radius: 16rpx;
+  background: #fff;
+  font-size: 26rpx;
+}
+
+.dev-code {
+  flex: 0 0 180rpx;
+}
+
+.dev-btn {
+  margin-top: 16rpx;
+  height: 72rpx;
+  border-radius: 999rpx;
+  background: #8b6d73;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.dev-hint {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #a39797;
+  text-align: center;
 }
 </style>

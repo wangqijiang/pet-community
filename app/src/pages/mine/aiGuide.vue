@@ -100,6 +100,11 @@ import { getPetList } from '@/api/pet'
 import { sendAiChat } from '@/api/ai'
 import { getGuideList } from '@/api/guide'
 import { formatPetAge } from '@/utils/format'
+import { promptLogin } from '@/api/auth'
+import {
+  buildGuideShareText,
+  saveAiGuidePublishDraft,
+} from '@/utils/aiGuideDraft'
 
 const loading = ref(false)
 const bannerTitle = ref('正在生成专属养宠攻略...')
@@ -174,18 +179,28 @@ const loadGuide = async () => {
 
 const saveImage = () => {
   uni.vibrateShort({ type: 'light' })
-  uni.showToast({
-    title: '保存成功',
-    icon: 'success'
+  const text = buildGuideShareText(bannerTitle.value, guideSections.value)
+  uni.setClipboardData({
+    data: text,
+    success: () => {
+      uni.showModal({
+        title: '攻略已复制',
+        content: '全文已复制到剪贴板，可粘贴到备忘录或聊天中保存。',
+        showCancel: false,
+      })
+    },
   })
 }
 
 const shareToCircle = () => {
+  if (!promptLogin()) return
   uni.vibrateShort({ type: 'medium' })
-  uni.showToast({
-    title: '分享成功',
-    icon: 'success'
+  const content = buildGuideShareText(bannerTitle.value, guideSections.value)
+  saveAiGuidePublishDraft({
+    title: bannerTitle.value,
+    content,
   })
+  uni.navigateTo({ url: '/pages/circle/publish?fromAi=1' })
 }
 </script>
 

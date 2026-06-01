@@ -5,7 +5,7 @@ import {
   PENDING_SHARE_ROUTE_KEY,
   resolveSharedPostRoute,
 } from "@/utils/postShare";
-import { connectRealtime, disconnectRealtime } from "@/utils/realtime";
+import { connectRealtime, disconnectRealtime, ensureRealtimeConnected } from "@/utils/realtime";
 import { safeReLaunch } from "@/utils/navigation";
 
 onLaunch((options) => {
@@ -22,18 +22,21 @@ onLaunch((options) => {
     return;
   }
 
-  if (canAccessApp()) {
-    safeReLaunch("/pages/home/index");
+  if (!canAccessApp()) {
+    if (sharedRoute) {
+      uni.setStorageSync(PENDING_SHARE_ROUTE_KEY, sharedRoute);
+    }
+    safeReLaunch("/pages/login/index");
     return;
   }
+});
 
-  if (sharedRoute) {
-    uni.setStorageSync(PENDING_SHARE_ROUTE_KEY, sharedRoute);
+onShow(() => {
+  if (isLoggedIn()) {
+    ensureRealtimeConnected();
   }
 });
-onShow(() => {
-  if (isLoggedIn()) connectRealtime();
-});
+
 onHide(() => {
   disconnectRealtime();
 });

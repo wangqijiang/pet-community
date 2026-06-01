@@ -46,8 +46,13 @@ export function getStoredUser(): StoredUserInfo | null {
   return userStr ? JSON.parse(userStr) : null;
 }
 
-export function clearSession(): void {
+/** 仅清除登录凭证，保留游客模式 */
+export function clearAuthOnly(): void {
   uni.removeStorageSync("token");
   uni.removeStorageSync("user");
+}
+
+export function clearSession(): void {
+  clearAuthOnly();
   clearGuestMode();
 }

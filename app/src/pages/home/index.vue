@@ -83,10 +83,10 @@ const loadMarkers = async (lat: number, lng: number) => {
 
     const placeRes = await getPlaceList({
       page: 1,
-      size: 50,
+      size: 100,
       lat,
       lng,
-      radius: 50,
+      radius: 200,
     });
 
     placeRes.list.forEach((p) => {

@@ -104,7 +104,7 @@ const tabsHeight = uni.upx2px(120);
 const currentTab = ref(0);
 const systemBadge = ref(0);
 
-type SystemNoticeType = "like" | "comment" | "follow";
+type SystemNoticeType = "like" | "comment" | "follow" | "message";
 
 const SYSTEM_CATEGORIES: Array<{
   type: SystemNoticeType;
@@ -114,6 +114,7 @@ const SYSTEM_CATEGORIES: Array<{
   { type: "like", title: "点赞通知", icon: "heart" },
   { type: "comment", title: "评论通知", icon: "message" },
   { type: "follow", title: "关注通知", icon: "user" },
+  { type: "message", title: "私信通知", icon: "message" },
 ];
 
 const systemMessages = ref<
@@ -152,8 +153,10 @@ const buildSystemCategories = (list: Notification[]) => {
       const name = latest.from_username || "用户";
       if (cat.type === "follow") {
         desc = `${name} ${latest.content || "关注了你"}`;
+      } else if (cat.type === "message") {
+        desc = latest.content || `${name}给你发来私信`;
       } else {
-        desc = `${name} ${latest.content || ""}`.trim();
+        desc = latest.content || `${name}`;
       }
     }
     return {
@@ -169,7 +172,8 @@ const buildSystemCategories = (list: Notification[]) => {
 
 const refreshSystemBadge = (list: Notification[]) => {
   systemBadge.value = list.filter(
-    (n) => !n.is_read && ["like", "comment", "follow"].includes(n.type),
+    (n) =>
+      !n.is_read && ["like", "comment", "follow", "message"].includes(n.type),
   ).length;
 };
 
@@ -213,7 +217,7 @@ const upsertChatFromMessage = (msg: ChatMessage) => {
 };
 
 const prependNotification = (n: Notification) => {
-  if (!["like", "comment", "follow"].includes(n.type)) return;
+  if (!["like", "comment", "follow", "message"].includes(n.type)) return;
   loadData();
 };
 

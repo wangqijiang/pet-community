@@ -22,6 +22,18 @@ export interface MapMarkerItem {
   width: number;
   height: number;
   anchor: { x: number; y: number };
+  label?: {
+    content: string;
+    color: string;
+    fontSize: number;
+    anchorX: number;
+    anchorY: number;
+    borderWidth: number;
+    borderColor: string;
+    bgColor: string;
+    padding: number;
+    borderRadius: number;
+  };
   callout: {
     content: string;
     display: "ALWAYS" | "BYCLICK";
@@ -34,6 +46,10 @@ export interface MapMarkerItem {
   };
 }
 
+function truncateName(name: string, max = 8) {
+  return name.length > max ? `${name.slice(0, max)}…` : name;
+}
+
 export function buildPlaceMarker(place: {
   id: number;
   name: string;
@@ -44,7 +60,8 @@ export function buildPlaceMarker(place: {
 }): MapMarkerItem {
   const type = place.type || "";
   const tag = place.category_label || "";
-  const calloutText = tag ? `${place.name} · ${tag}` : place.name;
+  const shortName = truncateName(place.name);
+  const calloutText = tag ? `${place.name}\n${tag}` : place.name;
 
   return {
     id: place.id,
@@ -54,9 +71,21 @@ export function buildPlaceMarker(place: {
     width: 36,
     height: 36,
     anchor: { x: 0.5, y: 0.5 },
+    label: {
+      content: shortName,
+      color: "#3d2f2f",
+      fontSize: 11,
+      anchorX: 0,
+      anchorY: -42,
+      borderWidth: 1,
+      borderColor: "#f1e5da",
+      bgColor: "#ffffff",
+      padding: 4,
+      borderRadius: 6,
+    },
     callout: {
       content: calloutText,
-      display: "ALWAYS",
+      display: "BYCLICK",
       fontSize: 12,
       borderRadius: 8,
       bgColor: "#ffffff",
@@ -89,9 +118,21 @@ export function buildUserMarker(user: {
     width: avatar ? 40 : 36,
     height: avatar ? 40 : 36,
     anchor: { x: 0.5, y: 0.5 },
+    label: {
+      content: truncateName(user.username, 6),
+      color: "#6b4e3d",
+      fontSize: 11,
+      anchorX: 0,
+      anchorY: -42,
+      borderWidth: 1,
+      borderColor: "#f1e5da",
+      bgColor: "#fff8f3",
+      padding: 4,
+      borderRadius: 6,
+    },
     callout: {
       content: calloutText,
-      display: "ALWAYS",
+      display: "BYCLICK",
       fontSize: 12,
       borderRadius: 8,
       bgColor: "#fff8f3",

@@ -381,12 +381,22 @@ import {
 } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 import { showRequestError } from "@/utils/request";
-import { useFixedFooterHeight } from "@/composables/useLayout";
+import { getLayoutMetrics, useFixedFooterHeight } from "@/composables/useLayout";
+
+const layoutMetrics = getLayoutMetrics();
+/** 单按钮：padding + btn + padding；双按钮再加 gap + delete */
+const footerEstimateRpx = (edit: boolean) =>
+  edit ? 32 + 112 + 24 + 112 + 32 : 32 + 112 + 32;
 
 const { footerHeight, measureFooterHeight: measureFooter } = useFixedFooterHeight(
   "#add-pet-footer",
-  24 + 96 + 24,
+  footerEstimateRpx(false),
 );
+
+const syncFooterEstimate = () => {
+  footerHeight.value =
+    uni.upx2px(footerEstimateRpx(isEdit.value)) + layoutMetrics.safeBottom;
+};
 
 const loading = ref(false);
 const isEdit = ref(false);
@@ -540,17 +550,22 @@ const getFullAvatarUrl = (avatar: string) => {
   return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
 };
 
-watch(isEdit, measureFooter);
+watch(isEdit, () => {
+  syncFooterEstimate();
+  measureFooter();
+});
 
 onLoad((options) => {
   if (options?.id) {
     petId.value = parseInt(String(options.id), 10);
     isEdit.value = true;
+    syncFooterEstimate();
     loadPetData();
   }
 });
 
 onMounted(() => {
+  syncFooterEstimate();
   measureFooter();
 });
 
@@ -1228,7 +1243,7 @@ const handleDelete = () => {
 .add-pet-inner {
   background: rgb(255, 247, 241);
   color: #4b3d3f;
-  padding-bottom: 24rpx;
+  box-sizing: border-box;
 }
 
 .avatar-section {
@@ -1288,6 +1303,10 @@ const handleDelete = () => {
 .section {
   padding: 0 32rpx;
   margin-bottom: 56rpx;
+
+  &:last-of-type {
+    margin-bottom: 32rpx;
+  }
 }
 
 .item-field {
@@ -1603,11 +1622,14 @@ const handleDelete = () => {
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 20;
   padding: 32rpx;
-  background: linear-gradient(to top, #f6efef 60%, transparent);
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, #fff7f1 72%, rgba(255, 247, 241, 0.92));
   display: flex;
   flex-direction: column;
   gap: 24rpx;
+  box-sizing: border-box;
 }
 
 .btn {

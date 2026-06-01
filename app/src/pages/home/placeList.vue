@@ -100,7 +100,7 @@ const loadPlaces = async () => {
       category: category || undefined,
       lat: lat.value,
       lng: lng.value,
-      radius: 50,
+      radius: 200,
     });
     placeList.value = res.list;
   } catch (error) {

@@ -92,7 +92,7 @@
           </view>
           <view class="action-item" @click="handleCollect">
             <view class="action-icon icon-heart"></view>
-            <text class="action-text">收藏地点</text>
+            <text class="action-text">{{ favorited ? '已点赞' : '点赞地点' }}</text>
           </view>
         </view>
       </view>
@@ -132,7 +132,14 @@ import { showRequestError } from "@/utils/request";
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import PageLayout from "@/components/common/PageLayout.vue";
-import { getPlaceDetail, getPlaceReviews, togglePlaceLike, type Place, type PlaceReview } from "@/api/place";
+import {
+  getPlaceDetail,
+  getPlaceReviews,
+  togglePlaceLike,
+  type Place,
+  type PlaceReview,
+} from "@/api/place";
+import { promptLogin } from "@/api/auth";
 import { formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 
@@ -163,10 +170,14 @@ const handleCall = () => {
 
 const handleCollect = async () => {
   if (!place.value.id) return;
+  if (!promptLogin()) return;
   try {
     const res = await togglePlaceLike(place.value.id);
     favorited.value = res.liked;
-    uni.showToast({ title: res.liked ? "已收藏" : "已取消", icon: "success" });
+    uni.showToast({
+      title: res.liked ? "点赞成功" : "已取消点赞",
+      icon: "success",
+    });
   } catch (error) {
     showRequestError(error, "操作失败");
   }
@@ -177,6 +188,7 @@ onLoad(async (options) => {
   if (!id) return;
   try {
     place.value = await getPlaceDetail(id);
+    favorited.value = !!place.value.liked;
     const res = await getPlaceReviews(id, 1, 5);
     reviews.value = res.list;
   } catch (error) {

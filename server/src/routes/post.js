@@ -515,18 +515,26 @@ router.post('/:id/comment', auth, async (req, res) => {
 
     // 创建通知
     const postAuthorId = posts[0].user_id
+    const commentSnippet = (content || '').trim().slice(0, 80)
+    const commentBody = commentSnippet
+      ? `评论了你的动态：${commentSnippet}`
+      : '评论了你的动态'
+
     if (postAuthorId !== req.user.id) {
       const notifResult = await query(
         'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [postAuthorId, req.user.id, 'comment', '评论通知', `评论了你的动态`, id, 'post']
+        [postAuthorId, req.user.id, 'comment', '评论通知', commentBody, id, 'post']
       )
       await pushNotificationById(notifResult.insertId)
     }
 
     if (reply_to_user_id && reply_to_user_id !== req.user.id && reply_to_user_id !== postAuthorId) {
+      const replyBody = commentSnippet
+        ? `回复了你的评论：${commentSnippet}`
+        : '回复了你的评论'
       const replyNotifResult = await query(
         'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [reply_to_user_id, req.user.id, 'comment', '回复通知', `回复了你的评论`, id, 'post']
+        [reply_to_user_id, req.user.id, 'comment', '回复通知', replyBody, id, 'post']
       )
       await pushNotificationById(replyNotifResult.insertId)
     }

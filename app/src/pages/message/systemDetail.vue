@@ -59,7 +59,7 @@ import { formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 import { emitRefreshTabBarBadge } from "@/utils/tabBarBadge";
 
-type NoticeType = "like" | "comment" | "follow";
+type NoticeType = "like" | "comment" | "follow" | "message";
 
 const TYPE_META: Record<
   NoticeType,
@@ -79,6 +79,11 @@ const TYPE_META: Record<
     title: "关注通知",
     empty: "暂无关注通知",
     action: "关注了你",
+  },
+  message: {
+    title: "私信通知",
+    empty: "暂无私信通知",
+    action: "给你发来私信",
   },
 };
 
@@ -106,11 +111,17 @@ const mapNoticeItem = (n: Notification) => {
   const meta = TYPE_META[noticeType.value];
   const name = n.from_username || "用户";
   const actionText = n.content?.trim() || meta.action;
+  let desc = actionText;
+  if (noticeType.value === "like") {
+    desc = `${name} ${actionText}`;
+  } else if (noticeType.value === "comment") {
+    desc = actionText.includes("：") ? actionText : `${name} ${actionText}`;
+  }
   return {
     id: n.id,
     name,
     avatar: resolveMediaUrl(n.from_avatar) || defaultAvatar,
-    desc: noticeType.value === "follow" ? actionText : `${name} ${actionText}`,
+    desc,
     time: formatRelativeTime(n.created_at),
     unread: !n.is_read,
     fromUserId: n.from_user_id,
@@ -151,6 +162,15 @@ const goToFans = () => {
 };
 
 const handleItemTap = (item: (typeof noticeList.value)[number]) => {
+  if (noticeType.value === "message") {
+    const chatUserId = item.fromUserId || item.targetId;
+    if (!chatUserId) return;
+    uni.navigateTo({
+      url: `/pages/message/chat?userId=${chatUserId}&name=${encodeURIComponent(item.name)}`,
+    });
+    return;
+  }
+
   if (noticeType.value === "follow") {
     if (!item.fromUserId) return;
     uni.navigateTo({

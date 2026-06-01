@@ -122,6 +122,8 @@ import { createPost, updatePost, getPostDetail, getPostCategories, type PostCate
 import { getPetList, type Pet } from "@/api/pet";
 import { resolveMediaUrl } from "@/utils/media";
 import { useFixedFooterHeight } from "@/composables/useLayout";
+import { consumeAiGuidePublishDraft } from "@/utils/aiGuideDraft";
+import { promptLogin } from "@/utils/request";
 
 const LAST_PUBLISH_PET_IDS_KEY = "lastPublishPetIds";
 
@@ -143,12 +145,20 @@ const canPublish = computed(() => {
 });
 
 onLoad(async (options) => {
+  if (!promptLogin()) return;
   await Promise.all([loadPets(), loadCategories()]);
   if (options?.editId) {
     editId.value = Number(options.editId);
     await loadPostForEdit();
   } else {
     applyDefaultPetSelection();
+    if (options?.fromAi === "1") {
+      const draft = consumeAiGuidePublishDraft();
+      if (draft?.content) {
+        content.value = draft.content;
+        selectedCategory.value = "share";
+      }
+    }
   }
 });
 

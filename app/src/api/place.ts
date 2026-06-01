@@ -25,6 +25,7 @@ export interface Place {
   amenities?: string[] | string;
   distance_km?: number;
   distance?: string | number;
+  liked?: boolean;
 }
 
 export interface PlaceReview {
@@ -124,6 +125,15 @@ export async function togglePlaceLike(
 ): Promise<{ liked: boolean }> {
   const res = await post<{ liked: boolean }>(`/place/${placeId}/like`);
   return res.data;
+}
+
+export async function checkPlaceLiked(placeId: number): Promise<boolean> {
+  try {
+    const res = await get<{ liked: boolean }>(`/place/${placeId}/liked`);
+    return !!res.data?.liked;
+  } catch {
+    return false;
+  }
 }
 
 export async function addPlaceReview(

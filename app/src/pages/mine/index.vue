@@ -243,7 +243,7 @@ const goToEditPet = (pet: Pet) => {
 
 const goToLikedPosts = () => {
   if (!promptLogin()) return;
-  uni.navigateTo({ url: "/pages/mine/collection" });
+  uni.navigateTo({ url: "/pages/mine/liked" });
 };
 
 const goToAiGuide = () => {

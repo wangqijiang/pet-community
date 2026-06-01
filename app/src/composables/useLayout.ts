@@ -109,21 +109,29 @@ export function useFixedFooterHeight(
   const metrics = getLayoutMetrics();
   const footerHeight = ref(uni.upx2px(estimateRpx) + metrics.safeBottom);
 
+  const applyFooterRect = (rect: UniApp.NodeInfo | UniApp.NodeInfo[] | null) => {
+    if (rect && !Array.isArray(rect) && rect.height > 0) {
+      footerHeight.value = Math.ceil(rect.height);
+    }
+  };
+
   const measureFooterHeight = () => {
     nextTick(() => {
-      const query = uni.createSelectorQuery();
       const scope = instance?.proxy ?? instance;
+      const scopedQuery = uni.createSelectorQuery();
       if (scope) {
-        query.in(scope as unknown as UniApp.ComponentInternalInstance);
+        scopedQuery.in(scope as unknown as UniApp.ComponentInternalInstance);
       }
-      query
-        .select(selector)
-        .boundingClientRect((rect) => {
-          if (rect && !Array.isArray(rect) && rect.height > 0) {
-            footerHeight.value = Math.ceil(rect.height);
-          }
-        })
-        .exec();
+      scopedQuery.select(selector).boundingClientRect(applyFooterRect).exec();
+
+      // #fixed 插槽渲染在 PageLayout 内，组件内 in() 可能测不到高度
+      setTimeout(() => {
+        uni
+          .createSelectorQuery()
+          .select(selector)
+          .boundingClientRect(applyFooterRect)
+          .exec();
+      }, 80);
     });
   };
 

@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { query } = require('../config/db')
-const { auth } = require('../middleware/auth')
+const { auth, optionalAuth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
 
 const PLACE_COLUMNS = `
@@ -203,7 +203,21 @@ router.get('/', async (req, res) => {
 /**
  * 获取地点详情
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id/liked', auth, async (req, res) => {
+  const { id } = req.params
+  try {
+    const rows = await query(
+      'SELECT id FROM place_likes WHERE user_id = ? AND place_id = ?',
+      [req.user.id, id]
+    )
+    res.json(success({ liked: rows.length > 0 }, '获取成功'))
+  } catch (err) {
+    console.error('查询地点点赞状态失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+router.get('/:id', optionalAuth, async (req, res) => {
   const { id } = req.params
 
   try {
@@ -218,6 +232,16 @@ router.get('/:id', async (req, res) => {
     }
 
     const place = parsePlaceJsonFields(places[0])
+
+    if (req.user?.id) {
+      const liked = await query(
+        'SELECT id FROM place_likes WHERE user_id = ? AND place_id = ?',
+        [req.user.id, id]
+      )
+      place.liked = liked.length > 0
+    } else {
+      place.liked = false
+    }
 
     const reviews = await query(`
       SELECT r.*, u.username, u.avatar
@@ -257,17 +281,17 @@ router.post('/:id/like', auth, async (req, res) => {
     if (existing.length > 0) {
       await query('DELETE FROM place_likes WHERE id = ?', [existing[0].id])
       await query('UPDATE places SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?', [id])
-      res.json(success({ liked: false }, '取消收藏'))
+      res.json(success({ liked: false }, '已取消点赞'))
     } else {
       await query(
         'INSERT INTO place_likes (user_id, place_id, created_at) VALUES (?, ?, NOW())',
         [req.user.id, id]
       )
       await query('UPDATE places SET likes_count = likes_count + 1 WHERE id = ?', [id])
-      res.json(success({ liked: true }, '收藏成功'))
+      res.json(success({ liked: true }, '点赞成功'))
     }
   } catch (err) {
-    console.error('收藏操作失败:', err)
+    console.error('地点点赞操作失败:', err)
     res.status(500).json(error('操作失败', 500))
   }
 })

@@ -23,14 +23,32 @@ async function run() {
   const ok = (name) => results.push({ name, pass: true })
   const fail = (name, err) => results.push({ name, pass: false, err: String(err) })
 
+  let token
+
   try {
     let r = await req('GET', '/health')
     if (r.data.status !== 'ok') throw new Error('health')
     ok('health')
 
+    r = await req('GET', '/place/categories')
+    if (!r.data.success || !r.data.data.length) throw new Error('place categories')
+    ok('place categories')
+
+    r = await req('GET', '/place?category=park&lat=39.91&lng=116.39&radius=200')
+    if (!r.data.success) throw new Error('place filter')
+    ok('place filter by category')
+
+    r = await req('GET', '/post/categories')
+    if (!r.data.success || !r.data.data.length) throw new Error('post categories')
+    ok('post categories')
+
+    r = await req('GET', '/post?page=1&size=3')
+    if (!r.data.success) throw new Error('guest post list')
+    ok('guest post list')
+
     r = await req('POST', '/auth/loginByCode', { phone: '13800138001', code: '1234' })
     if (!r.data.success || !r.data.data.token) throw new Error(JSON.stringify(r.data))
-    const token = r.data.data.token
+    token = r.data.data.token
     ok('loginByCode')
 
     r = await req('GET', '/user/info', null, token)
@@ -41,9 +59,21 @@ async function run() {
     if (!r.data.success || !r.data.data.list) throw new Error('post list')
     ok('post list')
 
+    r = await req('GET', '/post/user/likes', null, token)
+    if (!r.data.success) throw new Error('post user likes')
+    ok('post user likes')
+
     r = await req('GET', '/pet/list', null, token)
     if (!r.data.success) throw new Error('pet list')
     ok('pet list')
+
+    r = await req('GET', '/place/1', null, token)
+    if (!r.data.success || r.data.data.category_label === undefined) throw new Error('place detail label')
+    ok('place detail category_label')
+
+    r = await req('GET', '/place/1/liked', null, token)
+    if (!r.data.success || typeof r.data.data.liked !== 'boolean') throw new Error('place liked')
+    ok('place liked status')
 
     r = await req('GET', '/place?page=1&size=5', null, token)
     if (!r.data.success) throw new Error('place list')
@@ -53,9 +83,19 @@ async function run() {
     if (!r.data.success) throw new Error('message list')
     ok('message list')
 
-    r = await req('GET', '/notification?page=1&size=5', null, token)
-    if (!r.data.success) throw new Error('notification list')
-    ok('notification list')
+    r = await req('GET', '/notification?type=comment', null, token)
+    if (!r.data.success) throw new Error('notification comment')
+    ok('notification by type comment')
+
+    r = await req('GET', '/notification?type=follow', null, token)
+    if (!r.data.success) throw new Error('notification follow')
+    const followItem = r.data.data.list[0]
+    if (followItem && !followItem.from_username) throw new Error('follow missing from_username')
+    ok('notification follow')
+
+    r = await req('GET', '/notification?type=message', null, token)
+    if (!r.data.success) throw new Error('notification message type')
+    ok('notification message type')
 
     r = await req('GET', '/guide?page=1&size=5', null, token)
     if (!r.data.success) throw new Error('guide list')
@@ -69,11 +109,13 @@ async function run() {
     if (!r.data.success) throw new Error('nearby users')
     ok('nearby users')
 
-    if (r.data.data && r.data.data.length >= 0) ok('nearby data shape')
-
     r = await req('POST', '/ai/chat', { question: '猫咪吃什么' }, token)
     if (!r.data.success) throw new Error('ai chat')
     ok('ai chat')
+
+    r = await req('GET', '/pet/list')
+    if (r.status === 200 && r.data.success) throw new Error('pet list should require auth')
+    ok('unauth pet list blocked')
   } catch (e) {
     fail('suite', e)
   }
