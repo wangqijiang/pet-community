@@ -137,14 +137,6 @@ const chatList = ref<
   }>
 >([]);
 
-const notifTypeIcon: Record<string, string> = {
-  like: "heart",
-  comment: "message",
-  follow: "user",
-  system: "badge",
-  message: "message",
-};
-
 const buildSystemCategories = (list: Notification[]) => {
   return SYSTEM_CATEGORIES.map((cat) => {
     const items = list

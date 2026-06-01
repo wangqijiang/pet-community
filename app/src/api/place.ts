@@ -1,10 +1,16 @@
 import { get, post } from "@/utils/request";
 import { parseJsonArray } from "@/utils/format";
 
+export interface PlaceCategory {
+  key: string;
+  label: string;
+}
+
 export interface Place {
   id: number;
   name: string;
   type: string;
+  category_label?: string;
   address: string;
   latitude: number;
   longitude: number;
@@ -18,7 +24,7 @@ export interface Place {
   pet_policy?: string;
   amenities?: string[] | string;
   distance_km?: number;
-  distance?: string;
+  distance?: string | number;
 }
 
 export interface PlaceReview {
@@ -43,30 +49,48 @@ export interface PlaceListResponse {
 }
 
 function normalizePlace(place: Place): Place {
+  const distanceKm =
+    place.distance_km ??
+    (typeof place.distance === "number" ? place.distance : undefined);
+
   return {
     ...place,
     images: parseJsonArray<string>(place.images),
     amenities: parseJsonArray<string>(place.amenities),
     distance:
-      place.distance ||
-      (place.distance_km != null
-        ? place.distance_km < 1
-          ? `${Math.round(place.distance_km * 1000)}m`
-          : `${place.distance_km.toFixed(1)}km`
-        : undefined),
+      typeof place.distance === "string"
+        ? place.distance
+        : distanceKm != null
+          ? distanceKm < 1
+            ? `${Math.round(distanceKm * 1000)}m`
+            : `${distanceKm.toFixed(1)}km`
+          : undefined,
   };
+}
+
+export async function getPlaceCategories(): Promise<PlaceCategory[]> {
+  const res = await get<PlaceCategory[]>("/place/categories");
+  return res.data || [];
 }
 
 export async function getPlaceList(params: {
   page?: number;
   size?: number;
   type?: string;
+  category?: string;
   keyword?: string;
   lat?: number;
   lng?: number;
   radius?: number;
 } = {}): Promise<PlaceListResponse> {
-  const res = await get<PlaceListResponse>("/place", params as Record<string, unknown>);
+  const queryParams: Record<string, unknown> = { ...params };
+  const category = params.category || params.type;
+  if (category) {
+    queryParams.category = category;
+  }
+  delete queryParams.type;
+
+  const res = await get<PlaceListResponse>("/place", queryParams);
   return {
     list: (res.data?.list || []).map(normalizePlace),
     pagination: res.data?.pagination || {

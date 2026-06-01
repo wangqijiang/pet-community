@@ -5,11 +5,11 @@
     </template>
 
     <template #header>
-      <scroll-view scroll-x class="tabs">
+      <scroll-view scroll-x class="tabs" :show-scrollbar="false">
         <view class="tab-list">
           <view
             v-for="(tab, index) in tabs"
-            :key="index"
+            :key="tab.key || 'all'"
             class="tab"
             :class="{ active: currentTab === index }"
             @click="switchTab(index)"
@@ -28,7 +28,7 @@
     >
       <image class="cover" :src="coverImage(place)" mode="aspectFill" />
       <view class="content">
-        <view class="tag">{{ typeLabel(place.type) }}</view>
+        <view class="tag">{{ typeLabel(place) }}</view>
         <view class="name">{{ place.name }}</view>
         <view class="desc">{{ place.description || place.address }}</view>
         <view class="meta">
@@ -46,8 +46,12 @@ import { showRequestError } from "@/utils/request";
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
-import { getPlaceList, type Place } from "@/api/place";
-import { PLACE_TYPE_LABEL } from "@/utils/format";
+import {
+  getPlaceCategories,
+  getPlaceList,
+  type Place,
+  type PlaceCategory,
+} from "@/api/place";
 import { resolveMediaUrl } from "@/utils/media";
 
 const tabsHeight = uni.upx2px(88);
@@ -57,34 +61,48 @@ const loading = ref(false);
 const lat = ref(39.916527);
 const lng = ref(116.397128);
 
-const tabs = [
-  { label: "全部", type: "" },
-  { label: "公园", type: "park" },
-  { label: "咖啡厅", type: "cafe" },
-  { label: "宠物店", type: "shop" },
-  { label: "医院", type: "hospital" },
-];
+const tabs = ref<Array<{ key: string; label: string }>>([
+  { key: "", label: "全部" },
+]);
 
-const typeLabel = (type: string) => PLACE_TYPE_LABEL[type] || type;
+const typeLabel = (place: Place) =>
+  place.category_label || place.type || "宠物友好地点";
+
 const coverImage = (place: Place) => {
   const imgs = place.images;
   if (imgs && imgs.length > 0) return resolveMediaUrl(imgs[0]);
   return `https://picsum.photos/seed/place${place.id}/400/300`;
 };
 
-const loadPlaces = async (reset = false) => {
+const loadCategories = async () => {
+  try {
+    const categories = await getPlaceCategories();
+    tabs.value = [
+      { key: "", label: "全部" },
+      ...categories.map((item: PlaceCategory) => ({
+        key: item.key,
+        label: item.label,
+      })),
+    ];
+  } catch (error) {
+    showRequestError(error, "分类加载失败");
+  }
+};
+
+const loadPlaces = async () => {
   if (loading.value) return;
   loading.value = true;
   try {
+    const category = tabs.value[currentTab.value]?.key || "";
     const res = await getPlaceList({
       page: 1,
-      size: 20,
-      type: tabs[currentTab.value].type,
+      size: 50,
+      category: category || undefined,
       lat: lat.value,
       lng: lng.value,
-      radius: 20,
+      radius: 50,
     });
-    placeList.value = reset ? res.list : res.list;
+    placeList.value = res.list;
   } catch (error) {
     showRequestError(error, "加载失败");
   } finally {
@@ -92,13 +110,19 @@ const loadPlaces = async (reset = false) => {
   }
 };
 
-const switchTab = (i: number) => {
-  currentTab.value = i;
-  loadPlaces(true);
+const switchTab = (index: number) => {
+  if (currentTab.value === index) return;
+  currentTab.value = index;
+  loadPlaces();
 };
 
 const goToDetail = (place: Place) => {
   uni.navigateTo({ url: `/pages/home/storeDetail?id=${place.id}` });
+};
+
+const initPage = async () => {
+  await loadCategories();
+  loadPlaces();
 };
 
 onMounted(() => {
@@ -107,9 +131,9 @@ onMounted(() => {
     success: (res) => {
       lat.value = res.latitude;
       lng.value = res.longitude;
-      loadPlaces(true);
+      initPage();
     },
-    fail: () => loadPlaces(true),
+    fail: () => initPage(),
   });
 });
 </script>
@@ -131,6 +155,7 @@ onMounted(() => {
   background: #fff;
   font-size: 26rpx;
   color: #8a7f7f;
+  flex-shrink: 0;
 
   &.active {
     background: #71585c;

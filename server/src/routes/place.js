@@ -4,87 +4,193 @@ const { query } = require('../config/db')
 const { auth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
 
+const PLACE_COLUMNS = `
+  p.*,
+  pc.label AS category_label,
+  (SELECT COUNT(*) FROM place_likes WHERE place_id = p.id) AS likes,
+  (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id AND status = 1) AS reviews_count
+`
+
+const PLACE_FROM = `
+  FROM places p
+  LEFT JOIN place_categories pc ON p.type = pc.key AND pc.status = 1
+`
+
+function parsePlaceJsonFields(place) {
+  if (typeof place.images === 'string') {
+    place.images = JSON.parse(place.images)
+  }
+  if (typeof place.amenities === 'string') {
+    place.amenities = JSON.parse(place.amenities)
+  }
+  return place
+}
+
+/**
+ * 获取场所分类列表
+ */
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await query(
+      'SELECT `key`, label FROM place_categories WHERE status = 1 ORDER BY sort_order ASC, id ASC'
+    )
+    res.json(success(categories, '获取成功'))
+  } catch (err) {
+    console.error('获取场所分类失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+/**
+ * 获取用户收藏的地点列表
+ */
+router.get('/user/favorites', auth, async (req, res) => {
+  const { page = 1, size = 10 } = req.query
+  const offset = (page - 1) * size
+
+  try {
+    const places = await query(`
+      SELECT ${PLACE_COLUMNS}
+      ${PLACE_FROM}
+      JOIN place_likes pl ON p.id = pl.place_id
+      WHERE pl.user_id = ? AND p.status = 1
+      ORDER BY pl.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [req.user.id, parseInt(size), parseInt(offset)])
+
+    places.forEach(parsePlaceJsonFields)
+
+    const total = await query(
+      'SELECT COUNT(*) as count FROM place_likes WHERE user_id = ?',
+      [req.user.id]
+    )
+
+    res.json({
+      success: true,
+      message: '获取成功',
+      data: {
+        list: places,
+        pagination: {
+          total: total[0].count,
+          page: parseInt(page),
+          size: parseInt(size),
+          pages: Math.ceil(total[0].count / size)
+        }
+      }
+    })
+  } catch (err) {
+    console.error('获取收藏列表失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+/**
+ * 获取地点类型统计
+ */
+router.get('/types/stats', async (req, res) => {
+  try {
+    const stats = await query(`
+      SELECT type, COUNT(*) as count
+      FROM places
+      WHERE status = 1
+      GROUP BY type
+    `)
+
+    res.json(success(stats, '获取成功'))
+  } catch (err) {
+    console.error('获取类型统计失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
 /**
  * 获取地点列表
  */
 router.get('/', async (req, res) => {
-  const { page = 1, size = 10, type = '', keyword = '', lat, lng, radius = 10 } = req.query
+  const {
+    page = 1,
+    size = 10,
+    type = '',
+    category = '',
+    keyword = '',
+    lat,
+    lng,
+    radius = 50,
+  } = req.query
   const pageNum = parseInt(page)
   const sizeNum = parseInt(size)
   const offset = (pageNum - 1) * sizeNum
+  const categoryFilter = category || type
 
   try {
-    let sql = `
-      SELECT p.*, 
-        (SELECT COUNT(*) FROM place_likes WHERE place_id = p.id) as likes,
-        (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id AND status = 1) as reviews_count
-      FROM places p 
-      WHERE p.status = 1
-    `
+    const filters = ['p.status = 1']
     const params = []
 
-    if (type) {
-      sql += ' AND p.type = ?'
-      params.push(type)
+    if (categoryFilter) {
+      filters.push('p.type = ?')
+      params.push(categoryFilter)
     }
 
     if (keyword) {
-      sql += ' AND (p.name LIKE ? OR p.address LIKE ? OR p.description LIKE ?)'
+      filters.push('(p.name LIKE ? OR p.address LIKE ? OR p.description LIKE ?)')
       params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`)
     }
 
-    // 如果提供了经纬度，按距离排序
+    const whereClause = filters.join(' AND ')
+    let sql
+    let listParams
+
     if (lat && lng) {
+      const latNum = parseFloat(lat)
+      const lngNum = parseFloat(lng)
       sql = `
-        SELECT p.*, 
-          (SELECT COUNT(*) FROM place_likes WHERE place_id = p.id) as likes,
-          (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id AND status = 1) as reviews_count,
-          (6371 * ACOS(COS(RADIANS(?)) * COS(RADIANS(p.latitude)) * COS(RADIANS(p.longitude) - RADIANS(?)) + SIN(RADIANS(?)) * SIN(RADIANS(p.latitude)))) AS distance
-        FROM places p 
-        WHERE p.status = 1
+        SELECT ${PLACE_COLUMNS},
+          (6371 * ACOS(
+            COS(RADIANS(?)) * COS(RADIANS(p.latitude)) *
+            COS(RADIANS(p.longitude) - RADIANS(?)) +
+            SIN(RADIANS(?)) * SIN(RADIANS(p.latitude))
+          )) AS distance
+        ${PLACE_FROM}
+        WHERE ${whereClause}
+        HAVING distance <= ?
+        ORDER BY distance ASC
+        LIMIT ? OFFSET ?
       `
-      params.unshift(parseFloat(lat), parseFloat(lng), parseFloat(lat))
-      
-      if (type) {
-        sql += ' AND p.type = ?'
-        params.push(type)
-      }
-      if (keyword) {
-        sql += ' AND (p.name LIKE ? OR p.address LIKE ? OR p.description LIKE ?)'
-        params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`)
-      }
-      
-      sql += ' HAVING distance <= ? ORDER BY distance ASC'
-      params.push(parseFloat(radius))
+      listParams = [latNum, lngNum, latNum, ...params, parseFloat(radius), sizeNum, offset]
     } else {
-      sql += ' ORDER BY p.rating DESC, p.likes DESC'
+      sql = `
+        SELECT ${PLACE_COLUMNS}
+        ${PLACE_FROM}
+        WHERE ${whereClause}
+        ORDER BY p.rating DESC, p.likes DESC
+        LIMIT ? OFFSET ?
+      `
+      listParams = [...params, sizeNum, offset]
     }
 
-    sql += ' LIMIT ? OFFSET ?'
-    params.push(sizeNum, offset)
+    const places = await query(sql, listParams)
+    places.forEach(parsePlaceJsonFields)
 
-    const places = await query(sql, params)
-
-    // 解析JSON字段
-    for (let place of places) {
-      if (typeof place.images === 'string') {
-        place.images = JSON.parse(place.images)
-      }
-      if (typeof place.amenities === 'string') {
-        place.amenities = JSON.parse(place.amenities)
-      }
+    let countSql = `SELECT COUNT(*) as count FROM places p WHERE ${whereClause}`
+    const countParams = [...params]
+    if (lat && lng) {
+      countSql = `
+        SELECT COUNT(*) as count FROM (
+          SELECT p.id,
+            (6371 * ACOS(
+              COS(RADIANS(?)) * COS(RADIANS(p.latitude)) *
+              COS(RADIANS(p.longitude) - RADIANS(?)) +
+              SIN(RADIANS(?)) * SIN(RADIANS(p.latitude))
+            )) AS distance
+          FROM places p
+          WHERE ${whereClause}
+          HAVING distance <= ?
+        ) t
+      `
+      countParams.unshift(parseFloat(lat), parseFloat(lng), parseFloat(lat))
+      countParams.push(parseFloat(radius))
     }
 
-    let countSql = 'SELECT COUNT(*) as count FROM places WHERE status = 1'
-    const countParams = []
-    if (type) {
-      countSql += ' AND type = ?'
-      countParams.push(type)
-    }
-    if (keyword) {
-      countSql += ' AND (name LIKE ? OR address LIKE ? OR description LIKE ?)'
-      countParams.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`)
-    }
     const total = await query(countSql, countParams)
 
     res.json(pagination(places, total[0].count, pageNum, sizeNum))
@@ -102,10 +208,8 @@ router.get('/:id', async (req, res) => {
 
   try {
     const places = await query(`
-      SELECT p.*, 
-        (SELECT COUNT(*) FROM place_likes WHERE place_id = p.id) as likes,
-        (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id AND status = 1) as reviews_count
-      FROM places p 
+      SELECT ${PLACE_COLUMNS}
+      ${PLACE_FROM}
       WHERE p.id = ? AND p.status = 1
     `, [id])
 
@@ -113,21 +217,14 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json(error('地点不存在', 404))
     }
 
-    const place = places[0]
-    if (typeof place.images === 'string') {
-      place.images = JSON.parse(place.images)
-    }
-    if (typeof place.amenities === 'string') {
-      place.amenities = JSON.parse(place.amenities)
-    }
+    const place = parsePlaceJsonFields(places[0])
 
-    // 获取评价列表
     const reviews = await query(`
-      SELECT r.*, u.username, u.avatar 
-      FROM place_reviews r 
-      JOIN users u ON r.user_id = u.id 
-      WHERE r.place_id = ? AND r.status = 1 
-      ORDER BY r.created_at DESC 
+      SELECT r.*, u.username, u.avatar
+      FROM place_reviews r
+      JOIN users u ON r.user_id = u.id
+      WHERE r.place_id = ? AND r.status = 1
+      ORDER BY r.created_at DESC
       LIMIT 10
     `, [id])
 
@@ -192,20 +289,17 @@ router.post('/:id/reviews', auth, async (req, res) => {
       return res.status(404).json(error('地点不存在', 404))
     }
 
-    // 检查是否已评价
     const existing = await query(
       'SELECT id FROM place_reviews WHERE user_id = ? AND place_id = ?',
       [req.user.id, id]
     )
 
     if (existing.length > 0) {
-      // 更新评价
       await query(
         'UPDATE place_reviews SET rating = ?, content = ?, images = ?, updated_at = NOW() WHERE id = ?',
         [rating, content, JSON.stringify(images || []), existing[0].id]
       )
     } else {
-      // 新增评价
       await query(
         'INSERT INTO place_reviews (place_id, user_id, rating, content, images, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
         [id, req.user.id, rating, content, JSON.stringify(images || [])]
@@ -213,7 +307,6 @@ router.post('/:id/reviews', auth, async (req, res) => {
       await query('UPDATE places SET reviews_count = reviews_count + 1 WHERE id = ?', [id])
     }
 
-    // 更新地点评分
     const avgRating = await query(
       'SELECT AVG(rating) as avg_rating FROM place_reviews WHERE place_id = ? AND status = 1',
       [id]
@@ -237,16 +330,15 @@ router.get('/:id/reviews', async (req, res) => {
 
   try {
     const reviews = await query(`
-      SELECT r.*, u.username, u.avatar 
-      FROM place_reviews r 
-      JOIN users u ON r.user_id = u.id 
-      WHERE r.place_id = ? AND r.status = 1 
-      ORDER BY r.created_at DESC 
+      SELECT r.*, u.username, u.avatar
+      FROM place_reviews r
+      JOIN users u ON r.user_id = u.id
+      WHERE r.place_id = ? AND r.status = 1
+      ORDER BY r.created_at DESC
       LIMIT ? OFFSET ?
     `, [id, parseInt(size), parseInt(offset)])
 
-    // 解析JSON字段
-    for (let review of reviews) {
+    for (const review of reviews) {
       if (typeof review.images === 'string') {
         review.images = JSON.parse(review.images)
       }
@@ -272,68 +364,6 @@ router.get('/:id/reviews', async (req, res) => {
     })
   } catch (err) {
     console.error('获取评价列表失败:', err)
-    res.status(500).json(error('获取失败', 500))
-  }
-})
-
-/**
- * 获取用户收藏的地点列表
- */
-router.get('/user/favorites', auth, async (req, res) => {
-  const { page = 1, size = 10 } = req.query
-  const offset = (page - 1) * size
-
-  try {
-    const places = await query(`
-      SELECT p.*, 
-        (SELECT COUNT(*) FROM place_likes WHERE place_id = p.id) as likes,
-        (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id AND status = 1) as reviews_count
-      FROM places p
-      JOIN place_likes pl ON p.id = pl.place_id
-      WHERE pl.user_id = ? AND p.status = 1
-      ORDER BY pl.created_at DESC
-      LIMIT ? OFFSET ?
-    `, [req.user.id, parseInt(size), parseInt(offset)])
-
-    const total = await query(
-      'SELECT COUNT(*) as count FROM place_likes WHERE user_id = ?',
-      [req.user.id]
-    )
-
-    res.json({
-      success: true,
-      message: '获取成功',
-      data: {
-        list: places,
-        pagination: {
-          total: total[0].count,
-          page: parseInt(page),
-          size: parseInt(size),
-          pages: Math.ceil(total[0].count / size)
-        }
-      }
-    })
-  } catch (err) {
-    console.error('获取收藏列表失败:', err)
-    res.status(500).json(error('获取失败', 500))
-  }
-})
-
-/**
- * 获取地点类型统计
- */
-router.get('/types/stats', async (req, res) => {
-  try {
-    const stats = await query(`
-      SELECT type, COUNT(*) as count 
-      FROM places 
-      WHERE status = 1 
-      GROUP BY type
-    `)
-
-    res.json(success(stats, '获取成功'))
-  } catch (err) {
-    console.error('获取类型统计失败:', err)
     res.status(500).json(error('获取失败', 500))
   }
 })

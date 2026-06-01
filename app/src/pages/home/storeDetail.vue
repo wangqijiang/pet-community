@@ -133,7 +133,7 @@ import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import PageLayout from "@/components/common/PageLayout.vue";
 import { getPlaceDetail, getPlaceReviews, togglePlaceLike, type Place, type PlaceReview } from "@/api/place";
-import { PLACE_TYPE_LABEL, formatRelativeTime } from "@/utils/format";
+import { formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 
 const place = ref<Partial<Place>>({});
@@ -141,7 +141,7 @@ const reviews = ref<PlaceReview[]>([]);
 const favorited = ref(false);
 
 const typeLabel = computed(
-  () => PLACE_TYPE_LABEL[place.value.type || ""] || "宠物友好地点",
+  () => place.value.category_label || place.value.type || "宠物友好地点",
 );
 
 const goBack = () => uni.navigateBack();

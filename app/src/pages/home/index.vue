@@ -52,8 +52,10 @@ import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import { useLayout } from "@/composables/useLayout";
+import { getPlaceList } from "@/api/place";
 import { getMapMarkers } from "@/api/user";
 import { isLoggedIn } from "@/api/auth";
+import { buildPlaceMarker, buildUserMarker } from "@/utils/mapMarkers";
 
 const DEFAULT_MAP_CENTER = { lat: 39.916527, lng: 116.397128 };
 const LOCATION_TIMEOUT_MS = 2500;
@@ -72,53 +74,44 @@ const markerMeta = ref<
 >({});
 
 const loadMarkers = async (lat: number, lng: number) => {
-  if (!isLoggedIn()) return;
   try {
-    const data = await getMapMarkers(lat, lng);
-    const list: any[] = [];
+    const list: ReturnType<typeof buildPlaceMarker>[] = [];
     const meta: Record<
       number,
       { type: "place" | "user"; id: number; name: string }
     > = {};
 
-    data.places.forEach((p) => {
-      meta[p.id] = { type: "place", id: p.id, name: p.name };
-      list.push({
-        id: p.id,
-        latitude: Number(p.latitude),
-        longitude: Number(p.longitude),
-        iconPath: "/static/images/marker-place.png",
-        width: 40,
-        height: 40,
-        callout: {
-          content: p.name,
-          fontSize: 12,
-          borderRadius: 8,
-          bgColor: "#ffffff",
-          padding: 6,
-        },
-      });
+    const placeRes = await getPlaceList({
+      page: 1,
+      size: 50,
+      lat,
+      lng,
+      radius: 50,
     });
 
-    data.users.forEach((u) => {
-      const markerId = 100000 + u.id;
-      meta[markerId] = { type: "user", id: u.id, name: u.username };
-      list.push({
-        id: markerId,
-        latitude: Number(u.latitude),
-        longitude: Number(u.longitude),
-        iconPath: "/static/images/marker-user.png",
-        width: 40,
-        height: 40,
-        callout: {
-          content: u.pet_name ? `${u.username}·${u.pet_name}` : u.username,
-          fontSize: 12,
-          borderRadius: 8,
-          bgColor: "#ffffff",
-          padding: 6,
-        },
-      });
+    placeRes.list.forEach((p) => {
+      meta[p.id] = { type: "place", id: p.id, name: p.name };
+      list.push(
+        buildPlaceMarker({
+          id: p.id,
+          name: p.name,
+          type: p.type,
+          category_label: p.category_label,
+          latitude: p.latitude,
+          longitude: p.longitude,
+        }),
+      );
     });
+
+    if (isLoggedIn()) {
+      const data = await getMapMarkers(lat, lng);
+      data.users.forEach((u) => {
+        if (u.latitude == null || u.longitude == null) return;
+        const marker = buildUserMarker(u);
+        meta[marker.id] = { type: "user", id: u.id, name: u.username };
+        list.push(marker);
+      });
+    }
 
     markers.value = list;
     markerMeta.value = meta;
@@ -230,7 +223,7 @@ onMounted(() => {
 });
 
 onShow(() => {
-  if (isLoggedIn()) loadMarkers(mapCenter.value.lat, mapCenter.value.lng);
+  loadMarkers(mapCenter.value.lat, mapCenter.value.lng);
 });
 </script>
 
