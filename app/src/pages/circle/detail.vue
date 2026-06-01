@@ -222,6 +222,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError, promptLogin } from "@/utils/request";
 import { ref, computed, watch } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
@@ -385,7 +386,7 @@ const loadPost = async () => {
     await loadComments();
   } catch (error) {
     console.error("获取动态详情失败:", error);
-    uni.showToast({ title: "加载失败", icon: "none" });
+    showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
   }
@@ -404,17 +405,14 @@ const loadComments = async () => {
 };
 
 const handleLike = async () => {
-  if (!currentUser.value) {
-    uni.showToast({ title: "请先登录", icon: "none" });
-    return;
-  }
+  if (!promptLogin()) return;
   uni.vibrateShort({ type: "light" });
   try {
     const res = await toggleLikePost(post.value.id);
     liked.value = res.liked;
     likes.value = Math.max(0, likes.value + (res.liked ? 1 : -1));
-  } catch {
-    uni.showToast({ title: "操作失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "操作失败");
   }
 };
 
@@ -466,10 +464,7 @@ const goToAuthorProfile = () => {
 };
 
 const focusCommentInput = () => {
-  if (!currentUser.value) {
-    uni.showToast({ title: "请先登录", icon: "none" });
-    return;
-  }
+  if (!promptLogin()) return;
   cancelReply();
   showInputFocus.value = true;
 };
@@ -490,7 +485,7 @@ const handleDelete = async () => {
           }, 1500);
         } catch (error) {
           console.error("删除失败:", error);
-          uni.showToast({ title: "删除失败", icon: "none" });
+          showRequestError(error, "删除失败");
         }
       }
     }
@@ -509,6 +504,7 @@ const cancelReply = () => {
 };
 
 const submitComment = async () => {
+  if (!promptLogin()) return;
   if (!commentContent.value.trim()) {
     uni.showToast({ title: "请输入评论内容", icon: "none" });
     return;
@@ -524,7 +520,7 @@ const submitComment = async () => {
     cancelReply();
   } catch (error) {
     console.error("评论失败:", error);
-    uni.showToast({ title: "评论失败", icon: "none" });
+    showRequestError(error, "评论失败");
   } finally {
     submitLoading.value = false;
   }
@@ -554,7 +550,7 @@ const handleDeleteComment = async (comment: Comment) => {
           await loadPost();
         } catch (error) {
           console.error("删除评论失败:", error);
-          uni.showToast({ title: "删除失败", icon: "none" });
+          showRequestError(error, "删除失败");
         }
       }
     }

@@ -123,6 +123,7 @@ import {
 } from "@/utils/format";
 import dayjs from "dayjs";
 import { resolveMediaUrl } from "@/utils/media";
+import { showRequestError } from "@/utils/request";
 
 const loading = ref(false);
 const isUploading = ref(false);
@@ -199,11 +200,7 @@ const uploadAvatarFile = async (filePath) => {
       icon: "success",
     });
   } catch (error) {
-    console.error("上传头像失败:", error);
-    uni.showToast({
-      title: "上传头像失败",
-      icon: "none",
-    });
+    showRequestError(error, "上传头像失败");
   } finally {
     isUploading.value = false;
   }
@@ -261,11 +258,7 @@ const handleSave = async () => {
       uni.navigateBack();
     }, 1500);
   } catch (error) {
-    console.error("保存失败:", error);
-    uni.showToast({
-      title: "保存失败",
-      icon: "none",
-    });
+    showRequestError(error, "保存失败");
   } finally {
     loading.value = false;
   }

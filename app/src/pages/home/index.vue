@@ -1,18 +1,19 @@
 <template>
-  <PageLayout :tab-bar="true">
+  <PageLayout :tab-bar="true" :scrollable="false">
     <template #navbar>
       <TopNavBar title="同城狗友地图" :showBack="false" />
     </template>
 
-    <view class="map-wrap">
+    <view class="map-wrap" :style="mapAreaStyle">
       <map
         id="map"
         class="map-component"
+        :style="mapAreaStyle"
         :latitude="mapCenter.lat"
         :longitude="mapCenter.lng"
         :scale="13"
         :markers="markers"
-        :show-location="true"
+        :show-location="showLocation"
         @markertap="handleMarkerTap"
       />
 
@@ -45,15 +46,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import { useLayout } from "@/composables/useLayout";
 import { getMapMarkers } from "@/api/user";
 import { isLoggedIn } from "@/api/auth";
 
-const mapCenter = ref({ lat: 39.916527, lng: 116.397128 });
+const DEFAULT_MAP_CENTER = { lat: 39.916527, lng: 116.397128 };
+const LOCATION_TIMEOUT_MS = 2500;
+
+const { contentHeight } = useLayout({ tabBar: true });
+const mapAreaStyle = computed(() => ({
+  width: "100%",
+  height: `${contentHeight.value}px`,
+}));
+
+const mapCenter = ref({ ...DEFAULT_MAP_CENTER });
+const showLocation = ref(false);
 const markers = ref<any[]>([]);
 const markerMeta = ref<
   Record<number, { type: "place" | "user"; id: number; name: string }>
@@ -127,16 +139,75 @@ const handleMarkerTap = (e: { detail: { markerId: number } }) => {
   }
 };
 
-const handleLocation = () => {
-  uni.getLocation({
-    type: "gcj02",
-    success: (res) => {
-      mapCenter.value = { lat: res.latitude, lng: res.longitude };
-      uni.createMapContext("map").moveToLocation();
-      loadMarkers(res.latitude, res.longitude);
-      uni.showToast({ title: "定位成功", icon: "success" });
-    },
-    fail: () => uni.showToast({ title: "定位失败", icon: "none" }),
+const applyMapCenter = (
+  lat: number,
+  lng: number,
+  moveMap = false,
+  hasRealLocation = false,
+) => {
+  mapCenter.value = { lat, lng };
+  showLocation.value = hasRealLocation;
+  if (moveMap && hasRealLocation) {
+    uni.createMapContext("map").moveToLocation();
+  }
+  loadMarkers(lat, lng);
+};
+
+const getUserLocation = (): Promise<{
+  lat: number;
+  lng: number;
+  fromDefault: boolean;
+}> =>
+  new Promise((resolve) => {
+    let settled = false;
+    const finish = (result: {
+      lat: number;
+      lng: number;
+      fromDefault: boolean;
+    }) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+
+    const timer = setTimeout(() => {
+      finish({
+        ...DEFAULT_MAP_CENTER,
+        fromDefault: true,
+      });
+    }, LOCATION_TIMEOUT_MS);
+
+    uni.getLocation({
+      type: "gcj02",
+      success: (res) => {
+        clearTimeout(timer);
+        finish({
+          lat: res.latitude,
+          lng: res.longitude,
+          fromDefault: false,
+        });
+      },
+      fail: () => {
+        clearTimeout(timer);
+        finish({
+          ...DEFAULT_MAP_CENTER,
+          fromDefault: true,
+        });
+      },
+    });
+  });
+
+const initMapLocation = async () => {
+  const { lat, lng, fromDefault } = await getUserLocation();
+  applyMapCenter(lat, lng, false, !fromDefault);
+};
+
+const handleLocation = async () => {
+  const { lat, lng, fromDefault } = await getUserLocation();
+  applyMapCenter(lat, lng, true, !fromDefault);
+  uni.showToast({
+    title: fromDefault ? "定位失败，已展示默认区域" : "定位成功",
+    icon: fromDefault ? "none" : "success",
   });
 };
 
@@ -149,18 +220,13 @@ const goToFriendList = () => {
 };
 
 onMounted(() => {
-  if (!isLoggedIn()) {
-    uni.reLaunch({ url: "/pages/login/index" });
-    return;
-  }
-  uni.getLocation({
-    type: "gcj02",
-    success: (res) => {
-      mapCenter.value = { lat: res.latitude, lng: res.longitude };
-      loadMarkers(res.latitude, res.longitude);
-    },
-    fail: () => loadMarkers(mapCenter.value.lat, mapCenter.value.lng),
-  });
+  applyMapCenter(
+    DEFAULT_MAP_CENTER.lat,
+    DEFAULT_MAP_CENTER.lng,
+    false,
+    false,
+  );
+  initMapLocation();
 });
 
 onShow(() => {
@@ -169,20 +235,13 @@ onShow(() => {
 </script>
 
 <style lang="scss" scoped>
-.page-layout__content {
-  padding: 0;
-  position: relative;
-}
-
 .map-wrap {
-  width: 100%;
-  height: 100%;
   position: relative;
+  overflow: hidden;
 }
 
 .map-component {
-  width: 100%;
-  height: 100%;
+  display: block;
 }
 
 .location-btn {

@@ -128,6 +128,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import PageLayout from "@/components/common/PageLayout.vue";
@@ -166,8 +167,8 @@ const handleCollect = async () => {
     const res = await togglePlaceLike(place.value.id);
     favorited.value = res.liked;
     uni.showToast({ title: res.liked ? "已收藏" : "已取消", icon: "success" });
-  } catch {
-    uni.showToast({ title: "操作失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "操作失败");
   }
 };
 
@@ -178,8 +179,8 @@ onLoad(async (options) => {
     place.value = await getPlaceDetail(id);
     const res = await getPlaceReviews(id, 1, 5);
     reviews.value = res.list;
-  } catch {
-    uni.showToast({ title: "加载失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载失败");
   }
 });
 </script>

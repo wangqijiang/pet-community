@@ -153,6 +153,25 @@ export async function toggleFavoritePost(
   return res.data;
 }
 
+export async function getLikedPosts(
+  page = 1,
+  size = 10,
+): Promise<PostListResponse> {
+  const res = await get<PostListResponse>("/post/user/likes", {
+    page,
+    size,
+  });
+  return {
+    list: (res.data?.list || []).map(normalizePost),
+    pagination: res.data?.pagination || {
+      total: 0,
+      page,
+      size,
+      pages: 0,
+    },
+  };
+}
+
 export async function getFavoritePosts(
   page = 1,
   size = 10,

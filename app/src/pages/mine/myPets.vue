@@ -78,6 +78,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import Empty from "@/components/common/Empty.vue";
@@ -151,11 +152,7 @@ const handleDeletePet = async (pet: Pet) => {
           swipedIndex.value = null;
           await loadPets();
         } catch (error) {
-          console.error("删除宠物失败:", error);
-          uni.showToast({
-            title: "删除失败",
-            icon: "none",
-          });
+          showRequestError(error, "删除失败");
         } finally {
           loading.value = false;
         }
@@ -183,11 +180,7 @@ const loadPets = async () => {
     const data = await getPetList();
     pets.value = data;
   } catch (error) {
-    console.error("获取宠物列表失败:", error);
-    uni.showToast({
-      title: "获取宠物列表失败",
-      icon: "none",
-    });
+    showRequestError(error, "获取宠物列表失败");
   } finally {
     loading.value = false;
   }

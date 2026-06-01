@@ -29,10 +29,21 @@
       </view>
 
       <view class="login-area">
-        <view class="wechat-btn" @click="handleLogin" :class="{ loading: isLoading }">
-          <view class="wechat-icon icon-heart"></view>
-          <text class="wechat-text">{{ isLoading ? '登录中...' : '微信一键登录' }}</text>
-          <view v-if="isLoading" class="loading-icon"></view>
+        <button
+          class="wechat-btn"
+          open-type="getPhoneNumber"
+          :loading="isLoading"
+          :disabled="isLoading"
+          @getphonenumber="handleGetPhoneNumber"
+        >
+          <view class="wechat-btn-inner">
+            <view class="wechat-icon icon-heart"></view>
+            <text class="wechat-text">{{ isLoading ? '登录中...' : '微信一键登录' }}</text>
+          </view>
+        </button>
+
+        <view class="guest-btn" @click="handleGuestLogin">
+          <text class="guest-text">游客登录</text>
         </view>
 
         <text class="agreement">
@@ -48,44 +59,71 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { loginByCode, setUserInfo } from '../../api/auth'
+import { onShow } from '@dcloudio/uni-app'
+import { loginWechat, setUserInfo, isLoggedIn, enterGuestMode } from '../../api/auth'
 import { PENDING_SHARE_ROUTE_KEY } from '@/utils/postShare'
+import { connectRealtime } from '@/utils/realtime'
+import { safeReLaunch } from '@/utils/navigation'
 
 const isLoading = ref(false)
 
-const handleLogin = async () => {
-  isLoading.value = true
-  
-  try {
-    const result = await loginByCode('13800138001', '1234')
-    
-    setUserInfo(result.user, result.token)
-    
+const navigateAfterLogin = () => {
+  const pendingRoute = uni.getStorageSync(PENDING_SHARE_ROUTE_KEY)
+  if (pendingRoute) {
+    uni.removeStorageSync(PENDING_SHARE_ROUTE_KEY)
+    safeReLaunch(pendingRoute)
+    return
+  }
+  safeReLaunch('/pages/home/index')
+}
+
+const finishLogin = (result: Awaited<ReturnType<typeof loginWechat>>) => {
+  setUserInfo(result.user, result.token)
+  connectRealtime()
+  uni.showToast({
+    title: '登录成功',
+    icon: 'success',
+  })
+  setTimeout(navigateAfterLogin, 800)
+}
+
+const handleGuestLogin = () => {
+  enterGuestMode()
+  navigateAfterLogin()
+}
+
+const handleGetPhoneNumber = async (event: { detail?: { errMsg?: string; code?: string } }) => {
+  if (isLoading.value) return
+
+  const detail = event.detail || {}
+  if (detail.errMsg !== 'getPhoneNumber:ok' || !detail.code) {
     uni.showToast({
-      title: '登录成功',
-      icon: 'success',
+      title: '需要授权手机号才能登录',
+      icon: 'none',
     })
-    
-    setTimeout(() => {
-      const pendingRoute = uni.getStorageSync(PENDING_SHARE_ROUTE_KEY)
-      if (pendingRoute) {
-        uni.removeStorageSync(PENDING_SHARE_ROUTE_KEY)
-        uni.reLaunch({ url: pendingRoute })
-        return
-      }
-      uni.reLaunch({
-        url: '/pages/home/index',
-      })
-    }, 1500)
+    return
+  }
+
+  isLoading.value = true
+  try {
+    const result = await loginWechat(detail.code)
+    finishLogin(result)
   } catch (error) {
     uni.showToast({
       title: error instanceof Error ? error.message : '登录失败',
-      icon: 'error',
+      icon: 'none',
     })
   } finally {
     isLoading.value = false
   }
 }
+
+onShow(() => {
+  if (isLoggedIn()) {
+    connectRealtime()
+    navigateAfterLogin()
+  }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -227,26 +265,30 @@ const handleLogin = async () => {
 .wechat-btn {
   width: 100%;
   height: 116rpx;
+  padding: 0;
+  margin: 0;
+  border: none;
   border-radius: 999rpx;
   background: linear-gradient(135deg, #ffb36b, #ffa95d);
-  color: #ffffff;
-  font-size: 34rpx;
-  font-weight: 700;
+  box-shadow: 0 24rpx 56rpx rgba(255, 179, 107, 0.32);
+  overflow: hidden;
+
+  &::after {
+    border: none;
+  }
+
+  &[disabled] {
+    opacity: 0.7;
+  }
+}
+
+.wechat-btn-inner {
+  width: 100%;
+  height: 116rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 20rpx;
-  box-shadow: 0 24rpx 56rpx rgba(255, 179, 107, 0.32);
-  transition: all 0.2s ease;
-
-  &:active {
-    transform: scale(0.98);
-    opacity: 0.9;
-  }
-
-  &.loading {
-    opacity: 0.7;
-  }
 }
 
 .wechat-icon {
@@ -263,31 +305,39 @@ const handleLogin = async () => {
 .wechat-text {
   font-size: 34rpx;
   font-weight: 700;
+  color: #ffffff;
 }
 
-.loading-icon {
-  width: 36rpx;
-  height: 36rpx;
-  border: 3rpx solid rgba(255, 255, 255, 0.6);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
+.guest-btn {
+  margin-top: 24rpx;
+  width: 100%;
+  height: 96rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid rgba(244, 162, 89, 0.45);
+  background: rgba(255, 255, 255, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+  &:active {
+    opacity: 0.85;
+    transform: scale(0.98);
   }
 }
 
+.guest-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #d97d2f;
+}
+
 .agreement {
-  margin-top: 44rpx;
+  margin-top: 32rpx;
   text-align: center;
   font-size: 24rpx;
   line-height: 1.8;
   color: #a39797;
   width: 100%;
-  text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;

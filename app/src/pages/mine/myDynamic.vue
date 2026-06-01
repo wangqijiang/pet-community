@@ -120,6 +120,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
@@ -198,8 +199,8 @@ const loadDynamics = async () => {
       liked: !!p.liked,
       pets: mapPostPets(p.pets),
     }));
-  } catch {
-    uni.showToast({ title: "加载失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
     isRefreshing.value = false;
@@ -264,8 +265,8 @@ const handleLike = async (item: DynamicItem) => {
     const res = await toggleLikePost(item.id);
     item.liked = res.liked;
     item.likes = Math.max(0, item.likes + (res.liked ? 1 : -1));
-  } catch {
-    uni.showToast({ title: "操作失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "操作失败");
   }
 };
 
@@ -289,8 +290,8 @@ const handleDelete = (item: { id: number }) => {
         dynamicList.value = dynamicList.value.filter((d) => d.id !== item.id);
         uni.$emit("refreshPostList");
         uni.showToast({ title: "删除成功", icon: "success" });
-      } catch {
-        uni.showToast({ title: "删除失败", icon: "none" });
+      } catch (error) {
+        showRequestError(error, "删除失败");
       }
     },
   });

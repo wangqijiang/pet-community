@@ -7,11 +7,12 @@ const success = (data = null, message = '操作成功') => {
   }
 }
 
-const error = (message = '操作失败', code = -1) => {
+const error = (message = '操作失败', code = -1, data = null) => {
   return {
     success: false,
     message,
     code,
+    data,
     timestamp: Date.now()
   }
 }

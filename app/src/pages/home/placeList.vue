@@ -42,6 +42,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
@@ -84,8 +85,8 @@ const loadPlaces = async (reset = false) => {
       radius: 20,
     });
     placeList.value = reset ? res.list : res.list;
-  } catch {
-    uni.showToast({ title: "加载失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
   }

@@ -1,32 +1,35 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-import { isLoggedIn } from "@/api/auth";
+import { isLoggedIn, canAccessApp } from "@/api/auth";
 import {
   PENDING_SHARE_ROUTE_KEY,
   resolveSharedPostRoute,
 } from "@/utils/postShare";
 import { connectRealtime, disconnectRealtime } from "@/utils/realtime";
+import { safeReLaunch } from "@/utils/navigation";
 
 onLaunch((options) => {
   const sharedRoute = resolveSharedPostRoute(
     (options?.query as Record<string, string | undefined>) || undefined,
   );
 
-  if (sharedRoute) {
-    if (isLoggedIn()) {
-      uni.reLaunch({ url: sharedRoute });
-      return;
-    }
-    uni.setStorageSync(PENDING_SHARE_ROUTE_KEY, sharedRoute);
+  if (isLoggedIn()) {
+    connectRealtime();
   }
 
-  const pages = getCurrentPages();
-  const route = pages.length ? (pages[0] as { route?: string }).route : "";
-  if (!isLoggedIn() && route && !route.includes("login")) {
-    uni.reLaunch({ url: "/pages/login/index" });
+  if (sharedRoute && canAccessApp()) {
+    safeReLaunch(sharedRoute);
     return;
   }
-  if (isLoggedIn()) connectRealtime();
+
+  if (canAccessApp()) {
+    safeReLaunch("/pages/home/index");
+    return;
+  }
+
+  if (sharedRoute) {
+    uni.setStorageSync(PENDING_SHARE_ROUTE_KEY, sharedRoute);
+  }
 });
 onShow(() => {
   if (isLoggedIn()) connectRealtime();

@@ -66,6 +66,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import { ref, onMounted } from "vue";
@@ -88,8 +89,8 @@ const loadFriends = async () => {
       lng: lng.value,
       keyword: searchText.value || undefined,
     });
-  } catch (e) {
-    uni.showToast({ title: "加载失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
   }

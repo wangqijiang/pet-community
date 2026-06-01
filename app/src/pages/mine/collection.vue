@@ -1,76 +1,61 @@
 <template>
   <PageLayout refresher @refresh="onRefresh">
     <template #navbar>
-      <TopNavBar title="我的收藏" :showBack="true" />
+      <TopNavBar title="我的点赞" :showBack="true" />
     </template>
 
-    <view class="collection-inner">
-        <view
-          v-for="item in collectionList"
-          :key="item.id"
-          class="dynamic-card"
-          @tap="goToDetail(item.id)"
-        >
-          <view class="card-header">
-            <image
-              class="user-avatar"
-              :src="item.avatar"
-              mode="aspectFill"
-            ></image>
-            <view class="user-info">
-              <text class="user-name">{{ item.nickname }}</text>
-              <text class="post-time">{{ item.time }}</text>
-            </view>
-            <view class="uncollect-btn" @tap.stop="handleUncollect(item)">
-              <image
-                class="star-icon"
-                src="/static/images/icon-star-filled.png"
-                mode="aspectFit"
-              ></image>
-            </view>
-          </view>
-
-          <text class="post-content">{{ item.content }}</text>
-
-          <view
-            v-if="item.images && item.images.length > 0"
-            class="post-images"
-          >
-            <image
-              v-for="(img, index) in item.images"
-              :key="index"
-              class="post-image"
-              :class="{ single: item.images.length === 1 }"
-              :src="img"
-              mode="aspectFill"
-            ></image>
-          </view>
-
-          <view class="card-footer">
-            <view class="stat-item">
-              <image
-                class="stat-icon"
-                src="/static/images/icon-like.png"
-                mode="aspectFit"
-              ></image>
-              <text class="stat-text">{{ item.likeCount }}</text>
-            </view>
-            <view class="stat-item">
-              <image
-                class="stat-icon"
-                src="/static/images/icon-comment.png"
-                mode="aspectFit"
-              ></image>
-              <text class="stat-text">{{ item.commentCount }}</text>
-            </view>
+    <view class="liked-inner">
+      <view
+        v-for="item in likedList"
+        :key="item.id"
+        class="dynamic-card"
+        @tap="goToDetail(item.id)"
+      >
+        <view class="card-header">
+          <image
+            class="user-avatar"
+            :src="item.avatar"
+            mode="aspectFill"
+          ></image>
+          <view class="user-info">
+            <text class="user-name">{{ item.nickname }}</text>
+            <text class="post-time">{{ item.time }}</text>
           </view>
         </view>
 
-        <Empty
-          v-if="collectionList.length === 0 && !loading"
-          type="noData"
-          text="暂无收藏"
-        />
+        <text class="post-content">{{ item.content }}</text>
+
+        <view
+          v-if="item.images && item.images.length > 0"
+          class="post-images"
+        >
+          <image
+            v-for="(img, index) in item.images"
+            :key="index"
+            class="post-image"
+            :class="{ single: item.images.length === 1 }"
+            :src="img"
+            mode="aspectFill"
+          ></image>
+        </view>
+
+        <view class="card-footer">
+          <view class="stat-item" @tap.stop="handleUnlike(item)">
+            <text class="stat-icon liked">♥</text>
+            <text class="stat-text">{{ item.likeCount }}</text>
+          </view>
+          <view class="stat-item" @tap.stop="goToDetail(item.id)">
+            <text class="stat-icon">💬</text>
+            <text class="stat-text">{{ item.commentCount }}</text>
+          </view>
+        </view>
+      </view>
+
+      <Empty
+        v-if="likedList.length === 0 && !loading"
+        type="noData"
+        text="暂无点赞"
+      />
     </view>
 
     <Loading :visible="loading" />
@@ -78,17 +63,18 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import Empty from "@/components/common/Empty.vue";
 import Loading from "@/components/common/Loading.vue";
-import { getFavoritePosts, toggleFavoritePost } from "@/api/post";
+import { getLikedPosts, toggleLikePost } from "@/api/post";
 import { formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 
 const loading = ref(false);
-const collectionList = ref<
+const likedList = ref<
   Array<{
     id: number;
     avatar: string;
@@ -101,11 +87,11 @@ const collectionList = ref<
   }>
 >([]);
 
-const loadCollectionList = async () => {
+const loadLikedList = async () => {
   loading.value = true;
   try {
-    const res = await getFavoritePosts(1, 50);
-    collectionList.value = res.list.map((p) => ({
+    const res = await getLikedPosts(1, 50);
+    likedList.value = res.list.map((p) => ({
       id: p.id,
       avatar: resolveMediaUrl(p.avatar),
       nickname: p.username,
@@ -115,34 +101,33 @@ const loadCollectionList = async () => {
       likeCount: p.likes || 0,
       commentCount: p.comments || 0,
     }));
-  } catch {
-    uni.showToast({ title: "加载失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
   }
 };
 
-onMounted(loadCollectionList);
+onMounted(loadLikedList);
 
-const onRefresh = () => loadCollectionList();
-const loadMore = () => {};
+const onRefresh = () => loadLikedList();
 
 const goToDetail = (id: number) => {
   uni.navigateTo({ url: `/pages/circle/detail?id=${id}` });
 };
 
-const handleUncollect = (item: { id: number }) => {
+const handleUnlike = (item: { id: number }) => {
   uni.showModal({
     title: "提示",
-    content: "确定取消收藏吗？",
+    content: "确定取消点赞吗？",
     success: async (res) => {
       if (!res.confirm) return;
       try {
-        await toggleFavoritePost(item.id);
-        collectionList.value = collectionList.value.filter((c) => c.id !== item.id);
-        uni.showToast({ title: "取消收藏", icon: "success" });
-      } catch {
-        uni.showToast({ title: "操作失败", icon: "none" });
+        await toggleLikePost(item.id);
+        likedList.value = likedList.value.filter((c) => c.id !== item.id);
+        uni.showToast({ title: "已取消点赞", icon: "success" });
+      } catch (error) {
+        showRequestError(error, "操作失败");
       }
     },
   });
@@ -152,7 +137,7 @@ const handleUncollect = (item: { id: number }) => {
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
 
-.collection-inner {
+.liked-inner {
   padding: 0 $spacing-page-horizontal 32rpx;
   box-sizing: border-box;
 }
@@ -191,19 +176,6 @@ const handleUncollect = (item: { id: number }) => {
       .post-time {
         font-size: $font-size-helper;
         color: $color-gray-lighter;
-      }
-    }
-
-    .uncollect-btn {
-      width: 56rpx;
-      height: 56rpx;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      .star-icon {
-        width: 36rpx;
-        height: 36rpx;
       }
     }
   }
@@ -246,8 +218,12 @@ const handleUncollect = (item: { id: number }) => {
       gap: 8rpx;
 
       .stat-icon {
-        width: 32rpx;
-        height: 32rpx;
+        font-size: 28rpx;
+        line-height: 1;
+
+        &.liked {
+          color: #f4a259;
+        }
       }
 
       .stat-text {

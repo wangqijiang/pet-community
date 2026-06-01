@@ -28,10 +28,12 @@ export interface NotificationListResponse {
 export async function getNotifications(
   page = 1,
   size = 20,
+  type?: Notification["type"],
 ): Promise<NotificationListResponse> {
   const res = await get<NotificationListResponse>("/notification", {
     page,
     size,
+    type,
   });
   return (
     res.data || {

@@ -24,13 +24,18 @@
 .page-layout__content {
   width: 100%;
   box-sizing: border-box;
-  flex-shrink: 0;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
 .page-layout__inner {
   width: 100%;
   box-sizing: border-box;
+}
+
+.page-layout__inner--fill {
+  height: 100%;
 }
 
 /** 子页面内容区内边距（配合 PageLayout 使用） */

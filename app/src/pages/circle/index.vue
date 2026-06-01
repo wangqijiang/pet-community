@@ -117,6 +117,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError, promptLogin } from "@/utils/request";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
@@ -132,7 +133,7 @@ import {
   type Post,
   type PostCategory,
 } from "@/api/post";
-import { getUserInfo } from "@/api/auth";
+import { getUserInfo, isLoggedIn } from "@/api/auth";
 import { resolveMediaUrl } from "@/utils/media";
 import { formatRelativeTime } from "@/utils/format";
 
@@ -174,6 +175,7 @@ const goToUserProfile = (item: Post) => {
 };
 
 const goToPublish = () => {
+  if (!promptLogin()) return;
   uni.navigateTo({ url: "/pages/circle/publish" });
 };
 
@@ -184,8 +186,8 @@ const goToDetail = (item: Post) => {
 const loadCategories = async () => {
   try {
     categories.value = await getPostCategories();
-  } catch {
-    uni.showToast({ title: "加载分类失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载分类失败");
   }
 };
 
@@ -217,8 +219,8 @@ const loadPosts = async (pageNum: number, isRefresh = false) => {
     }));
     feedList.value = isRefresh ? list : [...feedList.value, ...list];
     hasMore.value = response.pagination.page < response.pagination.pages;
-  } catch {
-    uni.showToast({ title: "加载失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
     refreshing.value = false;
@@ -238,13 +240,14 @@ const onLoadMore = () => {
 };
 
 const handleLike = async (item: Post & { liked: boolean; likes: number }) => {
+  if (!promptLogin()) return;
   uni.vibrateShort({ type: "light" });
   try {
     const res = await toggleLikePost(item.id);
     item.liked = res.liked;
     item.likes = Math.max(0, item.likes + (res.liked ? 1 : -1));
-  } catch {
-    uni.showToast({ title: "操作失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "操作失败");
   }
 };
 
@@ -258,8 +261,8 @@ const handleDelete = async (item: Post) => {
         await deletePost(item.id);
         feedList.value = feedList.value.filter((p) => p.id !== item.id);
         uni.showToast({ title: "删除成功", icon: "success" });
-      } catch {
-        uni.showToast({ title: "删除失败", icon: "none" });
+      } catch (error) {
+        showRequestError(error, "删除失败");
       }
     },
   });

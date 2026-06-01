@@ -1,31 +1,41 @@
 <template>
-  <PageLayout>
+  <PageLayout refresher @refresh="onRefresh">
     <template #navbar>
-      <TopNavBar title="系统通知" :showBack="true" />
+      <TopNavBar :title="pageTitle" :showBack="true" />
     </template>
 
-    <view class="page-inner system-detail-inner">
-      <view class="notice-card">
-        <view class="notice-icon-wrapper">
-          <image
-            class="notice-icon"
-            src="/static/images/icon-like-filled.png"
-            mode="aspectFit"
-          ></image>
-        </view>
-        <text class="notice-title">{{ noticeDetail.title }}</text>
-        <text class="notice-time">{{ noticeDetail.time }}</text>
-        <view class="notice-content">
-          <text class="content-text">{{ noticeDetail.content }}</text>
-        </view>
-        <view
-          v-if="noticeDetail.target_id && noticeDetail.target_type === 'post'"
-          class="action-btn"
-          @tap="goToRelated"
-        >
-          <text class="btn-text">查看动态</text>
-        </view>
+    <view class="page-inner notice-list-inner">
+      <view
+        v-if="noticeType === 'follow'"
+        class="fans-link"
+        @tap="goToFans"
+      >
+        <text class="fans-link-text">查看全部粉丝</text>
+        <view class="fans-link-arrow"></view>
       </view>
+
+      <view
+        v-for="item in noticeList"
+        :key="item.id"
+        class="notice-item"
+        @tap="handleItemTap(item)"
+      >
+        <image class="avatar" :src="item.avatar" mode="aspectFill" />
+        <view class="info">
+          <view class="info-top">
+            <text class="name">{{ item.name }}</text>
+            <text class="time">{{ item.time }}</text>
+          </view>
+          <text class="desc">{{ item.desc }}</text>
+        </view>
+        <view v-if="item.unread" class="dot"></view>
+      </view>
+
+      <Empty
+        v-if="noticeList.length === 0 && !loading"
+        type="bell"
+        :text="emptyText"
+      />
     </view>
 
     <Loading :visible="loading" />
@@ -33,134 +43,236 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { showRequestError } from "@/utils/request";
+import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import Loading from "@/components/common/Loading.vue";
-import { getNotificationDetail } from "@/api/notification";
+import {
+  getNotifications,
+  markNotificationsRead,
+  type Notification,
+} from "@/api/notification";
 import { formatRelativeTime } from "@/utils/format";
+import { resolveMediaUrl } from "@/utils/media";
+import { emitRefreshTabBarBadge } from "@/utils/tabBarBadge";
 
+type NoticeType = "like" | "comment" | "follow";
+
+const TYPE_META: Record<
+  NoticeType,
+  { title: string; empty: string; action: string }
+> = {
+  like: {
+    title: "点赞通知",
+    empty: "暂无点赞通知",
+    action: "赞了你的动态",
+  },
+  comment: {
+    title: "评论通知",
+    empty: "暂无评论通知",
+    action: "评论了你的动态",
+  },
+  follow: {
+    title: "关注通知",
+    empty: "暂无关注通知",
+    action: "关注了你",
+  },
+};
+
+const defaultAvatar = "/static/images/avatar-default.png";
 const loading = ref(false);
-const noticeDetail = ref({
-  id: 0,
-  title: "",
-  time: "",
-  content: "",
-  target_id: 0 as number | undefined,
-  target_type: "" as string | undefined,
-});
+const noticeType = ref<NoticeType>("like");
+const noticeList = ref<
+  Array<{
+    id: number;
+    name: string;
+    avatar: string;
+    desc: string;
+    time: string;
+    unread: boolean;
+    fromUserId?: number;
+    targetId?: number;
+    targetType?: string;
+  }>
+>([]);
 
-const loadNoticeDetail = async (id: number) => {
+const pageTitle = computed(() => TYPE_META[noticeType.value]?.title || "系统通知");
+const emptyText = computed(() => TYPE_META[noticeType.value]?.empty || "暂无通知");
+
+const mapNoticeItem = (n: Notification) => {
+  const meta = TYPE_META[noticeType.value];
+  const name = n.from_username || "用户";
+  const actionText = n.content?.trim() || meta.action;
+  return {
+    id: n.id,
+    name,
+    avatar: resolveMediaUrl(n.from_avatar) || defaultAvatar,
+    desc: noticeType.value === "follow" ? actionText : `${name} ${actionText}`,
+    time: formatRelativeTime(n.created_at),
+    unread: !n.is_read,
+    fromUserId: n.from_user_id,
+    targetId: n.target_id,
+    targetType: n.target_type,
+  };
+};
+
+const markUnreadAsRead = async (list: Notification[]) => {
+  const ids = list.filter((n) => !n.is_read).map((n) => n.id);
+  if (!ids.length) return;
+  try {
+    await markNotificationsRead(ids);
+    emitRefreshTabBarBadge();
+  } catch {
+    /* ignore */
+  }
+};
+
+const loadNoticeList = async () => {
   loading.value = true;
   try {
-    const n = await getNotificationDetail(id);
-    noticeDetail.value = {
-      id: n.id,
-      title: n.title,
-      time: formatRelativeTime(n.created_at),
-      content: n.content || "",
-      target_id: n.target_id,
-      target_type: n.target_type,
-    };
-  } catch {
-    uni.showToast({ title: "加载失败", icon: "none" });
+    const res = await getNotifications(1, 50, noticeType.value);
+    noticeList.value = res.list.map(mapNoticeItem);
+    await markUnreadAsRead(res.list);
+    noticeList.value = noticeList.value.map((item) => ({ ...item, unread: false }));
+  } catch (error) {
+    showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
   }
 };
 
-const goToRelated = () => {
-  if (!noticeDetail.value.target_id) return;
-  uni.navigateTo({
-    url: `/pages/circle/detail?id=${noticeDetail.value.target_id}`,
-  });
+const onRefresh = () => loadNoticeList();
+
+const goToFans = () => {
+  uni.navigateTo({ url: "/pages/mine/fans" });
+};
+
+const handleItemTap = (item: (typeof noticeList.value)[number]) => {
+  if (noticeType.value === "follow") {
+    if (!item.fromUserId) return;
+    uni.navigateTo({
+      url: `/pages/mine/userProfile?id=${item.fromUserId}&name=${encodeURIComponent(item.name)}`,
+    });
+    return;
+  }
+
+  if (item.targetId && item.targetType === "post") {
+    uni.navigateTo({ url: `/pages/circle/detail?id=${item.targetId}` });
+    return;
+  }
+
+  if (item.fromUserId) {
+    uni.navigateTo({
+      url: `/pages/mine/userProfile?id=${item.fromUserId}&name=${encodeURIComponent(item.name)}`,
+    });
+  }
 };
 
 onLoad((options) => {
-  const id = Number(options?.id);
-  if (id) loadNoticeDetail(id);
+  const type = options?.type as NoticeType | undefined;
+  if (type && TYPE_META[type]) {
+    noticeType.value = type;
+  }
+  loadNoticeList();
 });
 </script>
 
 <style lang="scss" scoped>
 @import "@/styles/variables.scss";
-@import "@/styles/layout.scss";
 
-.system-detail-inner {
-  padding-top: 20rpx;
+.notice-list-inner {
+  padding-top: 8rpx;
 }
 
-.notice-card {
-  background: $color-bg-white;
-  border-radius: $border-radius-base;
-  padding: $spacing-component;
+.fans-link {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: $spacing-component;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 28rpx 32rpx;
+  margin-bottom: 24rpx;
   box-shadow: $shadow-light;
+}
 
-  .notice-icon-wrapper {
-    width: 120rpx;
-    height: 120rpx;
-    background: linear-gradient(135deg, $color-primary 0%, #ffd4f0 100%);
-    border-radius: $border-radius-circle;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.fans-link-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #6b4e3d;
+}
 
-    .notice-icon {
-      width: 64rpx;
-      height: 64rpx;
-    }
-  }
+.fans-link-arrow {
+  width: 28rpx;
+  height: 28rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238A7F7F'%3E%3Cpath d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
 
-  .notice-title {
-    font-size: $font-size-title;
-    font-weight: $font-weight-bold;
-    color: $color-gray-dark;
-  }
+.notice-item {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 28rpx 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: $shadow-light;
+  position: relative;
+}
 
-  .notice-time {
-    font-size: $font-size-body;
-    color: $color-gray-lighter;
-  }
+.avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 28rpx;
+  flex-shrink: 0;
+}
 
-  .notice-content {
-    box-sizing: border-box;
-    width: 100%;
-    padding: $spacing-component;
-    background: $color-bg-primary;
-    border-radius: $border-radius-base;
+.info {
+  flex: 1;
+  min-width: 0;
+}
 
-    .content-text {
-      font-size: $font-size-body;
-      color: $color-gray-dark;
-      line-height: 1.6;
-    }
-  }
+.info-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
 
-  .action-btn {
-    width: 100%;
-    height: $button-height-large;
-    background: linear-gradient(135deg, $color-primary 0%, #ffd4f0 100%);
-    border-radius: $border-radius-base;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: $shadow-pink;
-    transition: transform $transition-base ease;
+.name {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #3d2f2f;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-    &:active {
-      transform: scale($scale-press);
-    }
+.time {
+  font-size: 24rpx;
+  color: #b0a6a6;
+  flex-shrink: 0;
+}
 
-    .btn-text {
-      font-size: $font-size-button;
-      font-weight: $font-weight-bold;
-      color: $color-bg-white;
-    }
-  }
+.desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #8a7f7f;
+  line-height: 1.5;
+}
+
+.dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #e54b4b;
+  flex-shrink: 0;
 }
 </style>

@@ -65,6 +65,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import { ref, computed, watch, nextTick, getCurrentInstance } from "vue";
 import type { PostShareInput } from "@/utils/postShare";
 import { buildPostShareLink } from "@/utils/postShare";
@@ -122,9 +123,8 @@ const drawCard = async () => {
     setPendingPostShare(buildPendingPostShare(props.post, imagePath));
     return imagePath;
   } catch (error) {
-    console.error("分享卡片绘制失败:", error);
-    uni.showToast({ title: "卡片生成失败，请重试", icon: "none" });
-    return "";
+    showRequestError(error, "卡片生成失败，请重试");
+return "";
   } finally {
     generating.value = false;
   }

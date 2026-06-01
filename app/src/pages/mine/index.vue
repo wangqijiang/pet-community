@@ -21,6 +21,7 @@
             <view class="user-info">
               <text class="name">{{ userInfo?.username || "未登录" }}</text>
               <text class="desc" v-if="userInfo?.signature">{{ userInfo.signature }}</text>
+              <text class="desc guest-hint" v-else-if="!isLoggedIn()">登录后可同步个人资料与宠物信息</text>
             </view>
           </view>
           <view class="edit-btn" @click="goToEditInfo">
@@ -86,8 +87,8 @@
       </view>
 
       <view class="menu-section">
-        <view class="menu-item" @click="goToCollection">
-          <text class="menu-label">我的收藏</text>
+        <view class="menu-item" @click="goToLikedPosts">
+          <text class="menu-label">我的点赞</text>
           <view class="menu-arrow"></view>
         </view>
         <view class="menu-item" @click="goToAiGuide">
@@ -107,11 +108,15 @@
       </view>
 
       <view
+        v-if="isLoggedIn()"
         class="logout-btn"
         @click="handleLogout"
         :class="{ loading: isLoggingOut }"
       >
         <text>{{ isLoggingOut ? "退出中..." : "退出登录" }}</text>
+      </view>
+      <view v-else class="login-btn" @click="goToLogin">
+        <text>去登录</text>
       </view>
     </view>
 
@@ -122,12 +127,13 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import { ref, onMounted, onUnmounted } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
-import { logout } from "@/api/auth";
+import { logout, isLoggedIn, promptLogin } from "@/api/auth";
 import { getUserInfo } from "@/api/user";
 import { getPetList, type Pet } from "@/api/pet";
 import { resolveMediaUrl } from "@/utils/media";
@@ -151,8 +157,14 @@ onMounted(async () => {
 });
 
 onShow(() => {
-  loadUserInfo();
-  loadPets();
+  if (isLoggedIn()) {
+    loadUserInfo();
+    loadPets();
+  } else {
+    userInfo.value = null;
+    pets.value = [];
+    stats.value = { posts: 0, following: 0, followers: 0 };
+  }
 });
 
 onUnmounted(() => {
@@ -175,16 +187,13 @@ const loadUserInfo = async () => {
 };
 
 const loadPets = async () => {
+  if (!isLoggedIn()) return;
   isLoadingPets.value = true;
   try {
     const data = await getPetList();
     pets.value = data.slice(0, MAX_DISPLAY_PETS);
   } catch (error) {
-    console.error("获取宠物列表失败:", error);
-    uni.showToast({
-      title: "获取宠物列表失败",
-      icon: "none",
-    });
+    showRequestError(error, "获取宠物列表失败");
   } finally {
     isLoadingPets.value = false;
   }
@@ -193,18 +202,21 @@ const loadPets = async () => {
 const getFullAvatarUrl = (avatar: string) => resolveMediaUrl(avatar);
 
 const goToSetting = () => {
+  if (!promptLogin()) return;
   uni.navigateTo({
     url: "/pages/mine/setting",
   });
 };
 
 const goToEditInfo = () => {
+  if (!promptLogin()) return;
   uni.navigateTo({
     url: "/pages/mine/editInfo",
   });
 };
 
 const goToPetInfo = () => {
+  if (!promptLogin()) return;
   uni.navigateTo({
     url: "/pages/mine/myPets",
   });
@@ -214,6 +226,7 @@ const defaultAvatar =
   "https://api.dicebear.com/7.x/avataaars/svg?seed=pet";
 
 const goToAddPet = () => {
+  if (!promptLogin()) return;
   uni.vibrateShort({ type: "light" });
   uni.navigateTo({
     url: "/pages/mine/addPet",
@@ -221,36 +234,46 @@ const goToAddPet = () => {
 };
 
 const goToEditPet = (pet: Pet) => {
+  if (!promptLogin()) return;
   uni.vibrateShort({ type: "light" });
   uni.navigateTo({
     url: `/pages/mine/addPet?id=${pet.id}`,
   });
 };
 
-const goToCollection = () => {
+const goToLikedPosts = () => {
+  if (!promptLogin()) return;
   uni.navigateTo({ url: "/pages/mine/collection" });
 };
 
 const goToAiGuide = () => {
+  if (!promptLogin()) return;
   uni.navigateTo({ url: "/pages/mine/aiGuide" });
 };
 
 const goToFollow = () => {
+  if (!promptLogin()) return;
   uni.navigateTo({
     url: "/pages/mine/follow",
   });
 };
 
 const goToFans = () => {
+  if (!promptLogin()) return;
   uni.navigateTo({
     url: "/pages/mine/fans",
   });
 };
 
 const goToMyDynamic = () => {
+  if (!promptLogin()) return;
   uni.navigateTo({
     url: "/pages/mine/myDynamic",
   });
+};
+
+const goToLogin = () => {
+  uni.reLaunch({ url: "/pages/login/index" });
 };
 
 const handleLogout = () => {
@@ -684,6 +707,10 @@ const handleLogout = () => {
   background-size: 100%;
 }
 
+.guest-hint {
+  color: #9b9090;
+}
+
 .logout-btn {
   margin-top: 60rpx;
   width: 100%;
@@ -706,6 +733,26 @@ const handleLogout = () => {
 
   &.loading {
     opacity: 0.6;
+  }
+}
+
+.login-btn {
+  margin-top: 60rpx;
+  width: 100%;
+  height: 112rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #ffb36b, #ffa95d);
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 16rpx 48rpx rgba(255, 179, 107, 0.28);
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
   }
 }
 </style>

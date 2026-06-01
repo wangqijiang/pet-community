@@ -10,7 +10,7 @@
       >
         <view class="tab-icon">
           <view :class="['icon', item.icon]"></view>
-          <view class="badge" v-if="item.badge > 0">{{ item.badge }}</view>
+          <view class="badge" v-if="index === 2 && messageBadge > 0">{{ messageBadge }}</view>
         </view>
         <view class="tab-text">{{ item.text }}</view>
       </view>
@@ -20,41 +20,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
-import { onShow } from "@dcloudio/uni-app";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { getUnreadMessageCount } from "@/api/message";
 import { getUnreadNotificationCount } from "@/api/notification";
 import { isLoggedIn } from "@/api/auth";
+import { REFRESH_TAB_BAR_BADGE } from "@/utils/tabBarBadge";
+import { safeReLaunch } from "@/utils/navigation";
 
 const props = defineProps<{
   current: number;
 }>();
 
 const currentIndex = ref(0);
+const messageBadge = ref(0);
 
 const tabs = [
   {
     text: "首页",
     icon: "icon-home",
-    badge: 0,
     url: "/pages/home/index",
   },
   {
     text: "萌宠圈",
     icon: "icon-circle",
-    badge: 0,
     url: "/pages/circle/index",
   },
   {
     text: "消息",
     icon: "icon-message",
-    badge: 0,
     url: "/pages/message/index",
   },
   {
     text: "我的",
     icon: "icon-mine",
-    badge: 0,
     url: "/pages/mine/index",
   },
 ];
@@ -67,13 +65,16 @@ watch(
 );
 
 const refreshBadge = async () => {
-  if (!isLoggedIn()) return;
+  if (!isLoggedIn()) {
+    messageBadge.value = 0;
+    return;
+  }
   try {
     const [msg, notif] = await Promise.all([
       getUnreadMessageCount(),
       getUnreadNotificationCount(),
     ]);
-    tabs[2].badge = msg + notif;
+    messageBadge.value = msg + notif;
   } catch {
     /* ignore */
   }
@@ -82,17 +83,18 @@ const refreshBadge = async () => {
 onMounted(() => {
   currentIndex.value = props.current;
   refreshBadge();
+  uni.$on(REFRESH_TAB_BAR_BADGE, refreshBadge);
 });
 
-onShow(refreshBadge);
+onUnmounted(() => {
+  uni.$off(REFRESH_TAB_BAR_BADGE, refreshBadge);
+});
 
 const handleTabClick = (index: number) => {
   if (currentIndex.value === index) return;
   uni.vibrateShort({ type: "light" });
   currentIndex.value = index;
-  uni.reLaunch({
-    url: tabs[index].url,
-  });
+  safeReLaunch(tabs[index].url);
 };
 </script>
 

@@ -64,6 +64,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
@@ -106,8 +107,8 @@ const loadFollowList = async () => {
       );
     }
     userList.value = list;
-  } catch {
-    uni.showToast({ title: "加载失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
   }
@@ -132,8 +133,8 @@ const handleUnfollow = (user: { id: number; nickname: string }) => {
         await unfollowUser(user.id);
         userList.value = userList.value.filter((u) => u.id !== user.id);
         uni.showToast({ title: "已取消关注", icon: "success" });
-      } catch {
-        uni.showToast({ title: "操作失败", icon: "none" });
+      } catch (error) {
+        showRequestError(error, "操作失败");
       }
     },
   });

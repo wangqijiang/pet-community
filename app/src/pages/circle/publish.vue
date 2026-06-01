@@ -112,6 +112,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError, isAuthRequiredError } from "@/utils/request";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
@@ -154,8 +155,8 @@ onLoad(async (options) => {
 const loadCategories = async () => {
   try {
     categories.value = await getPostCategories();
-  } catch {
-    uni.showToast({ title: "加载分类失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载分类失败");
   }
 };
 
@@ -166,8 +167,8 @@ const toggleCategory = (key: string) => {
 const loadPets = async () => {
   try {
     pets.value = await getPetList();
-  } catch {
-    uni.showToast({ title: "加载宠物失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载宠物失败");
   }
 };
 
@@ -243,9 +244,11 @@ const loadPostForEdit = async () => {
       selectedPetIds.value = [...post.pet_ids];
     }
     selectedCategory.value = post.category || null;
-  } catch {
-    uni.showToast({ title: "加载动态失败", icon: "none" });
-    setTimeout(() => uni.navigateBack(), 1500);
+  } catch (error) {
+    showRequestError(error, "加载动态失败");
+    if (!isAuthRequiredError(error)) {
+      setTimeout(() => uni.navigateBack(), 1500);
+    }
   } finally {
     loading.value = false;
   }
@@ -323,11 +326,7 @@ const handlePublish = async () => {
       uni.navigateBack();
     }, 1500);
   } catch (error) {
-    console.error(editId.value ? "保存失败:" : "发布失败:", error);
-    uni.showToast({
-      title: editId.value ? "保存失败" : "发布失败",
-      icon: "none",
-    });
+    showRequestError(error, editId.value ? "保存失败" : "发布失败");
   } finally {
     loading.value = false;
   }

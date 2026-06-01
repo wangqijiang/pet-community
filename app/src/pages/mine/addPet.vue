@@ -380,6 +380,7 @@ import {
   formatPetGender,
 } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
+import { showRequestError } from "@/utils/request";
 import { useFixedFooterHeight } from "@/composables/useLayout";
 
 const { footerHeight, measureFooterHeight: measureFooter } = useFixedFooterHeight(
@@ -605,11 +606,7 @@ const loadPetData = async () => {
       weightInputRaw.value = formData.value.weight;
     }
   } catch (error) {
-    console.error("获取宠物详情失败:", error);
-    uni.showToast({
-      title: "获取宠物详情失败",
-      icon: "none",
-    });
+    showRequestError(error, "获取宠物详情失败");
   } finally {
     loading.value = false;
   }
@@ -1166,11 +1163,7 @@ const handleSave = async () => {
         }, 1500);
       })
       .catch((error) => {
-        console.error("更新宠物失败:", error);
-        uni.showToast({
-          title: "更新失败",
-          icon: "none",
-        });
+        showRequestError(error, "更新失败");
       })
       .finally(() => {
         loading.value = false;
@@ -1188,11 +1181,7 @@ const handleSave = async () => {
         }, 1500);
       })
       .catch((error) => {
-        console.error("添加宠物失败:", error);
-        uni.showToast({
-          title: "添加失败",
-          icon: "none",
-        });
+        showRequestError(error, "添加失败");
       })
       .finally(() => {
         loading.value = false;
@@ -1221,11 +1210,7 @@ const handleDelete = () => {
             }, 1500);
           })
           .catch((error) => {
-            console.error("删除宠物失败:", error);
-            uni.showToast({
-              title: "删除失败",
-              icon: "none",
-            });
+            showRequestError(error, "删除失败");
           })
           .finally(() => {
             loading.value = false;

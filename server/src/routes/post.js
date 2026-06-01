@@ -609,6 +609,53 @@ router.post('/comment/:commentId/like', auth, async (req, res) => {
 })
 
 /**
+ * 获取用户点赞的动态列表
+ */
+router.get('/user/likes', auth, async (req, res) => {
+  const { page = 1, size = 10 } = req.query
+  const offset = (page - 1) * size
+
+  try {
+    const posts = await query(`
+      SELECT p.*, u.username, u.avatar,
+        (SELECT COUNT(*) FROM likes WHERE target_id = p.id AND target_type = 'post') as likes_count,
+        (SELECT COUNT(*) FROM comments WHERE post_id = p.id AND status = 1) as comments_count
+      FROM posts p
+      JOIN likes l ON p.id = l.target_id AND l.target_type = 'post'
+      JOIN users u ON p.user_id = u.id
+      WHERE l.user_id = ? AND p.status = 1
+      ORDER BY l.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [req.user.id, parseInt(size), parseInt(offset)])
+
+    await attachPetsToPosts(posts)
+    await attachLikedStatus(posts, req.user.id)
+
+    const total = await query(
+      'SELECT COUNT(*) as count FROM likes WHERE user_id = ? AND target_type = ?',
+      [req.user.id, 'post']
+    )
+
+    res.json({
+      success: true,
+      message: '获取成功',
+      data: {
+        list: posts,
+        pagination: {
+          total: total[0].count,
+          page: parseInt(page),
+          size: parseInt(size),
+          pages: Math.ceil(total[0].count / size)
+        }
+      }
+    })
+  } catch (err) {
+    console.error('获取点赞列表失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+/**
  * 获取用户收藏的动态列表
  */
 router.get('/user/favorites', auth, async (req, res) => {

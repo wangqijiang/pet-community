@@ -134,6 +134,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
@@ -195,8 +196,8 @@ const loadUserProfile = async () => {
     posts.value = postRes.list;
     postsTotal.value = postRes.pagination.total;
     isFollowing.value = following;
-  } catch {
-    uni.showToast({ title: "加载失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
   }
@@ -224,8 +225,8 @@ const handleFollow = async () => {
       }
       uni.showToast({ title: "关注成功", icon: "success" });
     }
-  } catch {
-    uni.showToast({ title: "操作失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "操作失败");
   }
 };
 

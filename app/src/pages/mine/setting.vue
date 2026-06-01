@@ -79,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import { ref, onMounted } from "vue";
@@ -106,8 +107,8 @@ onMounted(async () => {
     userId.value = String(user.id || "");
     bio.value = user.signature || "";
     if (user.avatar) avatarUrl.value = getFullAvatarUrl(user.avatar);
-  } catch {
-    uni.showToast({ title: "加载失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
   }
@@ -131,8 +132,8 @@ const chooseAvatar = () => {
             const { url } = await uploadAvatar(tempPath);
             avatarUrl.value = getFullAvatarUrl(url);
             uni.showToast({ title: "头像上传成功", icon: "success" });
-          } catch {
-            uni.showToast({ title: "头像上传失败", icon: "none" });
+          } catch (error) {
+            showRequestError(error, "头像上传失败");
           } finally {
             isUploading.value = false;
           }
@@ -164,8 +165,8 @@ const saveProfile = async () => {
     });
     uni.showToast({ title: "保存成功", icon: "success" });
     setTimeout(() => uni.navigateBack(), 800);
-  } catch {
-    uni.showToast({ title: "保存失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "保存失败");
   } finally {
     loading.value = false;
   }

@@ -3,6 +3,9 @@ import { disconnectRealtime } from '@/utils/realtime'
 import {
   getToken,
   isLoggedIn,
+  isGuestMode,
+  canAccessApp,
+  enterGuestMode,
   setStoredUser,
   getStoredUser,
   clearSession,
@@ -18,6 +21,11 @@ export interface LoginResponse {
 
 export async function loginByCode(phone: string, code: string): Promise<LoginResponse> {
   const result = await post<LoginResponse>('/auth/loginByCode', { phone, code })
+  return result.data
+}
+
+export async function loginWechat(phoneCode: string): Promise<LoginResponse> {
+  const result = await post<LoginResponse>('/auth/wechatLogin', { phoneCode })
   return result.data
 }
 
@@ -55,4 +63,5 @@ export function getUserInfo(): UserInfo | null {
   return getStoredUser()
 }
 
-export { getToken, isLoggedIn }
+export { getToken, isLoggedIn, isGuestMode, canAccessApp, enterGuestMode } from '@/utils/session'
+export { promptLogin } from '@/utils/authRedirect'

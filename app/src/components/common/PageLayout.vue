@@ -7,6 +7,7 @@
       <slot name="header" />
     </view>
     <scroll-view
+      v-if="scrollable"
       :scroll-y="true"
       class="page-layout__content"
       :style="contentStyle"
@@ -21,6 +22,11 @@
         <slot />
       </view>
     </scroll-view>
+    <view v-else class="page-layout__content" :style="contentStyle">
+      <view class="page-layout__inner page-layout__inner--fill">
+        <slot />
+      </view>
+    </view>
     <view v-if="tabBar" class="page-layout__tabbar">
       <slot name="tabbar" />
     </view>
@@ -35,6 +41,7 @@ import { useLayout } from "@/composables/useLayout";
 const props = withDefaults(
   defineProps<{
     tabBar?: boolean;
+    scrollable?: boolean;
     headerHeight?: number;
     footerHeight?: number;
     refresher?: boolean;
@@ -45,6 +52,7 @@ const props = withDefaults(
   }>(),
   {
     tabBar: false,
+    scrollable: true,
     headerHeight: 0,
     footerHeight: 0,
     refresher: false,

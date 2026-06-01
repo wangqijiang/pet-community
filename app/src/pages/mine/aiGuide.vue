@@ -88,6 +88,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import { ref, onMounted } from 'vue'
 import TopNavBar from '@/components/common/TopNavBar.vue'
 import PageLayout from '@/components/common/PageLayout.vue'
@@ -161,8 +162,8 @@ const loadGuide = async () => {
         },
       ]
     }
-  } catch {
-    uni.showToast({ title: '加载失败', icon: 'none' })
+  } catch (error) {
+    showRequestError(error, "加载失败");
     guideSections.value = [
       { title: '加载失败', content: '请检查网络后重试' },
     ]

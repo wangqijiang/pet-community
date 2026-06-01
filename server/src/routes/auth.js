@@ -4,6 +4,33 @@ const { query } = require('../config/db')
 const { hash, compare } = require('../utils/bcrypt')
 const { sign } = require('../utils/jwt')
 const { success, error } = require('../utils/response')
+const { getPhoneByCode } = require('../utils/wechat')
+
+function formatAuthUser(user) {
+  return {
+    id: user.id,
+    username: user.username,
+    phone: user.phone,
+    avatar: user.avatar,
+    signature: user.signature,
+  }
+}
+
+async function findOrCreateUserByPhone(phone) {
+  let users = await query('SELECT * FROM users WHERE phone = ?', [phone])
+  if (users.length > 0) {
+    return users[0]
+  }
+
+  const username = `萌宠用户${phone.slice(-4)}`
+  const hashedPassword = await hash(`${phone}_${Date.now()}`)
+  const result = await query(
+    'INSERT INTO users (username, phone, password, avatar, created_at) VALUES (?, ?, ?, ?, NOW())',
+    [username, phone, hashedPassword, null]
+  )
+  users = await query('SELECT * FROM users WHERE id = ?', [result.insertId])
+  return users[0]
+}
 
 /**
  * 用户注册
@@ -262,18 +289,7 @@ router.post('/loginByCode', async (req, res) => {
       return res.status(400).json(error('验证码错误或已过期', 400))
     }
 
-    let users = await query('SELECT * FROM users WHERE phone = ?', [phone])
-    if (users.length === 0) {
-      const hashedPassword = await hash(devCode)
-      const username = `用户${phone.slice(-4)}`
-      const result = await query(
-        'INSERT INTO users (username, phone, password, created_at) VALUES (?, ?, ?, NOW())',
-        [username, phone, hashedPassword]
-      )
-      users = await query('SELECT * FROM users WHERE id = ?', [result.insertId])
-    }
-
-    const user = users[0]
+    const user = await findOrCreateUserByPhone(phone)
     if (user.status !== 1) {
       return res.status(403).json(error('账号已被禁用', 403))
     }
@@ -281,16 +297,43 @@ router.post('/loginByCode', async (req, res) => {
     const token = sign({ id: user.id })
     res.json(success({
       token,
-      user: {
-        id: user.id,
-        username: user.username,
-        phone: user.phone,
-        avatar: user.avatar
-      }
+      user: formatAuthUser(user),
     }, '登录成功'))
   } catch (err) {
     console.error('验证码登录失败:', err)
     res.status(500).json(error('登录失败', 500))
+  }
+})
+
+/**
+ * 微信一键登录（getPhoneNumber code）
+ */
+router.post('/wechatLogin', async (req, res) => {
+  const { phoneCode } = req.body
+
+  if (!phoneCode) {
+    return res.status(400).json(error('缺少手机号授权码', 400))
+  }
+
+  try {
+    const phone = await getPhoneByCode(phoneCode)
+    if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+      return res.status(400).json(error('获取手机号失败', 400))
+    }
+
+    const user = await findOrCreateUserByPhone(phone)
+    if (user.status !== 1) {
+      return res.status(403).json(error('账号已被禁用', 403))
+    }
+
+    const token = sign({ id: user.id })
+    res.json(success({
+      token,
+      user: formatAuthUser(user),
+    }, '登录成功'))
+  } catch (err) {
+    console.error('微信登录失败:', err)
+    res.status(500).json(error(err.message || '登录失败', 500))
   }
 })
 

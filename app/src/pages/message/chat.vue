@@ -54,6 +54,7 @@
 </template>
 
 <script setup lang="ts">
+import { showRequestError } from "@/utils/request";
 import { ref, watch, onMounted, onUnmounted } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
@@ -69,6 +70,7 @@ import { formatTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 import { useFixedFooterHeight } from "@/composables/useLayout";
 import { ensureRealtimeConnected, setActiveChatUserId } from "@/utils/realtime";
+import { emitRefreshTabBarBadge } from "@/utils/tabBarBadge";
 
 const { footerHeight } = useFixedFooterHeight("#chat-input-bar", 24 + 88 + 24);
 
@@ -126,8 +128,9 @@ const loadMessages = async () => {
     const list = await getChatMessages(peerUserId.value, 1, 100);
     messages.value = list.map(mapMessage);
     scrollToBottom();
-  } catch {
-    uni.showToast({ title: "加载失败", icon: "none" });
+    emitRefreshTabBarBadge();
+  } catch (error) {
+    showRequestError(error, "加载失败");
   }
 };
 
@@ -138,8 +141,8 @@ const sendMessage = async () => {
     const sent = await sendMsgApi(peerUserId.value, text);
     inputText.value = "";
     appendMessage(sent);
-  } catch {
-    uni.showToast({ title: "发送失败", icon: "none" });
+  } catch (error) {
+    showRequestError(error, "发送失败");
   }
 };
 
@@ -179,6 +182,7 @@ onMounted(() => {
 onUnmounted(() => {
   setActiveChatUserId(0);
   uni.$off("realtime:message", onRealtimeMessage);
+  emitRefreshTabBarBadge();
 });
 </script>
 

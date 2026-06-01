@@ -27,13 +27,13 @@
     <view v-show="currentTab === 0">
       <view
         v-for="item in systemMessages"
-        :key="item.id"
+        :key="item.type"
         class="card"
         @click="goToSystemDetail(item)"
       >
         <view class="left">
           <view class="icon-wrap">
-            <view class="icon-inner" :class="item.type"></view>
+            <view class="icon-inner" :class="item.icon"></view>
           </view>
           <view class="info">
             <text class="name">{{ item.title }}</text>
@@ -42,7 +42,7 @@
         </view>
         <view class="right">
           <text class="time">{{ item.time }}</text>
-          <view class="dot" v-if="item.unread"></view>
+          <view class="badge-num" v-if="item.unread > 0">{{ item.unread }}</view>
         </view>
       </view>
       <Empty
@@ -93,21 +93,37 @@ import { getNotifications } from "@/api/notification";
 import { getConversations } from "@/api/message";
 import { formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
+import { isLoggedIn } from "@/api/auth";
+import { promptLogin } from "@/utils/request";
 import { ensureRealtimeConnected, getActiveChatUserId } from "@/utils/realtime";
+import { emitRefreshTabBarBadge } from "@/utils/tabBarBadge";
 import type { Notification } from "@/api/notification";
 import type { Conversation, ChatMessage } from "@/api/message";
 
 const tabsHeight = uni.upx2px(120);
 const currentTab = ref(0);
 const systemBadge = ref(0);
+
+type SystemNoticeType = "like" | "comment" | "follow";
+
+const SYSTEM_CATEGORIES: Array<{
+  type: SystemNoticeType;
+  title: string;
+  icon: string;
+}> = [
+  { type: "like", title: "点赞通知", icon: "heart" },
+  { type: "comment", title: "评论通知", icon: "message" },
+  { type: "follow", title: "关注通知", icon: "user" },
+];
+
 const systemMessages = ref<
   Array<{
-    id: number;
-    type: string;
+    type: SystemNoticeType;
+    icon: string;
     title: string;
     desc: string;
     time: string;
-    unread: boolean;
+    unread: number;
   }>
 >([]);
 const chatList = ref<
@@ -129,17 +145,40 @@ const notifTypeIcon: Record<string, string> = {
   message: "message",
 };
 
-const mapNotification = (n: Notification) => ({
-  id: n.id,
-  type: notifTypeIcon[n.type] || "badge",
-  title: n.title,
-  desc: n.content || "",
-  time: formatRelativeTime(n.created_at),
-  unread: !n.is_read,
-});
+const buildSystemCategories = (list: Notification[]) => {
+  return SYSTEM_CATEGORIES.map((cat) => {
+    const items = list
+      .filter((n) => n.type === cat.type)
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+    const unread = items.filter((n) => !n.is_read).length;
+    const latest = items[0];
+    let desc = "暂无新通知";
+    if (latest) {
+      const name = latest.from_username || "用户";
+      if (cat.type === "follow") {
+        desc = `${name} ${latest.content || "关注了你"}`;
+      } else {
+        desc = `${name} ${latest.content || ""}`.trim();
+      }
+    }
+    return {
+      type: cat.type,
+      icon: cat.icon,
+      title: cat.title,
+      desc,
+      time: latest ? formatRelativeTime(latest.created_at) : "",
+      unread,
+    };
+  });
+};
 
-const refreshSystemBadge = () => {
-  systemBadge.value = systemMessages.value.filter((m) => m.unread).length;
+const refreshSystemBadge = (list: Notification[]) => {
+  systemBadge.value = list.filter(
+    (n) => !n.is_read && ["like", "comment", "follow"].includes(n.type),
+  ).length;
 };
 
 const upsertChatFromMessage = (msg: ChatMessage) => {
@@ -178,21 +217,25 @@ const upsertChatFromMessage = (msg: ChatMessage) => {
     chatList.value.splice(idx, 1);
   }
   chatList.value.unshift(item);
+  emitRefreshTabBarBadge();
 };
 
 const prependNotification = (n: Notification) => {
-  const mapped = mapNotification(n);
-  const idx = systemMessages.value.findIndex((item) => item.id === mapped.id);
-  if (idx >= 0) systemMessages.value.splice(idx, 1);
-  systemMessages.value.unshift(mapped);
-  refreshSystemBadge();
+  if (!["like", "comment", "follow"].includes(n.type)) return;
+  loadData();
 };
 
 const loadData = async () => {
+  if (!isLoggedIn()) {
+    systemMessages.value = [];
+    chatList.value = [];
+    systemBadge.value = 0;
+    return;
+  }
   try {
     const notifRes = await getNotifications(1, 50);
-    systemMessages.value = notifRes.list.map(mapNotification);
-    refreshSystemBadge();
+    systemMessages.value = buildSystemCategories(notifRes.list);
+    refreshSystemBadge(notifRes.list);
 
     const chats = await getConversations();
     chatList.value = chats.map((c: Conversation) => ({
@@ -205,23 +248,27 @@ const loadData = async () => {
     }));
   } catch (e) {
     console.error(e);
+  } finally {
+    emitRefreshTabBarBadge();
   }
 };
 
-const goToSystemDetail = (item: { id: number }) => {
+const goToSystemDetail = (item: { type: SystemNoticeType }) => {
+  if (!promptLogin()) return;
   uni.navigateTo({
-    url: `/pages/message/systemDetail?id=${item.id}`,
+    url: `/pages/message/systemDetail?type=${item.type}`,
   });
 };
 
 const goToChat = (item: { id: number; name: string }) => {
+  if (!promptLogin()) return;
   uni.navigateTo({
     url: `/pages/message/chat?userId=${item.id}&name=${encodeURIComponent(item.name)}`,
   });
 };
 
 onMounted(() => {
-  ensureRealtimeConnected();
+  if (isLoggedIn()) ensureRealtimeConnected();
   loadData();
   uni.$on("realtime:message", upsertChatFromMessage);
   uni.$on("realtime:notification", prependNotification);
@@ -233,7 +280,7 @@ onUnmounted(() => {
 });
 
 onShow(() => {
-  ensureRealtimeConnected();
+  if (isLoggedIn()) ensureRealtimeConnected();
   loadData();
 });
 </script>
