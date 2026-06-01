@@ -11,7 +11,7 @@
           <view class="item-value">
             <image
               class="avatar-preview"
-              :src="formData.avatar"
+              :src="resolveLocalOrMediaUrl(formData.avatar)"
               mode="aspectFill"
             ></image>
             <image
@@ -122,11 +122,13 @@ import {
   formatDateYMD,
 } from "@/utils/format";
 import dayjs from "dayjs";
-import { resolveMediaUrl } from "@/utils/media";
+import { resolveLocalOrMediaUrl, resolveMediaUrl } from "@/utils/media";
 import { showRequestError } from "@/utils/request";
+import { useChooseImage } from "@/composables/useChooseImage";
 
 const loading = ref(false);
 const isUploading = ref(false);
+const { chooseSingle } = useChooseImage();
 
 const formData = ref({
   avatar: "/static/images/avatar-default.png",
@@ -175,16 +177,9 @@ const loadUserInfo = async () => {
 };
 
 const chooseAvatar = () => {
-  uni.vibrateShort({ type: "light" });
-  uni.chooseImage({
-    count: 1,
-    sizeType: ["compressed"],
-    sourceType: ["album", "camera"],
-    success: (res) => {
-      const tempFilePath = res.tempFilePaths[0];
-      formData.value.avatar = tempFilePath;
-      uploadAvatarFile(tempFilePath);
-    },
+  chooseSingle((tempFilePath) => {
+    formData.value.avatar = tempFilePath;
+    uploadAvatarFile(tempFilePath);
   });
 };
 

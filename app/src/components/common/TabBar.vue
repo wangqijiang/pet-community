@@ -10,7 +10,9 @@
       >
         <view class="tab-icon">
           <view :class="['icon', item.icon]"></view>
-          <view class="badge" v-if="index === 2 && messageBadge > 0">{{ messageBadge }}</view>
+          <view class="badge" v-if="index === 2 && messageBadge > 0">{{
+            messageBadge
+          }}</view>
         </view>
         <view class="tab-text">{{ item.text }}</view>
       </view>
@@ -107,7 +109,7 @@ const handleTabClick = (index: number) => {
   left: 0;
   right: 0;
   z-index: $z-index-tab;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 1);
   backdrop-filter: blur(24px);
   border-radius: 28px 28px 0 0;
   border-top: 1px solid rgba(0, 0, 0, 0.03);

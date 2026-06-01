@@ -20,6 +20,11 @@
     >
       <view class="page-layout__inner">
         <slot />
+        <view
+          v-if="scrollBottomSpacer > 0"
+          class="page-layout__scroll-spacer"
+          :style="{ height: `${scrollBottomSpacer}px` }"
+        />
       </view>
     </scroll-view>
     <view v-else class="page-layout__content" :style="contentStyle">
@@ -73,7 +78,7 @@ const layoutOptions = computed(() => ({
   footerHeight: props.footerHeight,
 }));
 
-const { contentStyle, pageStyle } = useLayout(layoutOptions);
+const { contentStyle, pageStyle, scrollBottomSpacer } = useLayout(layoutOptions);
 </script>
 
 <style lang="scss" scoped>

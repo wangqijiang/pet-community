@@ -81,12 +81,10 @@ const loadMarkers = async (lat: number, lng: number) => {
       { type: "place" | "user"; id: number; name: string }
     > = {};
 
+    // 地图展示全部上架场所，不按距离过滤（运营后台新增的场所任意坐标均可见）
     const placeRes = await getPlaceList({
       page: 1,
       size: 100,
-      lat,
-      lng,
-      radius: 200,
     });
 
     placeRes.list.forEach((p) => {

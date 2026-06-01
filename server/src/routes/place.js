@@ -123,7 +123,7 @@ router.get('/', async (req, res) => {
   const categoryFilter = category || type
 
   try {
-    const filters = ['p.status = 1']
+    const filters = ['p.status = 1', 'p.latitude IS NOT NULL', 'p.longitude IS NOT NULL', 'p.latitude != 0', 'p.longitude != 0']
     const params = []
 
     if (categoryFilter) {

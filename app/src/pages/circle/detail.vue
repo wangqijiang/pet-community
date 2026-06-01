@@ -1,7 +1,7 @@
 <template>
   <PageLayout :footer-height="commentBarHeight">
     <template #navbar>
-      <TopNavBar title="动态详情" :showBack="true" />
+      <TopNavBar title="动态详情" :showBack="true" :homeOnBack="entryFromShare" />
     </template>
     <view class="detail-inner">
       <view v-if="loading" class="loading-container">
@@ -110,18 +110,11 @@
                 >
                   <text>回复</text>
                 </view>
-                <view 
-                  v-if="comment.replies.length > 0"
-                  class="comment-expand-btn"
-                  @click="toggleExpand(comment.id)"
-                >
-                  <text>{{ isExpanded(comment.id) ? `收起(${comment.replies.length})` : `查看(${comment.replies.length})` }}</text>
-                </view>
               </view>
             </view>
 
             <view 
-              v-if="comment.replies.length > 0 && isExpanded(comment.id)"
+              v-if="comment.replies.length > 0"
               class="replies-section"
             >
               <view
@@ -140,7 +133,7 @@
                       <text class="reply-time">{{ formatTime(reply.created_at) }}</text>
                     </view>
                     <view class="reply-text-wrapper">
-                      <text v-if="reply.reply_to_name" class="reply-label">@{{ reply.reply_to_name }}:</text>
+                      <text v-if="reply.reply_to_username" class="reply-label">@{{ reply.reply_to_username }}:</text>
                       <text class="reply-text">{{ reply.content }}</text>
                     </view>
                   </view>
@@ -175,6 +168,7 @@
 
     <template #fixed>
     <view 
+      v-if="!shareVisible"
       id="comment-input-bar"
       class="comment-input-bar"
       :class="{ 'show-reply': replyingComment }"
@@ -214,10 +208,11 @@
         </view>
       </view>
     </view>
+
+    <PostSharePanel v-model:visible="shareVisible" :post="sharePost" />
     </template>
 
     <Loading :visible="submitLoading" />
-    <PostSharePanel v-model:visible="shareVisible" :post="sharePost" />
   </PageLayout>
 </template>
 
@@ -250,6 +245,8 @@ import { getLayoutMetrics, useFixedFooterHeight } from "@/composables/useLayout"
 usePostShareRegistry();
 
 const postId = ref(0);
+/** 从分享卡片等入口进入，返回应回到首页 */
+const entryFromShare = ref(false);
 /** 是否从用户主页进入（用于点头像返回而非重复打开主页） */
 const fromUserProfile = ref(false);
 const profileUserId = ref(0);
@@ -269,11 +266,8 @@ const post = ref<Post & { images: string[] }>({
   created_at: ""
 });
 const commentsList = ref<Comment[]>([]);
-const expandedComments = ref<Set<number>>(new Set());
-
 interface NestedComment extends Comment {
   replies: NestedComment[];
-  isExpanded?: boolean;
 }
 
 const nestedComments = computed(() => {
@@ -286,13 +280,15 @@ const nestedComments = computed(() => {
 
   commentsList.value.forEach(comment => {
     const nestedComment = map.get(comment.id)!;
-    
-    if (!comment.reply_to_id) {
+    const rootId = comment.parent_id || null;
+
+    if (!comment.reply_to_id && !rootId) {
       topLevel.push(nestedComment);
     } else {
-      const parentComment = map.get(comment.reply_to_id);
-      if (parentComment) {
-        parentComment.replies.push(nestedComment);
+      const attachId = rootId || comment.reply_to_id!;
+      const rootComment = map.get(attachId);
+      if (rootComment && rootComment.id !== comment.id) {
+        rootComment.replies.push(nestedComment);
       } else {
         topLevel.push(nestedComment);
       }
@@ -308,31 +304,19 @@ const nestedComments = computed(() => {
   return topLevel;
 });
 
-const toggleExpand = (commentId: number) => {
-  if (expandedComments.value.has(commentId)) {
-    expandedComments.value.delete(commentId);
-  } else {
-    expandedComments.value.add(commentId);
-  }
-  expandedComments.value = new Set(expandedComments.value);
-};
-
-const isExpanded = (commentId: number) => {
-  return expandedComments.value.has(commentId);
-};
 const liked = ref(false);
 const likes = ref(0);
 const comments = ref(0);
 const commentContent = ref("");
 const page = ref(1);
-const size = ref(10);
+const size = ref(100);
 const currentUser = ref(getUserInfo());
 const replyingComment = ref<Comment | null>(null);
 const showInputFocus = ref(false);
 
 const { footerHeight: commentBarHeight } = useFixedFooterHeight(
   "#comment-input-bar",
-  24 + 88 + 24,
+  24 + 88 + 24 + 48,
   [replyingComment, loading],
 );
 
@@ -511,8 +495,15 @@ const submitComment = async () => {
   }
   
   submitLoading.value = true;
+  const replyTarget = replyingComment.value;
   try {
-    await addComment(post.value.id, commentContent.value, replyingComment.value?.id);
+    await addComment(
+      post.value.id,
+      commentContent.value,
+      replyTarget
+        ? { id: replyTarget.id, userId: replyTarget.user_id }
+        : undefined,
+    );
     uni.showToast({ title: "评论成功", icon: "success" });
     commentContent.value = "";
     comments.value++;
@@ -569,6 +560,8 @@ const previewImage = (item: any, index: number) => {
 onLoad((options) => {
   fromUserProfile.value = options?.fromUserProfile === "1";
   profileUserId.value = Number(options?.profileUserId || 0);
+  entryFromShare.value =
+    options?.fromShare === "1" || getCurrentPages().length <= 1;
   if (options?.id) {
     postId.value = parseInt(String(options.id), 10);
     loadPost();

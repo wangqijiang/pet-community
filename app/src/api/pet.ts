@@ -124,3 +124,27 @@ export async function uploadPetAvatar(
     });
   });
 }
+
+export interface PetPersonalityTag {
+  id: string;
+  label: string;
+}
+
+export interface PetFormConfig {
+  types: string[];
+  typeKeys: Record<string, string>;
+  breeds: Record<string, string[]>;
+  personalityTags: PetPersonalityTag[];
+}
+
+export async function getPetFormConfig(): Promise<PetFormConfig> {
+  const res = await get<PetFormConfig>("/pet/config");
+  return (
+    res.data || {
+      types: ["狗狗", "猫咪", "其他"],
+      typeKeys: { 狗狗: "dog", 猫咪: "cat", 其他: "other" },
+      breeds: {},
+      personalityTags: [],
+    }
+  );
+}

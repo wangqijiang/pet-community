@@ -164,12 +164,19 @@ router.post('/follow', auth, async (req, res) => {
     await query('UPDATE users SET following_count = following_count + 1 WHERE id = ?', [req.user.id])
     await query('UPDATE users SET followers_count = followers_count + 1 WHERE id = ?', [followId])
 
-    // 创建通知
-    const notifResult = await query(
-      'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [followId, req.user.id, 'follow', '关注通知', '关注了你', req.user.id, 'user']
+    // 关注通知：同一用户仅首次关注时通知
+    const priorFollowNotif = await query(
+      `SELECT id FROM notifications
+       WHERE user_id = ? AND from_user_id = ? AND type = 'follow' LIMIT 1`,
+      [followId, req.user.id]
     )
-    await pushNotificationById(notifResult.insertId)
+    if (priorFollowNotif.length === 0) {
+      const notifResult = await query(
+        'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [followId, req.user.id, 'follow', '关注通知', '关注了你', req.user.id, 'user']
+      )
+      await pushNotificationById(notifResult.insertId)
+    }
 
     res.json(success(null, '关注成功'))
   } catch (err) {

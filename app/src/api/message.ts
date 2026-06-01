@@ -5,6 +5,7 @@ export interface Conversation {
   username: string;
   avatar: string;
   last_message: string;
+  last_message_type?: string;
   last_time: string;
   unread_count: number;
 }

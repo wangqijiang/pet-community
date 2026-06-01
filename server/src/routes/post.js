@@ -384,13 +384,21 @@ router.post('/:id/like', auth, async (req, res) => {
       )
       await query('UPDATE posts SET likes_count = likes_count + 1 WHERE id = ?', [id])
       
-      // 创建通知
+      // 创建通知（同一用户对同一动态仅首次点赞通知）
       if (posts[0].user_id !== req.user.id) {
-        const notifResult = await query(
-          'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [posts[0].user_id, req.user.id, 'like', '点赞通知', `赞了你的动态`, id, 'post']
+        const priorNotif = await query(
+          `SELECT id FROM notifications
+           WHERE user_id = ? AND from_user_id = ? AND type = 'like'
+             AND target_id = ? AND target_type = 'post' LIMIT 1`,
+          [posts[0].user_id, req.user.id, id]
         )
-        await pushNotificationById(notifResult.insertId)
+        if (priorNotif.length === 0) {
+          const notifResult = await query(
+            'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [posts[0].user_id, req.user.id, 'like', '点赞通知', `赞了你的动态`, id, 'post']
+          )
+          await pushNotificationById(notifResult.insertId)
+        }
       }
       
       res.json(success({ liked: true }, '点赞成功'))
@@ -496,9 +504,25 @@ router.post('/:id/comment', auth, async (req, res) => {
       return res.status(404).json(error('动态不存在', 404))
     }
 
+    let parentId = null
+    let replyToUserId = reply_to_user_id || null
+
+    if (reply_to_id) {
+      const parentRows = await query(
+        'SELECT id, parent_id, user_id FROM comments WHERE id = ? AND status = 1',
+        [reply_to_id]
+      )
+      if (parentRows.length > 0) {
+        parentId = parentRows[0].parent_id || reply_to_id
+        if (!replyToUserId) {
+          replyToUserId = parentRows[0].user_id
+        }
+      }
+    }
+
     const result = await query(
-      'INSERT INTO comments (post_id, user_id, content, reply_to_id, reply_to_user_id, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
-      [id, req.user.id, content, reply_to_id || null, reply_to_user_id || null]
+      'INSERT INTO comments (post_id, user_id, content, parent_id, reply_to_id, reply_to_user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+      [id, req.user.id, content, parentId, reply_to_id || null, replyToUserId]
     )
 
     // 更新动态评论数
@@ -520,7 +544,8 @@ router.post('/:id/comment', auth, async (req, res) => {
       ? `评论了你的动态：${commentSnippet}`
       : '评论了你的动态'
 
-    if (postAuthorId !== req.user.id) {
+    // 仅顶级评论通知动态作者
+    if (!reply_to_id && postAuthorId !== req.user.id) {
       const notifResult = await query(
         'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [postAuthorId, req.user.id, 'comment', '评论通知', commentBody, id, 'post']
@@ -528,13 +553,14 @@ router.post('/:id/comment', auth, async (req, res) => {
       await pushNotificationById(notifResult.insertId)
     }
 
-    if (reply_to_user_id && reply_to_user_id !== req.user.id && reply_to_user_id !== postAuthorId) {
+    // 回复评论时通知被回复者
+    if (replyToUserId && replyToUserId !== req.user.id) {
       const replyBody = commentSnippet
         ? `回复了你的评论：${commentSnippet}`
         : '回复了你的评论'
       const replyNotifResult = await query(
         'INSERT INTO notifications (user_id, from_user_id, type, title, content, target_id, target_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [reply_to_user_id, req.user.id, 'comment', '回复通知', replyBody, id, 'post']
+        [replyToUserId, req.user.id, 'comment', '回复通知', replyBody, id, 'post']
       )
       await pushNotificationById(replyNotifResult.insertId)
     }
@@ -568,7 +594,11 @@ router.delete('/comment/:commentId', auth, async (req, res) => {
 
     const postId = comment[0].post_id
 
-    await query('UPDATE comments SET status = 0 WHERE id = ?', [commentId])
+    // 删除本条及其子回复
+    await query(
+      'UPDATE comments SET status = 0 WHERE (id = ? OR parent_id = ?) AND post_id = ?',
+      [commentId, commentId, postId]
+    )
 
     // 更新动态评论数
     const countResult = await query('SELECT COUNT(*) as count FROM comments WHERE post_id = ? AND status = 1', [postId])

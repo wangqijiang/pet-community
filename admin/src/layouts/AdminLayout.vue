@@ -41,6 +41,7 @@
             <span>配置</span>
           </template>
           <el-menu-item index="/post-categories">动态分类</el-menu-item>
+          <el-menu-item index="/pet-options">宠物表单配置</el-menu-item>
         </el-sub-menu>
         <el-menu-item index="/users">
           <el-icon><User /></el-icon>

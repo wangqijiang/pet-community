@@ -94,7 +94,7 @@ const loadPlaces = async () => {
   loading.value = true;
   try {
     const category = tabs.value[currentTab.value]?.key || "";
-    const res = await getPlaceList({
+    let res = await getPlaceList({
       page: 1,
       size: 50,
       category: category || undefined,
@@ -102,6 +102,13 @@ const loadPlaces = async () => {
       lng: lng.value,
       radius: 200,
     });
+    if (!res.list.length) {
+      res = await getPlaceList({
+        page: 1,
+        size: 50,
+        category: category || undefined,
+      });
+    }
     placeList.value = res.list;
   } catch (error) {
     showRequestError(error, "加载失败");

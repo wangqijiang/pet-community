@@ -233,7 +233,7 @@
             >
               <image
                 class="photo-img"
-                :src="photo"
+                :src="resolveLocalOrMediaUrl(photo)"
                 mode="aspectFill"
                 @tap="previewPhoto(index)"
               />
@@ -250,8 +250,6 @@
           </view>
         </view>
 
-        <!-- 底部留白，避免被固定「删除/保存」栏挡住 -->
-        <view class="scroll-bottom-spacer" :style="bottomSpacerStyle" />
     </view>
 
     <template #fixed>
@@ -263,7 +261,6 @@
         保存
       </view>
     </view>
-    </template>
 
     <BottomSheet
       :visible="activeModal === 'speciesModal'"
@@ -357,13 +354,14 @@
         </view>
       </view>
     </BottomSheet>
+    </template>
 
     <Loading :visible="loading" />
   </PageLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch, getCurrentInstance } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import Loading from "@/components/common/Loading.vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
@@ -374,7 +372,9 @@ import {
   addPet,
   updatePet,
   deletePet,
+  getPetFormConfig,
   type PetFormData,
+  type PetPersonalityTag,
 } from "@/api/pet";
 import {
   parseJsonArray,
@@ -382,10 +382,13 @@ import {
   normalizePetGender,
   formatPetGender,
 } from "@/utils/format";
-import { resolveMediaUrl } from "@/utils/media";
+import { resolveMediaUrl, resolveLocalOrMediaUrl } from "@/utils/media";
 import { showRequestError } from "@/utils/request";
 import { ensureUploaded, ensureUploadedList } from "@/utils/uploadMedia";
 import { getLayoutMetrics, useFixedFooterHeight } from "@/composables/useLayout";
+import { useChooseImage } from "@/composables/useChooseImage";
+
+const instance = getCurrentInstance()?.proxy;
 
 const layoutMetrics = getLayoutMetrics();
 /** 单按钮：padding + btn + padding；双按钮再加 gap + delete */
@@ -409,10 +412,7 @@ const layoutFooterHeight = computed(() => {
   return Math.max(footerHeight.value, estimated) + uni.upx2px(32);
 });
 
-/** 内容底部占位，滚到底时「宠物照片」在按钮上方完整可见 */
-const bottomSpacerStyle = computed(() => ({
-  height: `${layoutFooterHeight.value}px`,
-}));
+const { chooseSingle, chooseImages } = useChooseImage();
 
 const loading = ref(false);
 const isEdit = ref(false);
@@ -430,11 +430,11 @@ const TYPE_TO_UI: Record<string, string> = {
   bird: "其他",
 };
 
-const UI_TO_TYPE: Record<string, string> = {
+const UI_TO_TYPE = ref<Record<string, string>>({
   狗狗: "dog",
   猫咪: "cat",
   其他: "other",
-};
+});
 
 const SIZE_TO_UI: Record<string, string> = {
   small: "小型",
@@ -450,16 +450,16 @@ const UI_TO_SIZE: Record<string, string> = {
 
 const genderOptions = PET_GENDER_OPTIONS;
 
-const speciesList = ["狗狗", "猫咪", "其他"];
+const speciesList = ref<string[]>(["狗狗", "猫咪", "其他"]);
 const sizeList = ["小型", "中型", "大型"];
 
-const breedMap: Record<string, string[]> = {
+const breedMap = ref<Record<string, string[]>>({
   狗狗: ["金毛", "哈士奇", "泰迪", "柯基", "拉布拉多", "柴犬", "萨摩耶", "边牧", "阿拉斯加", "比熊", "德牧", "博美", "其他"],
   猫咪: ["英短", "美短", "布偶", "缅因猫", "其他"],
   其他: ["兔子", "仓鼠", "龙猫", "其他"],
-};
+});
 
-const personalityTags = [
+const personalityTags = ref<PetPersonalityTag[]>([
   { id: "active", label: "活泼" },
   { id: "gentle", label: "温顺" },
   { id: "clingy", label: "粘人" },
@@ -468,7 +468,25 @@ const personalityTags = [
   { id: "naughty", label: "调皮" },
   { id: "quiet", label: "安静" },
   { id: "friendly", label: "友好" },
-];
+]);
+
+const loadPetFormConfig = async () => {
+  try {
+    const config = await getPetFormConfig();
+    if (config.types?.length) speciesList.value = config.types;
+    if (config.typeKeys && Object.keys(config.typeKeys).length) {
+      UI_TO_TYPE.value = config.typeKeys;
+    }
+    if (config.breeds && Object.keys(config.breeds).length) {
+      breedMap.value = config.breeds;
+    }
+    if (config.personalityTags?.length) {
+      personalityTags.value = config.personalityTags;
+    }
+  } catch (error) {
+    console.error("加载宠物配置失败:", error);
+  }
+};
 
 const displayGender = computed(() => {
   if (!formData.value.gender) return "请选择";
@@ -480,8 +498,8 @@ const displayBreed = computed(() => {
 });
 
 const getPresetBreeds = (type = formData.value.type) => {
-  if (!type || !breedMap[type]) return [];
-  return breedMap[type];
+  if (!type || !breedMap.value[type]) return [];
+  return breedMap.value[type];
 };
 
 const isCustomBreedValue = (breed: string, type = formData.value.type) => {
@@ -499,13 +517,13 @@ const isBreedOptionActive = (item: string) => {
 
 const mapTypeToUi = (type?: string) => {
   if (!type) return "";
-  if (speciesList.includes(type)) return type;
+  if (speciesList.value.includes(type)) return type;
   return TYPE_TO_UI[type] || "其他";
 };
 
 const mapTypeToDb = (type?: string) => {
   if (!type) return "";
-  return UI_TO_TYPE[type] || type;
+  return UI_TO_TYPE.value[type] || type;
 };
 
 const mapSizeToUi = (size?: string) => {
@@ -525,17 +543,17 @@ const parsePersonality = (value?: string) => {
   for (const part of value.split(",")) {
     const trimmed = part.trim();
     if (!trimmed) continue;
-    const byId = personalityTags.find((tag) => tag.id === trimmed);
+    const byId = personalityTags.value.find((tag) => tag.id === trimmed);
     if (byId) {
       if (!result.includes(byId.id)) result.push(byId.id);
       continue;
     }
-    const byLabel = personalityTags.find((tag) => tag.label === trimmed);
+    const byLabel = personalityTags.value.find((tag) => tag.label === trimmed);
     if (byLabel) {
       if (!result.includes(byLabel.id)) result.push(byLabel.id);
       continue;
     }
-    for (const tag of personalityTags) {
+    for (const tag of personalityTags.value) {
       if (trimmed.includes(tag.label) && !result.includes(tag.id)) {
         result.push(tag.id);
       }
@@ -549,8 +567,8 @@ const normalizePhotos = (photos: unknown) => {
 };
 
 const filteredBreedList = computed(() => {
-  const list = formData.value.type && breedMap[formData.value.type] 
-    ? breedMap[formData.value.type] 
+  const list = formData.value.type && breedMap.value[formData.value.type] 
+    ? breedMap.value[formData.value.type] 
     : [];
   
   if (!breedSearch.value) return list;
@@ -560,11 +578,7 @@ const filteredBreedList = computed(() => {
   );
 });
 
-const getFullAvatarUrl = (avatar: string) => {
-  if (!avatar) return "";
-  if (avatar.startsWith("http")) return avatar;
-  return `${import.meta.env.VITE_API_BASE_URL || "https://api.example.com"}${avatar}`;
-};
+const getFullAvatarUrl = (avatar: string) => resolveLocalOrMediaUrl(avatar);
 
 watch(isEdit, () => {
   syncFooterEstimate();
@@ -572,6 +586,7 @@ watch(isEdit, () => {
 });
 
 onLoad((options) => {
+  loadPetFormConfig();
   if (options?.id) {
     petId.value = parseInt(String(options.id), 10);
     isEdit.value = true;
@@ -795,7 +810,7 @@ const syncNumericInputsFromDom = (): Promise<void> => {
 
     uni
       .createSelectorQuery()
-      .in(instance)
+      .in(instance as WechatMiniprogram.Component.TrivialInstance)
       .select("#age-input")
       .fields({ properties: ["value"] }, (res) => {
         const val = (res as { value?: string } | null)?.value;
@@ -1070,42 +1085,31 @@ const confirmCustomBreed = () => {
 };
 
 const chooseAvatar = () => {
-  uni.vibrateShort({ type: "light" });
-  uni.chooseImage({
-    count: 1,
-    sizeType: ["compressed"],
-    sourceType: ["album", "camera"],
-    success: async (res) => {
-      const tempPath = res.tempFilePaths[0];
-      try {
-        formData.value.avatar = tempPath;
-        uni.showToast({
-          title: "头像选择成功",
-          icon: "success",
-        });
-      } catch (error) {
-        uni.showToast({
-          title: "头像上传失败",
-          icon: "none",
-        });
-      }
-    },
+  chooseSingle(async (tempPath) => {
+    formData.value.avatar = tempPath;
+    try {
+      formData.value.avatar = await ensureUploaded(tempPath);
+      uni.showToast({ title: "头像上传成功", icon: "success" });
+    } catch (error) {
+      showRequestError(error, "头像上传失败");
+      formData.value.avatar = "";
+    }
   });
 };
 
 const uploadPhotos = () => {
-  uni.vibrateShort({ type: "light" });
   const maxCount = 9 - formData.value.photos.length;
-  uni.chooseImage({
+  if (maxCount <= 0) return;
+  chooseImages({
     count: maxCount,
-    sizeType: ["compressed"],
-    sourceType: ["album", "camera"],
-    success: (res) => {
-      formData.value.photos = [...formData.value.photos, ...res.tempFilePaths];
-      uni.showToast({
-        title: "照片上传成功",
-        icon: "success",
-      });
+    onPick: async (paths) => {
+      try {
+        const uploaded = await ensureUploadedList(paths);
+        formData.value.photos = [...formData.value.photos, ...uploaded].slice(0, 9);
+        uni.showToast({ title: "照片上传成功", icon: "success" });
+      } catch (error) {
+        showRequestError(error, "照片上传失败");
+      }
     },
   });
 };

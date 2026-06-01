@@ -1,12 +1,7 @@
 <template>
   <PageLayout :tab-bar="true">
     <template #navbar>
-      <TopNavBar
-        title="我的"
-        :showBack="false"
-        rightIcon="icon-setting"
-        @rightClick="goToSetting"
-      />
+      <TopNavBar title="我的" :showBack="false" />
     </template>
 
     <view class="mine-content" :style="contentPadStyle">
@@ -15,13 +10,21 @@
           <view class="user-left">
             <image
               class="avatar"
-              :src="userInfo?.avatar ? getFullAvatarUrl(userInfo.avatar) : defaultAvatar"
+              :src="
+                userInfo?.avatar
+                  ? getFullAvatarUrl(userInfo.avatar)
+                  : defaultAvatar
+              "
               mode="aspectFill"
             />
             <view class="user-info">
               <text class="name">{{ userInfo?.username || "未登录" }}</text>
-              <text class="desc" v-if="userInfo?.signature">{{ userInfo.signature }}</text>
-              <text class="desc guest-hint" v-else-if="!isLoggedIn()">登录后可同步个人资料与宠物信息</text>
+              <text class="desc" v-if="userInfo?.signature">{{
+                userInfo.signature
+              }}</text>
+              <text class="desc guest-hint" v-else-if="!isLoggedIn()"
+                >登录后可同步个人资料与宠物信息</text
+              >
             </view>
           </view>
           <view class="edit-btn" @click="goToEditInfo">
@@ -70,7 +73,10 @@
             </view>
             <view class="pet-meta">
               <text class="pet-name">{{ pet.name }}</text>
-              <text class="pet-info">{{ formatPetAge(pet.age) || "—" }} · {{ pet.breed || "—" }}</text>
+              <text class="pet-info"
+                >{{ formatPetAge(pet.age) || "—" }} ·
+                {{ pet.breed || "—" }}</text
+              >
             </view>
           </view>
           <view class="add-card" @click.stop="goToAddPet">
@@ -95,6 +101,10 @@
           <text class="menu-label">AI 养宠助手</text>
           <view class="menu-arrow"></view>
         </view>
+        <!-- <view class="menu-item" @click="goToSetting">
+          <text class="menu-label">设置</text>
+          <view class="menu-arrow"></view>
+        </view> -->
       </view>
 
       <view class="ai-card">
@@ -227,8 +237,7 @@ const goToPetInfo = () => {
   });
 };
 
-const defaultAvatar =
-  "https://api.dicebear.com/7.x/avataaars/svg?seed=pet";
+const defaultAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=pet";
 
 const goToAddPet = () => {
   if (!promptLogin()) return;

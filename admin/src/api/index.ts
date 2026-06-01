@@ -59,6 +59,26 @@ export const petApi = {
     unwrap(request.patch(`/pets/${id}/status`, { status })),
 }
 
+export const petOptionsApi = {
+  listTypes: () => unwrap<Record<string, unknown>[]>(request.get('/pet-types')),
+  createType: (data: Record<string, unknown>) => unwrap(request.post('/pet-types', data)),
+  updateType: (id: number, data: Record<string, unknown>) =>
+    unwrap(request.put(`/pet-types/${id}`, data)),
+  listBreeds: (typeId?: number) =>
+    unwrap<Record<string, unknown>[]>(
+      request.get('/pet-breeds', { params: typeId ? { type_id: typeId } : {} })
+    ),
+  createBreed: (data: Record<string, unknown>) => unwrap(request.post('/pet-breeds', data)),
+  updateBreed: (id: number, data: Record<string, unknown>) =>
+    unwrap(request.put(`/pet-breeds/${id}`, data)),
+  removeBreed: (id: number) => unwrap(request.delete(`/pet-breeds/${id}`)),
+  listTags: () => unwrap<Record<string, unknown>[]>(request.get('/pet-personality-tags')),
+  createTag: (data: Record<string, unknown>) => unwrap(request.post('/pet-personality-tags', data)),
+  updateTag: (id: number, data: Record<string, unknown>) =>
+    unwrap(request.put(`/pet-personality-tags/${id}`, data)),
+  removeTag: (id: number) => unwrap(request.delete(`/pet-personality-tags/${id}`)),
+}
+
 export const placeApi = {
   list: (params: Record<string, unknown>) =>
     unwrap<PageResult<Record<string, unknown>>>(request.get('/places', { params })),

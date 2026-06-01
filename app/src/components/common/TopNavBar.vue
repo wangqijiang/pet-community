@@ -15,15 +15,7 @@
         </view>
         <view class="navbar-left" v-else></view>
         <view class="navbar-title">{{ title }}</view>
-        <view class="navbar-right">
-          <view class="right-icon" @click="handleRightClick" v-if="rightIcon">
-            <view :class="['icon-btn', rightIcon]"></view>
-          </view>
-          <view class="right-btn" @click="handleRightClick" v-if="rightText">
-            {{ rightText }}
-          </view>
-          <slot name="right"></slot>
-        </view>
+        <view class="navbar-right"></view>
       </view>
     </view>
   </view>
@@ -32,18 +24,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 
-defineProps<{
+const props = defineProps<{
   title: string;
   showBack?: boolean;
-  rightIcon?: string;
-  rightText?: string;
-}>();
-
-const emit = defineEmits<{
-  rightClick: [];
+  /** 从分享等入口进入时，返回直接回首页 Tab */
+  homeOnBack?: boolean;
 }>();
 
 const statusBarHeight = ref(20);
+const navBarContentHeight = ref(44);
 onMounted(() => {
   const sysInfo = uni.getSystemInfoSync();
   statusBarHeight.value = sysInfo.statusBarHeight || 20;
@@ -56,6 +45,10 @@ const navbarHeight = computed(() => {
 
 const handleBack = () => {
   uni.vibrateShort({ type: "light" });
+  if (props.homeOnBack) {
+    uni.switchTab({ url: "/pages/home/index" });
+    return;
+  }
   uni.navigateBack({
     fail: () => {
       uni.switchTab({
@@ -63,11 +56,6 @@ const handleBack = () => {
       });
     },
   });
-};
-
-const handleRightClick = () => {
-  uni.vibrateShort({ type: "light" });
-  emit("rightClick");
 };
 </script>
 

@@ -85,10 +85,12 @@ import PageLayout from "@/components/common/PageLayout.vue";
 import { ref, onMounted } from "vue";
 import Loading from "@/components/common/Loading.vue";
 import { getUserInfo, updateUserInfo, uploadAvatar } from "@/api/user";
-import { resolveMediaUrl } from "@/utils/media";
+import { useChooseImage } from "@/composables/useChooseImage";
+import { resolveLocalOrMediaUrl, resolveMediaUrl } from "@/utils/media";
 import { useFixedFooterHeight } from "@/composables/useLayout";
 
-const { footerHeight } = useFixedFooterHeight("#setting-footer", 24 + 96 + 24);
+const { footerHeight } = useFixedFooterHeight("#setting-footer", 24 + 96 + 24 + 32);
+const { chooseSingle } = useChooseImage();
 
 const loading = ref(false);
 const isUploading = ref(false);
@@ -115,31 +117,18 @@ onMounted(async () => {
 });
 
 const chooseAvatar = () => {
-  uni.vibrateShort({ type: "light" });
-  uni.showActionSheet({
-    itemList: ["从相册选择", "拍照"],
-    success: (res) => {
-      const sourceType = res.tapIndex === 0 ? "album" : "camera";
-      uni.chooseImage({
-        count: 1,
-        sizeType: ["compressed"],
-        sourceType: [sourceType],
-        success: async (imgRes) => {
-          const tempPath = imgRes.tempFilePaths[0];
-          avatarUrl.value = tempPath;
-          isUploading.value = true;
-          try {
-            const { url } = await uploadAvatar(tempPath);
-            avatarUrl.value = getFullAvatarUrl(url);
-            uni.showToast({ title: "头像上传成功", icon: "success" });
-          } catch (error) {
-            showRequestError(error, "头像上传失败");
-          } finally {
-            isUploading.value = false;
-          }
-        },
-      });
-    },
+  chooseSingle(async (tempPath) => {
+    avatarUrl.value = resolveLocalOrMediaUrl(tempPath);
+    isUploading.value = true;
+    try {
+      const { url } = await uploadAvatar(tempPath);
+      avatarUrl.value = getFullAvatarUrl(url);
+      uni.showToast({ title: "头像上传成功", icon: "success" });
+    } catch (error) {
+      showRequestError(error, "头像上传失败");
+    } finally {
+      isUploading.value = false;
+    }
   });
 };
 

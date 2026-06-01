@@ -206,11 +206,12 @@ export async function getComments(
 export async function addComment(
   postId: number,
   content: string,
-  replyToId?: number,
+  replyTo?: { id: number; userId: number },
 ): Promise<Comment> {
   const res = await post<Comment>(`/post/${postId}/comment`, {
     content,
-    reply_to_id: replyToId,
+    reply_to_id: replyTo?.id,
+    reply_to_user_id: replyTo?.userId,
   });
   return res.data;
 }

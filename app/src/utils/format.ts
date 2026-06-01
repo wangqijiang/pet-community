@@ -1,4 +1,21 @@
 import dayjs from "dayjs";
+import { isLocalMediaPath, isRemoteUrl } from "@/utils/uploadMedia";
+
+/** 会话列表最后一条消息预览文案 */
+export function formatChatPreview(content: string, type?: string): string {
+  if (type === "image" || isImageLikeMessage(content, type)) return "图片";
+  return content || "";
+}
+
+function isImageLikeMessage(content: string, type?: string): boolean {
+  if (type === "image") return true;
+  if (!content) return false;
+  if (isLocalMediaPath(content)) return true;
+  if (!isRemoteUrl(content)) return false;
+  if (/\.(jpe?g|png|gif|webp|bmp|svg)(\?|#|$)/i.test(content)) return true;
+  if (/\/files?\//i.test(content) || /\/upload/i.test(content)) return true;
+  return false;
+}
 
 export function formatRelativeTime(dateStr?: string): string {
   if (!dateStr) return "";

@@ -554,6 +554,148 @@ const categoryCrud = (routePath, tableName) => {
 categoryCrud('post-categories', 'post_categories')
 categoryCrud('place-categories', 'place_categories')
 
+// —— 宠物配置 ——
+router.get('/pet-types', adminAuth, async (req, res) => {
+  try {
+    const list = await query(
+      'SELECT * FROM pet_types ORDER BY sort_order ASC, id ASC'
+    )
+    res.json(success(list))
+  } catch (err) {
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+router.post('/pet-types', adminAuth, async (req, res) => {
+  const { type_key, label, sort_order, status } = req.body
+  if (!type_key || !label) return res.status(400).json(error('请填写完整信息', 400))
+  try {
+    const result = await query(
+      'INSERT INTO pet_types (type_key, label, sort_order, status) VALUES (?, ?, ?, ?)',
+      [type_key, label, sort_order ?? 0, status ?? 1]
+    )
+    res.json(success({ id: result.insertId }, '已创建'))
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') return res.status(400).json(error('type_key 已存在', 400))
+    res.status(500).json(error('创建失败', 500))
+  }
+})
+
+router.put('/pet-types/:id', adminAuth, async (req, res) => {
+  const { label, sort_order, status } = req.body
+  try {
+    await query(
+      'UPDATE pet_types SET label=?, sort_order=?, status=? WHERE id=?',
+      [label, sort_order ?? 0, status ?? 1, req.params.id]
+    )
+    res.json(success(null, '已更新'))
+  } catch (err) {
+    res.status(500).json(error('更新失败', 500))
+  }
+})
+
+router.get('/pet-breeds', adminAuth, async (req, res) => {
+  const { type_id } = req.query
+  try {
+    let sql = `SELECT b.*, t.label AS type_label FROM pet_breeds b
+      JOIN pet_types t ON b.type_id = t.id`
+    const params = []
+    if (type_id) {
+      sql += ' WHERE b.type_id = ?'
+      params.push(type_id)
+    }
+    sql += ' ORDER BY b.type_id ASC, b.sort_order ASC, b.id ASC'
+    const list = await query(sql, params)
+    res.json(success(list))
+  } catch (err) {
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+router.post('/pet-breeds', adminAuth, async (req, res) => {
+  const { type_id, label, sort_order, status } = req.body
+  if (!type_id || !label) return res.status(400).json(error('请填写完整信息', 400))
+  try {
+    const result = await query(
+      'INSERT INTO pet_breeds (type_id, label, sort_order, status) VALUES (?, ?, ?, ?)',
+      [type_id, label, sort_order ?? 0, status ?? 1]
+    )
+    res.json(success({ id: result.insertId }, '已创建'))
+  } catch (err) {
+    res.status(500).json(error('创建失败', 500))
+  }
+})
+
+router.put('/pet-breeds/:id', adminAuth, async (req, res) => {
+  const { label, sort_order, status } = req.body
+  try {
+    await query(
+      'UPDATE pet_breeds SET label=?, sort_order=?, status=? WHERE id=?',
+      [label, sort_order ?? 0, status ?? 1, req.params.id]
+    )
+    res.json(success(null, '已更新'))
+  } catch (err) {
+    res.status(500).json(error('更新失败', 500))
+  }
+})
+
+router.delete('/pet-breeds/:id', adminAuth, async (req, res) => {
+  try {
+    await query('UPDATE pet_breeds SET status = 0 WHERE id = ?', [req.params.id])
+    res.json(success(null, '已禁用'))
+  } catch (err) {
+    res.status(500).json(error('操作失败', 500))
+  }
+})
+
+router.get('/pet-personality-tags', adminAuth, async (req, res) => {
+  try {
+    const list = await query(
+      'SELECT id, tag_key AS `key`, label, sort_order, status FROM pet_personality_tags ORDER BY sort_order ASC, id ASC'
+    )
+    res.json(success(list))
+  } catch (err) {
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+router.post('/pet-personality-tags', adminAuth, async (req, res) => {
+  const { key, label, sort_order, status } = req.body
+  if (!key || !label) return res.status(400).json(error('key 与 label 必填', 400))
+  try {
+    const result = await query(
+      'INSERT INTO pet_personality_tags (tag_key, label, sort_order, status) VALUES (?, ?, ?, ?)',
+      [key, label, sort_order ?? 0, status ?? 1]
+    )
+    res.json(success({ id: result.insertId }, '已创建'))
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') return res.status(400).json(error('key 已存在', 400))
+    res.status(500).json(error('创建失败', 500))
+  }
+})
+
+router.put('/pet-personality-tags/:id', adminAuth, async (req, res) => {
+  const { label, sort_order, status } = req.body
+  try {
+    await query(
+      'UPDATE pet_personality_tags SET label=?, sort_order=?, status=? WHERE id=?',
+      [label, sort_order ?? 0, status ?? 1, req.params.id]
+    )
+    res.json(success(null, '已更新'))
+  } catch (err) {
+    res.status(500).json(error('更新失败', 500))
+  }
+})
+
+router.delete('/pet-personality-tags/:id', adminAuth, async (req, res) => {
+  try {
+    await query('UPDATE pet_personality_tags SET status = 0 WHERE id = ?', [req.params.id])
+    res.json(success(null, '已禁用'))
+  } catch (err) {
+    res.status(500).json(error('操作失败', 500))
+  }
+})
+
 // —— 攻略 ——
 router.get('/guides', adminAuth, async (req, res) => {
   const { page, size, offset } = parsePage(req.query)

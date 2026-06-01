@@ -21,6 +21,7 @@ mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "
 mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "$DB_NAME" < migrations/006_post_categories.sql
 mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "$DB_NAME" < migrations/007_place_categories.sql
 mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "$DB_NAME" < migrations/008_admin_role.sql 2>/dev/null || true
+mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "$DB_NAME" < migrations/009_pet_options.sql 2>/dev/null || true
 
 echo "Inserting test data..."
 mysql $MYSQL_OPTS -h "$DB_HOST" -u "$DB_USER" ${DB_PASSWORD:+-p"$DB_PASSWORD"} "$DB_NAME" < migrations/002_insert_test_data.sql

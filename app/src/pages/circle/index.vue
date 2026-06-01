@@ -8,12 +8,7 @@
     @scrolltolower="onLoadMore"
   >
     <template #navbar>
-      <TopNavBar
-        title="萌宠朋友圈"
-        :showBack="false"
-        rightIcon="icon-add"
-        @rightClick="goToPublish"
-      />
+      <TopNavBar title="萌宠朋友圈" :showBack="false" />
     </template>
 
     <template #header>

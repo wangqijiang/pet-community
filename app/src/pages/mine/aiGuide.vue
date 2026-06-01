@@ -89,13 +89,14 @@
 
 <script setup lang="ts">
 import { showRequestError } from "@/utils/request";
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import TopNavBar from '@/components/common/TopNavBar.vue'
 import PageLayout from '@/components/common/PageLayout.vue'
 import Loading from '@/components/common/Loading.vue'
 import { useFixedFooterHeight } from '@/composables/useLayout'
 
-const { footerHeight } = useFixedFooterHeight('#ai-guide-footer', 24 + 96 + 24)
+const { footerHeight } = useFixedFooterHeight('#ai-guide-footer', 24 + 96 + 24 + 32)
+
 import { getPetList } from '@/api/pet'
 import { sendAiChat } from '@/api/ai'
 import { getGuideList } from '@/api/guide'

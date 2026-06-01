@@ -58,15 +58,26 @@ export interface LayoutOptions {
   footerHeight?: number;
 }
 
+/** 底部固定栏高度额外缓冲，避免内容被挡住 */
+const FOOTER_SCROLL_BUFFER = 16;
+
 export function useLayout(options: MaybeRef<LayoutOptions> = {}) {
   const metrics = ref(getLayoutMetrics());
 
   const contentHeight = computed(() => {
     const m = metrics.value;
     const { headerHeight = 0, footerHeight = 0, tabBar = false } = unref(options);
-    let h = m.windowHeight - m.navbarHeight - headerHeight - footerHeight;
+    const footerPad =
+      footerHeight > 0 ? footerHeight + FOOTER_SCROLL_BUFFER : 0;
+    let h = m.windowHeight - m.navbarHeight - headerHeight - footerPad;
     if (tabBar) h -= m.tabbarHeight;
     return Math.max(0, Math.floor(h));
+  });
+
+  const scrollBottomSpacer = computed(() => {
+    const { footerHeight = 0 } = unref(options);
+    if (footerHeight <= 0) return 0;
+    return footerHeight + FOOTER_SCROLL_BUFFER;
   });
 
   const contentStyle = computed(() => ({
@@ -89,6 +100,7 @@ export function useLayout(options: MaybeRef<LayoutOptions> = {}) {
     metrics,
     contentHeight,
     contentStyle,
+    scrollBottomSpacer,
     navbarSpacerStyle,
     tabbarSpacerStyle,
     pageStyle,

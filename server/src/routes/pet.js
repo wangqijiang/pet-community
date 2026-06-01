@@ -5,6 +5,38 @@ const { success, error, pagination } = require('../utils/response')
 const { auth } = require('../middleware/auth')
 
 /**
+ * 宠物表单配置（种类 / 品种 / 性格标签）
+ */
+router.get('/config', async (req, res) => {
+  try {
+    const types = await query(
+      'SELECT id, type_key, label FROM pet_types WHERE status = 1 ORDER BY sort_order ASC, id ASC'
+    )
+    const breeds = await query(
+      'SELECT type_id, label FROM pet_breeds WHERE status = 1 ORDER BY sort_order ASC, id ASC'
+    )
+    const tags = await query(
+      'SELECT tag_key, label FROM pet_personality_tags WHERE status = 1 ORDER BY sort_order ASC, id ASC'
+    )
+
+    const breedMap = {}
+    for (const t of types) {
+      breedMap[t.label] = breeds.filter((b) => b.type_id === t.id).map((b) => b.label)
+    }
+
+    res.json(success({
+      types: types.map((t) => t.label),
+      typeKeys: Object.fromEntries(types.map((t) => [t.label, t.type_key])),
+      breeds: breedMap,
+      personalityTags: tags.map((t) => ({ id: t.tag_key, label: t.label })),
+    }, '获取成功'))
+  } catch (err) {
+    console.error('获取宠物配置失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+/**
  * 获取用户的宠物列表
  */
 router.get('/list', auth, async (req, res) => {

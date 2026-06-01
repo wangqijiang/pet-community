@@ -1,7 +1,7 @@
 <template>
   <PageLayout :footer-height="footerHeight">
     <template #navbar>
-      <TopNavBar :title="navTitle" :showBack="true" rightIcon="icon-bell" />
+      <TopNavBar :title="navTitle" :showBack="true" />
     </template>
 
     <view class="publish-content">
@@ -19,7 +19,7 @@
       <view class="image-section">
         <view class="image-grid">
           <view v-for="(img, index) in images" :key="index" class="image-item">
-            <image class="image-preview" :src="img" mode="aspectFill" />
+            <image class="image-preview" :src="resolveLocalOrMediaUrl(img)" mode="aspectFill" />
             <view class="image-delete" @click="deleteImage(index)">
               <view class="delete-icon"></view>
             </view>
@@ -116,19 +116,21 @@ import { showRequestError, isAuthRequiredError } from "@/utils/request";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
-import { ref, computed } from "vue";
-import { onLoad } from "@dcloudio/uni-app";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { onLoad, onShow } from "@dcloudio/uni-app";
 import { createPost, updatePost, getPostDetail, getPostCategories, type PostCategory } from "@/api/post";
 import { getPetList, type Pet } from "@/api/pet";
-import { resolveMediaUrl } from "@/utils/media";
+import { resolveLocalOrMediaUrl, resolveMediaUrl } from "@/utils/media";
 import { useFixedFooterHeight } from "@/composables/useLayout";
 import { consumeAiGuidePublishDraft } from "@/utils/aiGuideDraft";
 import { promptLogin } from "@/utils/request";
 import { ensureUploadedList } from "@/utils/uploadMedia";
+import { useChooseImage } from "@/composables/useChooseImage";
 
 const LAST_PUBLISH_PET_IDS_KEY = "lastPublishPetIds";
 
-const { footerHeight } = useFixedFooterHeight("#publish-action-bar", 24 + 96 + 24);
+const { footerHeight } = useFixedFooterHeight("#publish-action-bar", 24 + 96 + 24 + 32);
+const { chooseImages } = useChooseImage();
 
 const content = ref("");
 const images = ref<string[]>([]);
@@ -182,6 +184,32 @@ const loadPets = async () => {
     showRequestError(error, "加载宠物失败");
   }
 };
+
+/** 从添加宠物页返回后刷新列表，并恢复/补全选中状态 */
+const refreshPets = async () => {
+  const wasEmpty = pets.value.length === 0;
+  await loadPets();
+  selectedPetIds.value = selectedPetIds.value.filter((id) =>
+    pets.value.some((pet) => pet.id === id),
+  );
+  if (wasEmpty && pets.value.length > 0) {
+    applyDefaultPetSelection();
+  }
+};
+
+onMounted(() => {
+  uni.$on("refreshPetList", refreshPets);
+});
+
+onUnmounted(() => {
+  uni.$off("refreshPetList", refreshPets);
+});
+
+onShow(() => {
+  if (!editId.value) {
+    refreshPets();
+  }
+});
 
 const readSavedPetIds = (): number[] => {
   try {
@@ -267,12 +295,16 @@ const loadPostForEdit = async () => {
 
 const chooseImage = () => {
   const maxCount = 9 - images.value.length;
-  uni.chooseImage({
+  if (maxCount <= 0) return;
+  chooseImages({
     count: maxCount,
-    sizeType: ["compressed"],
-    sourceType: ["album", "camera"],
-    success: (res) => {
-      images.value = [...images.value, ...res.tempFilePaths];
+    onPick: async (paths) => {
+      try {
+        const uploaded = await ensureUploadedList(paths);
+        images.value = [...images.value, ...uploaded].slice(0, 9);
+      } catch (error) {
+        showRequestError(error, "图片上传失败");
+      }
     },
   });
 };

@@ -38,6 +38,11 @@
   height: 100%;
 }
 
+.page-layout__scroll-spacer {
+  width: 100%;
+  flex-shrink: 0;
+}
+
 /** 子页面内容区内边距（配合 PageLayout 使用） */
 .page-inner {
   width: 100%;
@@ -53,6 +58,8 @@
 .page-layout__tabbar {
   flex-shrink: 0;
   z-index: $z-index-tab;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px);
 }
 
 .page-layout__fab {

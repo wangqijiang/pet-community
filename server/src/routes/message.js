@@ -16,6 +16,7 @@ router.get('/', auth, async (req, res) => {
         u.username,
         u.avatar,
         m.content AS last_message,
+        m.type AS last_message_type,
         m.created_at AS last_time,
         (SELECT COUNT(*) FROM messages
           WHERE from_id = t.other_id AND to_id = ? AND read_at IS NULL) AS unread_count
@@ -65,6 +66,12 @@ router.get('/chat/:userId', auth, async (req, res) => {
       UPDATE messages SET read_at = NOW() 
       WHERE from_id = ? AND to_id = ? AND read_at IS NULL
     `, [userId, req.user.id])
+
+    // 同步标记对应私信系统通知为已读
+    await query(`
+      UPDATE notifications SET is_read = 1
+      WHERE user_id = ? AND from_user_id = ? AND type = 'message' AND is_read = 0
+    `, [req.user.id, userId])
 
     res.json(success(messages.reverse(), '获取成功'))
   } catch (err) {
@@ -157,6 +164,11 @@ router.post('/read', auth, async (req, res) => {
       await query(
         'UPDATE messages SET read_at = NOW() WHERE from_id = ? AND to_id = ? AND read_at IS NULL',
         [fromId, req.user.id]
+      )
+      await query(
+        `UPDATE notifications SET is_read = 1
+         WHERE user_id = ? AND from_user_id = ? AND type = 'message' AND is_read = 0`,
+        [req.user.id, fromId]
       )
     } else {
       // 标记所有消息为已读

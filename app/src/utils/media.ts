@@ -21,6 +21,18 @@ export function resolveMediaUrl(url?: string | null): string {
   return url.startsWith("/") ? `${origin}${url}` : `${origin}/${url}`;
 }
 
+/** 本地临时路径 / 静态资源 / 远程 URL 统一解析 */
+export function resolveLocalOrMediaUrl(url?: string | null): string {
+  if (!url) return "";
+  if (
+    /^(https?|wxfile|file|blob):/.test(url) ||
+    url.startsWith("/static/")
+  ) {
+    return url;
+  }
+  return resolveMediaUrl(url);
+}
+
 /** 与用户主页一致的用户头像默认图 */
 export const DEFAULT_USER_AVATAR = "/static/images/avatar-default.png";
 

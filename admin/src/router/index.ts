@@ -20,6 +20,7 @@ const router = createRouter({
         { path: 'posts', name: 'Posts', component: () => import('@/views/posts/PostList.vue'), meta: { title: '动态管理' } },
         { path: 'comments', name: 'Comments', component: () => import('@/views/comments/CommentList.vue'), meta: { title: '评论管理' } },
         { path: 'pets', name: 'Pets', component: () => import('@/views/pets/PetList.vue'), meta: { title: '宠物管理' } },
+        { path: 'pet-options', name: 'PetOptions', component: () => import('@/views/pets/PetOptions.vue'), meta: { title: '宠物表单配置' } },
         { path: 'places', name: 'Places', component: () => import('@/views/places/PlaceList.vue'), meta: { title: '场所管理' } },
         { path: 'places/new', name: 'PlaceNew', component: () => import('@/views/places/PlaceEdit.vue'), meta: { title: '新增场所' } },
         { path: 'places/:id', name: 'PlaceEdit', component: () => import('@/views/places/PlaceEdit.vue'), meta: { title: '编辑场所' } },

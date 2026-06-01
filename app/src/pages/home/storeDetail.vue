@@ -2,11 +2,44 @@
   <PageLayout>
     <view class="store-detail-inner page-inner--flush">
     <view class="hero">
+      <swiper
+        v-if="heroImages.length > 1"
+        class="hero-swiper"
+        circular
+        autoplay
+        :interval="4000"
+        :duration="500"
+        @change="onHeroChange"
+      >
+        <swiper-item v-for="(img, index) in heroImages" :key="index">
+          <image
+            class="hero-image"
+            :src="img"
+            mode="aspectFill"
+            @click="previewHeroImages(index)"
+          />
+        </swiper-item>
+      </swiper>
       <image
+        v-else-if="heroImages.length === 1"
         class="hero-image"
-        src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1200&auto=format&fit=crop"
+        :src="heroImages[0]"
         mode="aspectFill"
+        @click="previewHeroImages(0)"
       />
+      <view v-else class="hero-placeholder">
+        <view class="hero-placeholder-icon"></view>
+      </view>
+
+      <view v-if="heroImages.length > 1" class="hero-dots">
+        <view
+          v-for="(_, index) in heroImages"
+          :key="index"
+          class="hero-dot"
+          :class="{ active: currentHeroIndex === index }"
+        />
+      </view>
+
       <view class="hero-mask"></view>
 
       <view class="topbar">
@@ -146,10 +179,29 @@ import { resolveMediaUrl } from "@/utils/media";
 const place = ref<Partial<Place>>({});
 const reviews = ref<PlaceReview[]>([]);
 const favorited = ref(false);
+const currentHeroIndex = ref(0);
 
 const typeLabel = computed(
   () => place.value.category_label || place.value.type || "宠物友好地点",
 );
+
+const heroImages = computed(() => {
+  const imgs = place.value.images;
+  if (!imgs?.length) return [];
+  return imgs.filter(Boolean).map((url) => resolveMediaUrl(url));
+});
+
+const onHeroChange = (e: { detail: { current: number } }) => {
+  currentHeroIndex.value = e.detail.current;
+};
+
+const previewHeroImages = (index: number) => {
+  if (!heroImages.value.length) return;
+  uni.previewImage({
+    urls: heroImages.value,
+    current: heroImages.value[index],
+  });
+};
 
 const goBack = () => uni.navigateBack();
 
@@ -209,9 +261,52 @@ onLoad(async (options) => {
   height: 720rpx;
 }
 
+.hero-swiper,
 .hero-image {
   width: 100%;
   height: 100%;
+}
+
+.hero-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #ffe2c2, #fff7f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-placeholder-icon {
+  width: 120rpx;
+  height: 120rpx;
+  opacity: 0.35;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
+}
+
+.hero-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 200rpx;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.hero-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.45);
+  transition: all 0.2s ease;
+
+  &.active {
+    width: 28rpx;
+    background: #ffb36b;
+  }
 }
 
 .hero-mask {

@@ -21,7 +21,14 @@
           mode="aspectFill"
         />
         <view class="bubble-group">
-          <view class="bubble">{{ msg.content }}</view>
+          <image
+            v-if="msg.type === 'image'"
+            class="bubble-image"
+            :src="resolveLocalOrMediaUrl(msg.content)"
+            mode="widthFix"
+            @click="previewImage(msg.content)"
+          />
+          <view v-else class="bubble">{{ msg.content }}</view>
           <text class="time">{{ msg.time }}</text>
         </view>
       </view>
@@ -29,10 +36,10 @@
 
     <template #fixed>
       <view id="chat-input-bar" class="input-area">
-        <view class="input-icon">
-          <view class="icon-plus"></view>
+        <view class="input-icon" @click="openEmojiSheet">
+          <text class="emoji-trigger">☺</text>
         </view>
-        <view class="input-icon">
+        <view class="input-icon" @click="chooseChatImage">
           <view class="icon-image"></view>
         </view>
         <input
@@ -49,6 +56,23 @@
           <text class="send-text">发送</text>
         </view>
       </view>
+
+      <BottomSheet
+        :visible="emojiVisible"
+        title="选择表情"
+        @update:visible="emojiVisible = $event"
+      >
+        <view class="emoji-grid">
+          <view
+            v-for="emoji in CHAT_EMOJIS"
+            :key="emoji"
+            class="emoji-item"
+            @click="appendEmoji(emoji)"
+          >
+            <text>{{ emoji }}</text>
+          </view>
+        </view>
+      </BottomSheet>
     </template>
   </PageLayout>
 </template>
@@ -59,6 +83,7 @@ import { ref, watch, onMounted, onUnmounted } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import BottomSheet from "@/components/common/BottomSheet.vue";
 import {
   getChatMessages,
   sendMessage as sendMsgApi,
@@ -67,12 +92,21 @@ import {
 import { getUserInfo as getStoredUser } from "@/api/auth";
 import { getUserInfo } from "@/api/user";
 import { formatTime } from "@/utils/format";
-import { resolveMediaUrl } from "@/utils/media";
+import { resolveLocalOrMediaUrl, resolveMediaUrl } from "@/utils/media";
 import { useFixedFooterHeight } from "@/composables/useLayout";
+import { useChooseImage } from "@/composables/useChooseImage";
+import { ensureUploaded, isLocalMediaPath } from "@/utils/uploadMedia";
 import { ensureRealtimeConnected, setActiveChatUserId } from "@/utils/realtime";
 import { emitRefreshTabBarBadge } from "@/utils/tabBarBadge";
 
-const { footerHeight } = useFixedFooterHeight("#chat-input-bar", 24 + 88 + 24);
+const CHAT_EMOJIS = [
+  "😀", "😁", "😂", "🤣", "😊", "😍", "🥰", "😘",
+  "🐶", "🐕", "🦮", "🐩", "🐾", "❤️", "👍", "🎉",
+  "🌞", "☕", "🌳", "🏃", "💬", "🙏", "😢", "😴",
+];
+
+const { footerHeight } = useFixedFooterHeight("#chat-input-bar", 24 + 88 + 24 + 16);
+const { chooseSingle } = useChooseImage();
 
 const peerUserId = ref(0);
 const friendName = ref("");
@@ -80,6 +114,8 @@ const inputText = ref("");
 const scrollToId = ref("");
 const myAvatar = ref("");
 const myUserId = ref(0);
+const emojiVisible = ref(false);
+const sendingImage = ref(false);
 
 interface UiMessage {
   id: number;
@@ -87,6 +123,7 @@ interface UiMessage {
   time: string;
   isMe: boolean;
   avatar: string;
+  type: string;
 }
 
 const messages = ref<UiMessage[]>([]);
@@ -98,15 +135,24 @@ const scrollToBottom = () => {
   }, 100);
 };
 
-const mapMessage = (m: ChatMessage): UiMessage => ({
-  id: m.id,
-  content: m.content,
-  time: formatTime(m.created_at),
-  isMe: m.from_id === myUserId.value,
-  avatar: resolveMediaUrl(
-    m.from_id === myUserId.value ? myAvatar.value : m.from_avatar,
-  ),
-});
+const mapMessage = (m: ChatMessage): UiMessage => {
+  const isImage = m.type === "image";
+  const content = isImage
+    ? isLocalMediaPath(m.content)
+      ? m.content
+      : resolveMediaUrl(m.content)
+    : m.content;
+  return {
+    id: m.id,
+    content,
+    time: formatTime(m.created_at),
+    isMe: m.from_id === myUserId.value,
+    avatar: resolveMediaUrl(
+      m.from_id === myUserId.value ? myAvatar.value : m.from_avatar,
+    ),
+    type: m.type || "text",
+  };
+};
 
 const appendMessage = (m: ChatMessage) => {
   if (messages.value.some((item) => item.id === m.id)) return;
@@ -144,6 +190,40 @@ const sendMessage = async () => {
   } catch (error) {
     showRequestError(error, "发送失败");
   }
+};
+
+const openEmojiSheet = () => {
+  uni.vibrateShort({ type: "light" });
+  emojiVisible.value = true;
+};
+
+const appendEmoji = (emoji: string) => {
+  inputText.value += emoji;
+  emojiVisible.value = false;
+};
+
+const chooseChatImage = () => {
+  if (sendingImage.value || !peerUserId.value) return;
+  chooseSingle(async (tempPath) => {
+    sendingImage.value = true;
+    uni.showLoading({ title: "上传中...", mask: true });
+    try {
+      const ossUrl = await ensureUploaded(tempPath);
+      const sent = await sendMsgApi(peerUserId.value, ossUrl, "image");
+      appendMessage(sent);
+    } catch (error) {
+      showRequestError(error, "图片发送失败");
+    } finally {
+      uni.hideLoading();
+      sendingImage.value = false;
+    }
+  });
+};
+
+const previewImage = (url: string) => {
+  const resolved = resolveLocalOrMediaUrl(url);
+  if (!resolved) return;
+  uni.previewImage({ urls: [resolved], current: resolved });
 };
 
 const onRealtimeMessage = (raw: ChatMessage) => {
@@ -231,6 +311,12 @@ onUnmounted(() => {
   box-shadow: 0 4rpx 16rpx rgba(107, 78, 61, 0.06);
 }
 
+.bubble-image {
+  max-width: 360rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(107, 78, 61, 0.06);
+}
+
 .message.right .bubble {
   background: linear-gradient(135deg, #ffb6c1, #ffc1e9);
   color: #5e4636;
@@ -266,12 +352,18 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.icon-plus,
+.emoji-trigger {
+  font-size: 40rpx;
+  line-height: 1;
+  color: #8a7f7f;
+}
+
 .icon-image {
   width: 32rpx;
   height: 32rpx;
-  background: #c4b5b5;
-  border-radius: 8rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23C4B5B5'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E")
+    no-repeat center;
+  background-size: 100%;
 }
 
 .input-box {
@@ -302,5 +394,27 @@ onUnmounted(() => {
 
 .send-btn.active .send-text {
   color: #fff;
+}
+
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  padding: 8rpx 0 24rpx;
+}
+
+.emoji-item {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  border-radius: 16rpx;
+  background: #fff7f1;
+
+  &:active {
+    transform: scale(1.05);
+  }
 }
 </style>

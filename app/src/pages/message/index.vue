@@ -91,7 +91,7 @@ import PageLayout from "@/components/common/PageLayout.vue";
 import Empty from "@/components/common/Empty.vue";
 import { getNotifications } from "@/api/notification";
 import { getConversations } from "@/api/message";
-import { formatRelativeTime } from "@/utils/format";
+import { formatRelativeTime, formatChatPreview } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 import { isLoggedIn } from "@/api/auth";
 import { promptLogin } from "@/utils/request";
@@ -199,7 +199,7 @@ const upsertChatFromMessage = (msg: ChatMessage) => {
         ? chatList.value[idx].avatar
         : otherAvatar,
     ),
-    lastMessage: msg.content,
+    lastMessage: formatChatPreview(msg.content, msg.type),
     time: formatRelativeTime(msg.created_at),
     unreadCount:
       idx >= 0
@@ -238,7 +238,7 @@ const loadData = async () => {
       id: c.user_id,
       name: c.username,
       avatar: resolveMediaUrl(c.avatar),
-      lastMessage: c.last_message || "",
+      lastMessage: formatChatPreview(c.last_message || "", c.last_message_type),
       time: formatRelativeTime(c.last_time),
       unreadCount: Number(c.unread_count) || 0,
     }));

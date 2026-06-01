@@ -1,5 +1,6 @@
 import type { ComponentInternalInstance } from "vue";
 import type { PostShareInput, PostSharePet } from "./postShare";
+import { resolveMediaUrl } from "./media";
 
 /** 设计稿比例 5:7，偏竖版分享卡 */
 const DESIGN_W = 600;
@@ -31,10 +32,15 @@ function ss(size: number, cw: number): number {
 async function resolveImagePath(src: string): Promise<string> {
   if (!src) throw new Error("empty src");
 
-  if (/^https?:\/\//i.test(src)) {
+  let url = src;
+  if (url.startsWith("/") && !url.startsWith("//")) {
+    url = resolveMediaUrl(url);
+  }
+
+  if (/^https?:\/\//i.test(url)) {
     try {
       const downloaded = await new Promise<UniApp.DownloadSuccessData>((resolve, reject) => {
-        uni.downloadFile({ url: src, success: resolve, fail: reject });
+        uni.downloadFile({ url, success: resolve, fail: reject });
       });
       if (downloaded.statusCode === 200 && downloaded.tempFilePath) {
         return downloaded.tempFilePath;
@@ -45,7 +51,7 @@ async function resolveImagePath(src: string): Promise<string> {
   }
 
   const info = await new Promise<ImageInfo>((resolve, reject) => {
-    uni.getImageInfo({ src, success: resolve, fail: reject });
+    uni.getImageInfo({ src: url, success: resolve, fail: reject });
   });
   return info.path;
 }
@@ -308,7 +314,7 @@ export async function generatePostShareCard(
           },
           component as never,
         );
-      }, 500);
+      }, 800);
     });
   });
 }

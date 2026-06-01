@@ -18,7 +18,7 @@ export type PostShareInput = {
 };
 
 export function buildPostSharePath(id: number): string {
-  return `/pages/circle/detail?id=${id}`;
+  return `/pages/circle/detail?id=${id}&fromShare=1`;
 }
 
 export function buildPostShareQuery(id: number): string {

@@ -66,7 +66,7 @@ const handleClose = () => {
   backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-end;
-  z-index: 999;
+  z-index: 10001;
   opacity: 0;
   visibility: hidden;
   transition:
