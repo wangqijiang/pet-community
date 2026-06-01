@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 
 const sign = (payload, options = {}) => {
-  const expiresIn = options.expiresIn || process.env.JWT_EXPIRES_IN
+  const expiresIn = options.expiresIn || process.env.JWT_EXPIRES_IN || '7d'
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn })
 }
 

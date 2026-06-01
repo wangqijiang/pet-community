@@ -60,20 +60,31 @@ async function getAccessToken(appId, appSecret) {
 /**
  * 通过微信 getPhoneNumber 返回的 code 换取手机号
  */
+function normalizeMainlandPhone(raw) {
+  if (!raw) return ''
+  const digits = String(raw).replace(/\D/g, '')
+  if (/^1[3-9]\d{9}$/.test(digits)) return digits
+  if (digits.startsWith('86') && /^861[3-9]\d{9}$/.test(digits)) {
+    return digits.slice(2)
+  }
+  return digits
+}
+
 async function getPhoneByCode(phoneCode) {
   const appId = process.env.WECHAT_APPID
   const appSecret = process.env.WECHAT_APPSECRET
-  const devMode =
-    process.env.WECHAT_DEV_MODE === '1' ||
-    process.env.NODE_ENV !== 'production' ||
-    !appId ||
-    !appSecret
 
-  if (devMode) {
-    if (typeof phoneCode === 'string' && phoneCode.startsWith('dev:')) {
-      return phoneCode.slice(4)
+  if (typeof phoneCode === 'string' && phoneCode.startsWith('dev:')) {
+    return normalizeMainlandPhone(phoneCode.slice(4))
+  }
+
+  if (!appId || !appSecret) {
+    if (process.env.WECHAT_DEV_MODE === '1') {
+      return normalizeMainlandPhone(
+        process.env.WECHAT_DEV_PHONE || '13800138001'
+      )
     }
-    return process.env.WECHAT_DEV_PHONE || '13800138001'
+    throw new Error('未配置微信小程序 AppID / AppSecret')
   }
 
   const accessToken = await getAccessToken(appId, appSecret)
@@ -88,7 +99,13 @@ async function getPhoneByCode(phoneCode) {
   }
 
   const phoneInfo = result.phone_info || {}
-  return phoneInfo.purePhoneNumber || phoneInfo.phoneNumber || ''
+  const phone = normalizeMainlandPhone(
+    phoneInfo.purePhoneNumber || phoneInfo.phoneNumber || ''
+  )
+  if (!phone) {
+    throw new Error('微信未返回有效手机号')
+  }
+  return phone
 }
 
 module.exports = {

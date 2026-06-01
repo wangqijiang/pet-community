@@ -66,7 +66,7 @@ app.get('/api/health', (req, res) => {
 // API 路由列表
 app.get('/api', (req, res) => {
   res.json({
-    message: 'WaggleWorld API Server',
+    message: '萌宠朋友圈 API Server',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth (POST /register, POST /login)',
@@ -100,7 +100,7 @@ initWebSocket(server)
 server.listen(PORT, () => {
   console.log(`
 ╔════════════════════════════════════════════════╗
-║     WaggleWorld 宠物社交小程序 - 后端服务      ║
+║     萌宠朋友圈 - 后端服务                      ║
 ╠════════════════════════════════════════════════╣
 ║  Server running on: http://localhost:${PORT}     ║
 ║  WebSocket:         ws://localhost:${PORT}/ws    ║

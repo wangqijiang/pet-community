@@ -9,7 +9,7 @@
       />
     </template>
 
-    <view class="mine-content">
+    <view class="mine-content" :style="contentPadStyle">
       <view class="profile-card">
         <view class="user-row">
           <view class="user-left">
@@ -128,7 +128,8 @@
 
 <script setup lang="ts">
 import { showRequestError } from "@/utils/request";
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { getLayoutMetrics } from "@/composables/useLayout";
 import { onShow } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
@@ -150,6 +151,10 @@ const stats = ref({
   following: 0,
   followers: 0,
 });
+
+const contentPadStyle = computed(() => ({
+  paddingBottom: `${getLayoutMetrics().tabbarHeight + uni.upx2px(48)}px`,
+}));
 
 onMounted(async () => {
   uni.$on("refreshPetList", loadPets);
@@ -314,7 +319,7 @@ const handleLogout = () => {
 
 <style lang="scss" scoped>
 .mine-content {
-  padding: 0 32rpx 32rpx;
+  padding: 0 32rpx 0;
   box-sizing: border-box;
 }
 
