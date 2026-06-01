@@ -5,7 +5,7 @@ const { compare, hash } = require('../../utils/bcrypt')
 const { sign } = require('../../utils/jwt')
 const { success, error, pagination } = require('../../utils/response')
 const { adminAuth } = require('../../middleware/adminAuth')
-const { upload, toPublicUrl } = require('../../utils/upload')
+const { upload, saveUploadedFile } = require('../../utils/upload')
 
 function parsePage(q) {
   const page = Math.max(1, parseInt(q.page, 10) || 1)
@@ -102,13 +102,18 @@ router.get('/dashboard/stats', adminAuth, async (req, res) => {
 })
 
 // —— 上传 ——
-router.post('/upload', adminAuth, upload.single('file'), (req, res) => {
+router.post('/upload', adminAuth, upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json(error('请选择图片', 400))
   }
-  const sub = req.body.type === 'avatar' ? 'avatars' : 'files'
-  const url = toPublicUrl(req, req.file.filename, sub)
-  res.json(success({ url }))
+  try {
+    const sub = req.body.type === 'avatar' ? 'avatars' : 'files'
+    const url = await saveUploadedFile(req.file, req, sub)
+    res.json(success({ url }))
+  } catch (err) {
+    console.error('管理端上传失败:', err)
+    res.status(500).json(error(err.message || '上传失败', 500))
+  }
 })
 
 // —— 用户 ——

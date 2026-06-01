@@ -1,5 +1,5 @@
 <template>
-  <PageLayout :footer-height="footerHeight">
+  <PageLayout :footer-height="layoutFooterHeight">
     <template #navbar>
       <TopNavBar :title="isEdit ? '编辑宠物' : '添加宠物'" :showBack="true" />
     </template>
@@ -249,6 +249,9 @@
             </view>
           </view>
         </view>
+
+        <!-- 底部留白，避免被固定「删除/保存」栏挡住 -->
+        <view class="scroll-bottom-spacer" :style="bottomSpacerStyle" />
     </view>
 
     <template #fixed>
@@ -381,6 +384,7 @@ import {
 } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 import { showRequestError } from "@/utils/request";
+import { ensureUploaded, ensureUploadedList } from "@/utils/uploadMedia";
 import { getLayoutMetrics, useFixedFooterHeight } from "@/composables/useLayout";
 
 const layoutMetrics = getLayoutMetrics();
@@ -397,6 +401,18 @@ const syncFooterEstimate = () => {
   footerHeight.value =
     uni.upx2px(footerEstimateRpx(isEdit.value)) + layoutMetrics.safeBottom;
 };
+
+/** 滚动区高度扣减（取测量值与估算值较大者，并加缓冲） */
+const layoutFooterHeight = computed(() => {
+  const estimated =
+    uni.upx2px(footerEstimateRpx(isEdit.value)) + layoutMetrics.safeBottom;
+  return Math.max(footerHeight.value, estimated) + uni.upx2px(32);
+});
+
+/** 内容底部占位，滚到底时「宠物照片」在按钮上方完整可见 */
+const bottomSpacerStyle = computed(() => ({
+  height: `${layoutFooterHeight.value}px`,
+}));
 
 const loading = ref(false);
 const isEdit = ref(false);
@@ -1144,63 +1160,48 @@ const handleSave = async () => {
   uni.vibrateShort({ type: "medium" });
   loading.value = true;
 
-  const data: PetFormData = {
-    name: formData.value.name,
-    type: mapTypeToDb(formData.value.type) || undefined,
-    breed: formData.value.breed || undefined,
-    age: formData.value.age ? Number(formData.value.age) : undefined,
-    gender: formData.value.gender || undefined,
-    color: formData.value.color || undefined,
-    weight: formData.value.weight ? Number(formData.value.weight) : undefined,
-    size: mapSizeToDb(formData.value.size) || undefined,
-    neutered: formData.value.neutered,
-    vaccinated: formData.value.vaccinated ? "已接种" : "未接种",
-    healthCertificate: formData.value.healthCertificate,
-    personality:
-      formData.value.personality.length > 0
-        ? formData.value.personality.join(",")
-        : undefined,
-    habits: formData.value.habits || undefined,
-    avatar: formData.value.avatar || undefined,
-    photos: formData.value.photos,
-  };
+  try {
+    const [avatarUrl, photoUrls] = await Promise.all([
+      formData.value.avatar ? ensureUploaded(formData.value.avatar) : Promise.resolve(""),
+      ensureUploadedList(formData.value.photos),
+    ]);
 
-  if (isEdit.value && petId.value) {
-    updatePet(petId.value, data)
-      .then(() => {
-        uni.showToast({
-          title: "更新成功",
-          icon: "success",
-        });
-        uni.$emit("refreshPetList");
-        setTimeout(() => {
-          uni.navigateBack({ delta: 1 });
-        }, 1500);
-      })
-      .catch((error) => {
-        showRequestError(error, "更新失败");
-      })
-      .finally(() => {
-        loading.value = false;
-      });
-  } else {
-    addPet(data)
-      .then(() => {
-        uni.showToast({
-          title: "添加成功",
-          icon: "success",
-        });
-        uni.$emit("refreshPetList");
-        setTimeout(() => {
-          uni.navigateBack({ delta: 1 });
-        }, 1500);
-      })
-      .catch((error) => {
-        showRequestError(error, "添加失败");
-      })
-      .finally(() => {
-        loading.value = false;
-      });
+    const data: PetFormData = {
+      name: formData.value.name,
+      type: mapTypeToDb(formData.value.type) || undefined,
+      breed: formData.value.breed || undefined,
+      age: formData.value.age ? Number(formData.value.age) : undefined,
+      gender: formData.value.gender || undefined,
+      color: formData.value.color || undefined,
+      weight: formData.value.weight ? Number(formData.value.weight) : undefined,
+      size: mapSizeToDb(formData.value.size) || undefined,
+      neutered: formData.value.neutered,
+      vaccinated: formData.value.vaccinated ? "已接种" : "未接种",
+      healthCertificate: formData.value.healthCertificate,
+      personality:
+        formData.value.personality.length > 0
+          ? formData.value.personality.join(",")
+          : undefined,
+      habits: formData.value.habits || undefined,
+      avatar: avatarUrl || undefined,
+      photos: photoUrls,
+    };
+
+    if (isEdit.value && petId.value) {
+      await updatePet(petId.value, data);
+      uni.showToast({ title: "更新成功", icon: "success" });
+      uni.$emit("refreshPetList");
+      setTimeout(() => uni.navigateBack({ delta: 1 }), 1500);
+    } else {
+      await addPet(data);
+      uni.showToast({ title: "添加成功", icon: "success" });
+      uni.$emit("refreshPetList");
+      setTimeout(() => uni.navigateBack({ delta: 1 }), 1500);
+    }
+  } catch (error) {
+    showRequestError(error, isEdit.value ? "更新失败" : "添加失败");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -1244,6 +1245,12 @@ const handleDelete = () => {
   background: rgb(255, 247, 241);
   color: #4b3d3f;
   box-sizing: border-box;
+  min-height: 100%;
+}
+
+.scroll-bottom-spacer {
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .avatar-section {
@@ -1303,10 +1310,10 @@ const handleDelete = () => {
 .section {
   padding: 0 32rpx;
   margin-bottom: 56rpx;
+}
 
-  &:last-of-type {
-    margin-bottom: 32rpx;
-  }
+.section:last-of-type {
+  margin-bottom: 24rpx;
 }
 
 .item-field {

@@ -4,7 +4,7 @@ const { query } = require('../config/db')
 const { pushNotificationById } = require('../utils/realtime')
 const { auth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
-const { upload, toPublicUrl } = require('../utils/upload')
+const { upload, saveUploadedFile } = require('../utils/upload')
 
 /** 动态/宠物数以实际数据为准，避免与 users 表缓存字段不一致 */
 const USER_COUNT_FIELDS = `
@@ -404,7 +404,7 @@ router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
   }
 
   try {
-    const url = toPublicUrl(req, req.file.filename, 'avatars')
+    const url = await saveUploadedFile(req.file, req, 'avatars')
     await query('UPDATE users SET avatar = ?, updated_at = NOW() WHERE id = ?', [url, req.user.id])
     res.json(success({ url }, '上传成功'))
   } catch (err) {

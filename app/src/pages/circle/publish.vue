@@ -124,6 +124,7 @@ import { resolveMediaUrl } from "@/utils/media";
 import { useFixedFooterHeight } from "@/composables/useLayout";
 import { consumeAiGuidePublishDraft } from "@/utils/aiGuideDraft";
 import { promptLogin } from "@/utils/request";
+import { ensureUploadedList } from "@/utils/uploadMedia";
 
 const LAST_PUBLISH_PET_IDS_KEY = "lastPublishPetIds";
 
@@ -300,11 +301,13 @@ const handlePublish = async () => {
   loading.value = true;
 
   try {
+    const uploadedImages = await ensureUploadedList(images.value);
+
     if (editId.value) {
       await updatePost(
         editId.value,
         content.value,
-        images.value,
+        uploadedImages,
         selectedPetIds.value,
         selectedCategory.value || undefined,
       );
@@ -315,7 +318,7 @@ const handlePublish = async () => {
     } else {
       await createPost(
         content.value,
-        images.value,
+        uploadedImages,
         selectedPetIds.value,
         selectedCategory.value || undefined,
       );
