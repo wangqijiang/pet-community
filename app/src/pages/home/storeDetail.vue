@@ -1,161 +1,169 @@
 <template>
   <PageLayout>
     <view class="store-detail-inner page-inner--flush">
-    <view class="hero">
-      <swiper
-        v-if="heroImages.length > 1"
-        class="hero-swiper"
-        circular
-        autoplay
-        :interval="4000"
-        :duration="500"
-        @change="onHeroChange"
-      >
-        <swiper-item v-for="(img, index) in heroImages" :key="index">
-          <image
-            class="hero-image"
-            :src="img"
-            mode="aspectFill"
-            @click="previewHeroImages(index)"
-          />
-        </swiper-item>
-      </swiper>
-      <image
-        v-else-if="heroImages.length === 1"
-        class="hero-image"
-        :src="heroImages[0]"
-        mode="aspectFill"
-        @click="previewHeroImages(0)"
-      />
-      <view v-else class="hero-placeholder">
-        <view class="hero-placeholder-icon"></view>
-      </view>
-
-      <view v-if="heroImages.length > 1" class="hero-dots">
-        <view
-          v-for="(_, index) in heroImages"
-          :key="index"
-          class="hero-dot"
-          :class="{ active: currentHeroIndex === index }"
+      <view class="hero">
+        <swiper
+          v-if="heroImages.length > 1"
+          class="hero-swiper"
+          circular
+          autoplay
+          :interval="4000"
+          :duration="500"
+          @change="onHeroChange"
+        >
+          <swiper-item v-for="(img, index) in heroImages" :key="index">
+            <image
+              class="hero-image"
+              :src="img"
+              mode="aspectFill"
+              @click="previewHeroImages(index)"
+            />
+          </swiper-item>
+        </swiper>
+        <image
+          v-else-if="heroImages.length === 1"
+          class="hero-image"
+          :src="heroImages[0]"
+          mode="aspectFill"
+          @click="previewHeroImages(0)"
         />
-      </view>
-
-      <view class="hero-mask"></view>
-
-      <view class="topbar">
-        <view class="nav-btn" @click="goBack">
-          <view class="nav-icon icon-back"></view>
+        <view v-else class="hero-placeholder">
+          <view class="hero-placeholder-icon"></view>
         </view>
-        <view class="nav-group">
-          <view class="nav-btn">
-            <view class="nav-icon icon-ellipsis"></view>
-          </view>
-          <view class="nav-btn">
-            <view class="nav-icon icon-circle"></view>
-          </view>
-        </view>
-      </view>
 
-      <view class="hero-content">
-        <view class="tag">{{ typeLabel }}</view>
-        <text class="store-name">{{ place.name || "加载中..." }}</text>
-        <text class="store-desc">{{ place.description || place.address }}</text>
-        <view class="meta-row">
-          <view class="meta-item">
-            <view class="meta-icon icon-star"></view>
-            <text>{{ place.rating }}评分</text>
-          </view>
-          <view class="meta-item" v-if="place.distance">
-            <view class="meta-icon icon-map-pin"></view>
-            <text>距离{{ place.distance }}</text>
-          </view>
-          <view class="meta-item">
-            <view class="meta-icon icon-paw"></view>
-            <text>{{ place.reviews_count || 0 }}条评价</text>
-          </view>
+        <view v-if="heroImages.length > 1" class="hero-dots">
+          <view
+            v-for="(_, index) in heroImages"
+            :key="index"
+            class="hero-dot"
+            :class="{ active: currentHeroIndex === index }"
+          />
         </view>
-      </view>
-    </view>
 
-    <view class="content">
-      <view class="card">
-        <view class="section-title">
-          <view class="title-icon icon-file"></view>
-          <text>店铺介绍</text>
-        </view>
-        <text class="intro">{{ place.description || "暂无介绍" }}</text>
-      </view>
+        <view class="hero-mask"></view>
 
-      <view class="card">
-        <view class="section-title">
-          <view class="title-icon icon-info"></view>
-          <text>基础信息</text>
-        </view>
-        <view class="info-list">
-          <view class="info-item">
-            <view class="info-icon icon-clock"></view>
-            <view class="info-content">
-              <text class="info-label">营业时间</text>
-              <text class="info-value">{{ place.business_hours || "暂无" }}</text>
+        <view class="topbar">
+          <view class="nav-btn" @click="goBack">
+            <view class="nav-icon icon-back"></view>
+          </view>
+          <view class="nav-group">
+            <view class="nav-btn">
+              <view class="nav-icon icon-ellipsis"></view>
+            </view>
+            <view class="nav-btn">
+              <view class="nav-icon icon-circle"></view>
             </view>
           </view>
-          <view class="info-item">
-            <view class="info-icon icon-map"></view>
-            <view class="info-content">
-              <text class="info-label">店铺地址</text>
-              <text class="info-value">{{ place.address || "暂无" }}</text>
+        </view>
+
+        <view class="hero-content">
+          <view class="tag">{{ typeLabel }}</view>
+          <text class="store-name">{{ place.name || "加载中..." }}</text>
+          <text class="store-desc">{{
+            place.description || place.address
+          }}</text>
+          <view class="meta-row">
+            <view class="meta-item">
+              <view class="meta-icon icon-star"></view>
+              <text>{{ place.rating }}评分</text>
+            </view>
+            <view class="meta-item" v-if="place.distance">
+              <view class="meta-icon icon-map-pin"></view>
+              <text>距离{{ place.distance }}</text>
+            </view>
+            <view class="meta-item">
+              <view class="meta-icon icon-paw"></view>
+              <text>{{ place.reviews_count || 0 }}条评价</text>
             </view>
           </view>
         </view>
       </view>
 
-      <view class="card">
-        <view class="section-title">
-          <view class="title-icon icon-sparkles"></view>
-          <text>快捷操作</text>
+      <view class="content">
+        <view class="card">
+          <view class="section-title">
+            <view class="title-icon icon-file"></view>
+            <text>店铺介绍</text>
+          </view>
+          <text class="intro">{{ place.description || "暂无介绍" }}</text>
         </view>
-        <view class="action-grid">
-          <view class="action-item" @click="handleNavigate">
-            <view class="action-icon icon-nav"></view>
-            <text class="action-text">导航前往</text>
-          </view>
-          <view class="action-item" @click="handleCall">
-            <view class="action-icon icon-phone"></view>
-            <text class="action-text">联系店铺</text>
-          </view>
-          <view class="action-item" @click="handleCollect">
-            <view class="action-icon icon-heart"></view>
-            <text class="action-text">{{ favorited ? '已点赞' : '点赞地点' }}</text>
-          </view>
-        </view>
-      </view>
 
-      <view class="card">
-        <view class="section-title">
-          <view class="title-icon icon-message"></view>
-          <text>用户评价</text>
-        </view>
-        <view v-if="reviews.length === 0" class="review-text">暂无评价</view>
-        <view v-for="review in reviews" :key="review.id" class="review-block">
-          <view class="review-header">
-            <view class="user">
-              <image
-                class="avatar"
-                :src="resolveMediaUrl(review.avatar)"
-                mode="aspectFill"
-              />
-              <view class="user-info">
-                <text class="username">{{ review.username }}</text>
-                <text class="date">{{ formatRelativeTime(review.created_at) }}</text>
+        <view class="card">
+          <view class="section-title">
+            <view class="title-icon icon-info"></view>
+            <text>基础信息</text>
+          </view>
+          <view class="info-list">
+            <view class="info-item">
+              <view class="info-icon icon-clock"></view>
+              <view class="info-content">
+                <text class="info-label">营业时间</text>
+                <text class="info-value">{{
+                  place.business_hours || "暂无"
+                }}</text>
+              </view>
+            </view>
+            <view class="info-item">
+              <view class="info-icon icon-map"></view>
+              <view class="info-content">
+                <text class="info-label">店铺地址</text>
+                <text class="info-value">{{ place.address || "暂无" }}</text>
               </view>
             </view>
           </view>
-          <text class="review-text">{{ review.content }}</text>
         </view>
-      </view>
 
-      <view class="bottom-space"></view>
-    </view>
+        <view class="card">
+          <view class="section-title">
+            <view class="title-icon icon-sparkles"></view>
+            <text>快捷操作</text>
+          </view>
+          <view class="action-grid">
+            <view class="action-item" @click="handleNavigate">
+              <view class="action-icon icon-nav"></view>
+              <text class="action-text">导航前往</text>
+            </view>
+            <view class="action-item" @click="handleCall">
+              <view class="action-icon icon-phone"></view>
+              <text class="action-text">联系店铺</text>
+            </view>
+            <view class="action-item" @click="handleCollect">
+              <view class="action-icon icon-heart"></view>
+              <text class="action-text">{{
+                favorited ? "已点赞" : "点赞地点"
+              }}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="card">
+          <view class="section-title">
+            <view class="title-icon icon-message"></view>
+            <text>用户评价</text>
+          </view>
+          <view v-if="reviews.length === 0" class="review-text">暂无评价</view>
+          <view v-for="review in reviews" :key="review.id" class="review-block">
+            <view class="review-header">
+              <view class="user">
+                <image
+                  class="avatar"
+                  :src="resolveMediaUrl(review.avatar)"
+                  mode="aspectFill"
+                />
+                <view class="user-info">
+                  <text class="username">{{ review.username }}</text>
+                  <text class="date">{{
+                    formatRelativeTime(review.created_at)
+                  }}</text>
+                </view>
+              </view>
+            </view>
+            <text class="review-text">{{ review.content }}</text>
+          </view>
+        </view>
+
+        <view class="bottom-space"></view>
+      </view>
     </view>
   </PageLayout>
 </template>
@@ -252,7 +260,7 @@ onLoad(async (options) => {
 <style lang="scss" scoped>
 .store-detail-inner {
   min-height: 100%;
-  background: #FFF8F5;
+  background: #fff8f5;
 }
 
 .hero {
@@ -457,7 +465,7 @@ onLoad(async (options) => {
 .section-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: #4D3E3E;
+  color: #4d3e3e;
   margin-bottom: 32rpx;
   display: flex;
   align-items: center;
@@ -515,7 +523,7 @@ onLoad(async (options) => {
   width: 84rpx;
   height: 84rpx;
   border-radius: 32rpx;
-  background: #FFF3E7;
+  background: #fff3e7;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -525,14 +533,14 @@ onLoad(async (options) => {
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z'/%3E%3C/svg%3E")
       no-repeat center;
     background-size: 60%;
-    background-color: #FFF3E7;
+    background-color: #fff3e7;
   }
 
   &.icon-map {
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M20.5 3l-6 1.5-6-1.5-5.5 1.5v15l5.5-1.5 6 1.5 6-1.5v-15zm-6.5 13.5l-6-1.5v-11l6 1.5v11z'/%3E%3C/svg%3E")
       no-repeat center;
     background-size: 60%;
-    background-color: #FFF3E7;
+    background-color: #fff3e7;
   }
 }
 
@@ -542,7 +550,7 @@ onLoad(async (options) => {
 
 .info-label {
   font-size: 26rpx;
-  color: #B0A6A6;
+  color: #b0a6a6;
   display: block;
 }
 
@@ -550,7 +558,7 @@ onLoad(async (options) => {
   margin-top: 8rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #4D3E3E;
+  color: #4d3e3e;
   line-height: 1.8;
   display: block;
 }
@@ -564,7 +572,7 @@ onLoad(async (options) => {
 .action-item {
   height: 176rpx;
   border-radius: 48rpx;
-  background: #FFF8F3;
+  background: #fff8f3;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -603,7 +611,7 @@ onLoad(async (options) => {
 .action-text {
   font-size: 28rpx;
   font-weight: 700;
-  color: #6B5B5B;
+  color: #6b5b5b;
 }
 
 .review-header {
@@ -633,13 +641,13 @@ onLoad(async (options) => {
 .username {
   font-size: 32rpx;
   font-weight: 700;
-  color: #4D3E3E;
+  color: #4d3e3e;
 }
 
 .date {
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #B0A6A6;
+  color: #b0a6a6;
 }
 
 .stars {
