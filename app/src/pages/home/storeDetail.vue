@@ -141,7 +141,12 @@
             <view class="title-icon icon-message"></view>
             <text>用户评价</text>
           </view>
-          <view v-if="reviews.length === 0" class="review-text">暂无评价</view>
+          <Empty
+            v-if="reviews.length === 0"
+            compact
+            title="暂无评价"
+            description="来做第一个评价的人吧"
+          />
           <view v-for="review in reviews" :key="review.id" class="review-block">
             <view class="review-header">
               <view class="user">
@@ -169,10 +174,11 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError } from "@/utils/request";
+import { showRequestError, showToast } from "@/utils/request";
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import {
   getPlaceDetail,
   getPlaceReviews,
@@ -225,7 +231,7 @@ const handleNavigate = () => {
 
 const handleCall = () => {
   if (place.value.phone) uni.makePhoneCall({ phoneNumber: place.value.phone });
-  else uni.showToast({ title: "暂无电话", icon: "none" });
+  else showToast({ title: "暂无电话", icon: "none" });
 };
 
 const handleCollect = async () => {
@@ -234,7 +240,7 @@ const handleCollect = async () => {
   try {
     const res = await togglePlaceLike(place.value.id);
     favorited.value = res.liked;
-    uni.showToast({
+    showToast({
       title: res.liked ? "点赞成功" : "已取消点赞",
       icon: "success",
     });

@@ -383,7 +383,7 @@ import {
   formatPetGender,
 } from "@/utils/format";
 import { resolveMediaUrl, resolveLocalOrMediaUrl } from "@/utils/media";
-import { showRequestError } from "@/utils/request";
+import { showRequestError, showToast } from "@/utils/request";
 import { ensureUploaded, ensureUploadedList } from "@/utils/uploadMedia";
 import { getLayoutMetrics, useFixedFooterHeight } from "@/composables/useLayout";
 import { useChooseImage } from "@/composables/useChooseImage";
@@ -994,7 +994,7 @@ const openModal = (modalName: string) => {
 
 const openBreedModal = () => {
   if (!formData.value.type) {
-    uni.showToast({
+    showToast({
       title: "请先选择宠物种类",
       icon: "none",
     });
@@ -1073,7 +1073,7 @@ const cancelCustomBreed = () => {
 const confirmCustomBreed = () => {
   const value = customBreedDraft.value.trim();
   if (!value) {
-    uni.showToast({
+    showToast({
       title: "请输入品种名称",
       icon: "none",
     });
@@ -1092,7 +1092,7 @@ const chooseAvatar = () => {
     formData.value.avatar = tempPath;
     try {
       formData.value.avatar = await ensureUploaded(tempPath);
-      uni.showToast({ title: "头像上传成功", icon: "success" });
+      showToast({ title: "头像上传成功", icon: "success" });
     } catch (error) {
       showRequestError(error, "头像上传失败");
       formData.value.avatar = "";
@@ -1109,7 +1109,7 @@ const uploadPhotos = () => {
       try {
         const uploaded = await ensureUploadedList(paths);
         formData.value.photos = [...formData.value.photos, ...uploaded].slice(0, 9);
-        uni.showToast({ title: "照片上传成功", icon: "success" });
+        showToast({ title: "照片上传成功", icon: "success" });
       } catch (error) {
         showRequestError(error, "照片上传失败");
       }
@@ -1133,7 +1133,7 @@ const deletePhoto = (index: number) => {
     success: (res) => {
       if (res.confirm) {
         formData.value.photos.splice(index, 1);
-        uni.showToast({
+        showToast({
           title: "删除成功",
           icon: "success",
         });
@@ -1151,7 +1151,7 @@ const togglePersonality = (tagId: string) => {
     if (formData.value.personality.length < 6) {
       formData.value.personality.push(tagId);
     } else {
-      uni.showToast({
+      showToast({
         title: "最多只能选择6个性格标签",
         icon: "none",
       });
@@ -1196,12 +1196,12 @@ const handleSave = async () => {
 
     if (isEdit.value && petId.value) {
       await updatePet(petId.value, data);
-      uni.showToast({ title: "更新成功", icon: "success" });
+      showToast({ title: "更新成功", icon: "success" });
       uni.$emit("refreshPetList");
       setTimeout(() => uni.navigateBack({ delta: 1 }), 1500);
     } else {
       await addPet(data);
-      uni.showToast({ title: "添加成功", icon: "success" });
+      showToast({ title: "添加成功", icon: "success" });
       uni.$emit("refreshPetList");
       setTimeout(() => uni.navigateBack({ delta: 1 }), 1500);
     }
@@ -1222,7 +1222,7 @@ const handleDelete = () => {
         loading.value = true;
         deletePet(petId.value)
           .then(() => {
-            uni.showToast({
+            showToast({
               title: "删除成功",
               icon: "success",
             });

@@ -95,13 +95,13 @@
           </view>
         </view>
 
-        <view v-if="dynamicList.length === 0" class="empty-state">
-          <view class="empty-illustration"></view>
-          <text class="empty-text">还没有发布过动态哦</text>
-          <view class="empty-btn" @click="goToPublish">
-            <text class="btn-text">去发布</text>
-          </view>
-        </view>
+        <Empty
+          v-if="dynamicList.length === 0 && !loading"
+          title="还没有发布过动态"
+          description="分享毛孩子的日常吧"
+          button-text="去发布"
+          @click="goToPublish"
+        />
 
         <view v-if="dynamicList.length > 0" class="bottom-hint">
           <text class="hint-text">已经到底啦～</text>
@@ -120,11 +120,12 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError } from "@/utils/request";
+import { showRequestError, showToast } from "@/utils/request";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import PostSharePanel from "@/components/common/PostSharePanel.vue";
 import PostProtagonistPets from "@/components/common/PostProtagonistPets.vue";
 import { getPostList, deletePost, toggleLikePost } from "@/api/post";
@@ -291,7 +292,7 @@ const handleDelete = (item: { id: number }) => {
         await deletePost(item.id);
         dynamicList.value = dynamicList.value.filter((d) => d.id !== item.id);
         uni.$emit("refreshPostList");
-        uni.showToast({ title: "删除成功", icon: "success" });
+        showToast({ title: "删除成功", icon: "success" });
       } catch (error) {
         showRequestError(error, "删除失败");
       }
@@ -551,47 +552,6 @@ const goToPublish = () => {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B0A6A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 160rpx 0;
-}
-
-.empty-illustration {
-  width: 240rpx;
-  height: 240rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D2C3C4' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-  opacity: 0.4;
-  margin-bottom: 32rpx;
-}
-
-.empty-text {
-  font-size: 28rpx;
-  color: #b0a6a6;
-  margin-bottom: 48rpx;
-}
-
-.empty-btn {
-  background: linear-gradient(135deg, #8b6d73, #7a5c62);
-  padding: 24rpx 64rpx;
-  border-radius: 999rpx;
-  box-shadow: 0 16rpx 32rpx rgba(139, 109, 115, 0.28);
-
-  &:active {
-    transform: scale(1.02);
-  }
-}
-
-.btn-text {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: white;
 }
 
 .bottom-hint {

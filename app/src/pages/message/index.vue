@@ -47,8 +47,8 @@
       </view>
       <Empty
         v-if="systemMessages.length === 0"
-        type="bell"
-        text="暂无系统通知"
+        title="暂无系统通知"
+        description="点赞、评论、关注会出现在这里"
       />
     </view>
 
@@ -73,7 +73,11 @@
           }}</view>
         </view>
       </view>
-      <Empty v-if="chatList.length === 0" type="dog" text="暂无私信消息" />
+      <Empty
+        v-if="chatList.length === 0"
+        title="暂无私信消息"
+        description="和狗友们打个招呼吧"
+      />
     </view>
 
     <template #tabbar>

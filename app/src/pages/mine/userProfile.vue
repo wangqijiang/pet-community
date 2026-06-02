@@ -84,9 +84,12 @@
               </view>
             </view>
           </scroll-view>
-          <view v-else class="empty-pets">
-            <text>暂无宠物</text>
-          </view>
+          <Empty
+            v-else
+            compact
+            title="暂无宠物"
+            description="TA 还没有添加宠物"
+          />
         </view>
 
         <!-- TA的萌宠日常 -->
@@ -123,9 +126,12 @@
               </view>
             </view>
           </view>
-          <view v-else class="empty-pets">
-            <text>暂无动态</text>
-          </view>
+          <Empty
+            v-else
+            compact
+            title="暂无动态"
+            description="TA 还没有发布动态"
+          />
         </view>
     </view>
 
@@ -134,11 +140,12 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError } from "@/utils/request";
+import { showRequestError, showToast } from "@/utils/request";
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import Loading from "@/components/common/Loading.vue";
 import {
   getUserById,
@@ -215,7 +222,7 @@ const handleFollow = async () => {
           (profile.value.followers_count || 0) - 1,
         );
       }
-      uni.showToast({ title: "已取消关注", icon: "success" });
+      showToast({ title: "已取消关注", icon: "success" });
     } else {
       await followUser(userId.value);
       isFollowing.value = true;
@@ -223,7 +230,7 @@ const handleFollow = async () => {
         profile.value.followers_count =
           (profile.value.followers_count || 0) + 1;
       }
-      uni.showToast({ title: "关注成功", icon: "success" });
+      showToast({ title: "关注成功", icon: "success" });
     }
   } catch (error) {
     showRequestError(error, "操作失败");
@@ -320,13 +327,6 @@ const goToFeedDetail = (feedId: number) => {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-}
-
-.empty-pets {
-  padding: 48rpx;
-  text-align: center;
-  color: #8a7f7f;
-  font-size: 28rpx;
 }
 
 .user-name {

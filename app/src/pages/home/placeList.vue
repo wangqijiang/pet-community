@@ -37,7 +37,11 @@
         </view>
       </view>
     </view>
-    <view v-if="!loading && placeList.length === 0" class="empty">暂无地点</view>
+    <Empty
+      v-if="!loading && placeList.length === 0"
+      title="暂无地点"
+      description="换个分类试试吧"
+    />
   </PageLayout>
 </template>
 
@@ -46,6 +50,7 @@ import { showRequestError } from "@/utils/request";
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import {
   getPlaceCategories,
   getPlaceList,
@@ -212,11 +217,5 @@ onMounted(() => {
   font-size: 24rpx;
   color: #8a7f7f;
   margin-right: 16rpx;
-}
-
-.empty {
-  text-align: center;
-  padding: 80rpx;
-  color: #8a7f7f;
 }
 </style>

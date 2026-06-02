@@ -2,6 +2,7 @@ import {
   showDialogOverlay,
   showActionSheetOverlay,
 } from "@/composables/useOverlay";
+import { showToast, hideToast } from "@/utils/toast";
 
 export const useActionSheet = () => {
   const show = (options: {
@@ -34,20 +35,27 @@ export const useDatePicker = () => {
 };
 
 export const useToast = () => {
-  const success = (title: string) => {
-    uni.showToast({
-      title,
-      icon: "success",
-      duration: 2000,
-    });
+  const show = (
+    message: string,
+    type: "success" | "warning" | "error" = "success",
+  ) => {
+    showToast({ title: message, icon: type === "error" ? "error" : type === "warning" ? "none" : "success" });
   };
 
-  const error = (title: string) => {
-    uni.showToast({
-      title,
-      icon: "error",
-      duration: 2000,
-    });
+  const success = (message: string) => {
+    showToast({ title: message, icon: "success" });
+  };
+
+  const error = (message: string) => {
+    showToast({ title: message, icon: "error" });
+  };
+
+  const warning = (message: string) => {
+    showToast({ title: message, icon: "none" });
+  };
+
+  const info = (message: string) => {
+    showToast({ title: message, icon: "none" });
   };
 
   const loading = (title: string) => {
@@ -58,23 +66,17 @@ export const useToast = () => {
     });
   };
 
-  const info = (title: string) => {
-    uni.showToast({
-      title,
-      icon: "none",
-      duration: 2000,
-    });
-  };
-
   const hide = () => {
-    uni.hideToast();
+    hideToast();
   };
 
   return {
+    show,
     success,
     error,
-    loading,
+    warning,
     info,
+    loading,
     hide,
   };
 };
@@ -128,6 +130,8 @@ export const useDialog = () => {
     alert,
   };
 };
+
+export { showToast, hideToast } from "@/utils/toast";
 
 export const useComponents = () => {
   return {

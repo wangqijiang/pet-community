@@ -77,11 +77,14 @@
         </text>
       </view>
     </view>
+    <GlobalOverlays />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { showToast } from "@/utils/toast"
+import GlobalOverlays from "@/components/common/GlobalOverlays.vue"
 import { onShow } from '@dcloudio/uni-app'
 import {
   loginWechat,
@@ -112,7 +115,7 @@ const navigateAfterLogin = () => {
 const finishLogin = (result: Awaited<ReturnType<typeof loginWechat>>) => {
   setUserInfo(result.user, result.token)
   connectRealtime()
-  uni.showToast({
+  showToast({
     title: '登录成功',
     icon: 'success',
   })
@@ -127,7 +130,7 @@ const handleGuestLogin = () => {
 const handleDevLogin = async () => {
   if (isLoading.value) return
   if (!devPhone.value || !devCode.value) {
-    uni.showToast({ title: '请填写手机号和验证码', icon: 'none' })
+    showToast({ title: '请填写手机号和验证码', icon: 'none' })
     return
   }
   isLoading.value = true
@@ -135,7 +138,7 @@ const handleDevLogin = async () => {
     const result = await loginByCode(devPhone.value, devCode.value)
     finishLogin(result)
   } catch (error) {
-    uni.showToast({
+    showToast({
       title: error instanceof Error ? error.message : '登录失败',
       icon: 'none',
     })
@@ -157,7 +160,7 @@ const handleGetPhoneNumber = async (event: { detail?: { errMsg?: string; code?: 
 
   const detail = event.detail || {}
   if (detail.errMsg !== 'getPhoneNumber:ok' || !detail.code) {
-    uni.showToast({
+    showToast({
       title: '需要授权手机号才能登录',
       icon: 'none',
     })
@@ -169,7 +172,7 @@ const handleGetPhoneNumber = async (event: { detail?: { errMsg?: string; code?: 
     const result = await loginWechat(detail.code)
     finishLogin(result)
   } catch (error) {
-    uni.showToast({
+    showToast({
       title: error instanceof Error ? error.message : '登录失败',
       icon: 'none',
     })

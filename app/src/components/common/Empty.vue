@@ -1,5 +1,5 @@
 <template>
-  <view class="empty-container" :class="{ show: visible }">
+  <view class="empty-container" :class="{ show: visible, compact }">
     <view class="empty-wrapper">
       <!-- 图形区域 -->
       <view class="empty-image">
@@ -26,7 +26,7 @@
       <!-- 文本内容 -->
       <view class="empty-content">
         <text class="empty-title">{{ title }}</text>
-        <text class="empty-desc">{{ description }}</text>
+        <text v-if="description" class="empty-desc">{{ description }}</text>
       </view>
 
       <!-- 操作按钮 -->
@@ -50,13 +50,15 @@ interface Props {
   description?: string
   buttonText?: string
   buttonIcon?: string
+  compact?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: '还没有内容哦',
-  description: '快去添加吧',
+  description: '',
   buttonText: '',
-  buttonIcon: '🐾'
+  buttonIcon: '🐾',
+  compact: false,
 })
 
 const emit = defineEmits<{
@@ -91,6 +93,20 @@ const handleClick = () => {
   &.show {
     opacity: 1;
     transform: translateY(0);
+  }
+
+  &.compact {
+    padding: 48rpx 24rpx;
+
+    .empty-image {
+      width: 180rpx;
+      height: 180rpx;
+      margin-bottom: 24rpx;
+    }
+
+    .empty-content {
+      margin-bottom: 32rpx;
+    }
   }
 }
 

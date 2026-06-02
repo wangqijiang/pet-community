@@ -228,7 +228,7 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError } from "@/utils/request";
+import { showRequestError, showToast } from "@/utils/request";
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
@@ -289,7 +289,7 @@ const loadPetProfile = async () => {
 
 const goToAlbum = () => {
   uni.vibrateShort({ type: "light" });
-  uni.showToast({
+  showToast({
     title: "相册功能开发中",
     icon: "none",
   });
@@ -297,7 +297,7 @@ const goToAlbum = () => {
 
 const goToMoments = () => {
   uni.vibrateShort({ type: "light" });
-  uni.showToast({
+  showToast({
     title: "动态功能开发中",
     icon: "none",
   });
@@ -305,7 +305,7 @@ const goToMoments = () => {
 
 const goToHealth = () => {
   uni.vibrateShort({ type: "light" });
-  uni.showToast({
+  showToast({
     title: "健康功能开发中",
     icon: "none",
   });
@@ -313,7 +313,7 @@ const goToHealth = () => {
 
 const goToTimeline = () => {
   uni.vibrateShort({ type: "light" });
-  uni.showToast({
+  showToast({
     title: "成长功能开发中",
     icon: "none",
   });

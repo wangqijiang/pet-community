@@ -1,80 +1,141 @@
 <template>
-  <view class="toast" :class="{ show: visible }">
-    <view class="toast-icon" :class="iconClass"></view>
-    <view class="toast-text">{{ text }}</view>
+  <view
+    v-if="rendered"
+    class="tip-toast-root"
+    :class="{ 'tip-toast-root--show': visible }"
+  >
+    <view class="tip-toast-mask" />
+    <view
+      class="tip-toast"
+      :class="[`tip-toast--${type}`, { 'tip-toast--show': visible }]"
+    >
+      <image class="tip-toast__icon" :src="iconSrc" mode="aspectFit" />
+      <text class="tip-toast__text">{{ message }}</text>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from "vue";
 
-const props = defineProps<{
-  visible: boolean
-  text: string
-  type?: 'success' | 'error' | 'warning' | 'info'
-}>()
+export type TipToastType = "success" | "warning" | "error";
 
-const iconClass = computed(() => {
-  return `icon-${props.type || 'success'}`
-})
+const props = withDefaults(
+  defineProps<{
+    visible: boolean;
+    message: string;
+    type?: TipToastType;
+  }>(),
+  {
+    type: "success",
+  },
+);
+
+const ICON_MAP: Record<TipToastType, string> = {
+  success: "/static/images/tips/success.png",
+  warning: "/static/images/tips/warning.png",
+  error: "/static/images/tips/err.png",
+};
+
+const rendered = ref(false);
+
+watch(
+  () => props.visible,
+  (show) => {
+    if (show) rendered.value = true;
+    else {
+      setTimeout(() => {
+        rendered.value = false;
+      }, 220);
+    }
+  },
+  { immediate: true },
+);
+
+const iconSrc = computed(() => ICON_MAP[props.type]);
 </script>
 
 <style lang="scss" scoped>
-.toast {
+.tip-toast-root {
   position: fixed;
-  left: 50%;
-  bottom: 240rpx;
-  transform: translateX(-50%) scale(0.92);
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.tip-toast-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(61, 47, 47, 0.12);
   opacity: 0;
-  min-width: 440rpx;
-  background: rgba(50, 40, 40, 0.92);
-  color: #ffffff;
-  padding: 36rpx 44rpx;
-  border-radius: 44rpx;
+  transition: opacity 0.2s ease;
+}
+
+.tip-toast-root--show .tip-toast-mask {
+  opacity: 1;
+}
+
+.tip-toast {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 176rpx);
+  left: 50%;
+  width: calc(100% - 64rpx);
+  max-width: 640rpx;
   display: flex;
   align-items: center;
-  gap: 24rpx;
-  backdrop-filter: blur(10px);
-  z-index: 200;
-  transition: all 0.2s ease;
+  gap: 16rpx;
+  padding: 28rpx 32rpx;
+  border-radius: 999rpx;
+  box-shadow: 0 12rpx 40rpx rgba(107, 78, 61, 0.14);
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20rpx);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 
-  &.show {
-    transform: translateX(-50%) scale(1);
+  &--show {
     opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  &--success {
+    background: #dff5df;
+    border: 2rpx solid rgba(155, 207, 155, 0.65);
+  }
+
+  &--warning {
+    background: #ffefd9;
+    border: 2rpx solid rgba(255, 179, 107, 0.55);
+  }
+
+  &--error {
+    background: #ffe4e4;
+    border: 2rpx solid rgba(226, 109, 109, 0.55);
   }
 }
 
-.toast-icon {
-  width: 40rpx;
-  height: 40rpx;
-
-  &.icon-success {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238ED39B'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-
-  &.icon-error {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23E26D6D'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-
-  &.icon-warning {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4A259'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
-
-  &.icon-info {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238ED39B'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E")
-      no-repeat center;
-    background-size: 100%;
-  }
+.tip-toast__icon {
+  width: 44rpx;
+  height: 44rpx;
+  flex-shrink: 0;
 }
 
-.toast-text {
+.tip-toast__text {
+  flex: 1;
   font-size: 28rpx;
   font-weight: 600;
+  line-height: 1.5;
+}
+
+.tip-toast--success .tip-toast__text {
+  color: #3d2f2f;
+}
+
+.tip-toast--warning .tip-toast__text {
+  color: #d97b2b;
+}
+
+.tip-toast--error .tip-toast__text {
+  color: #d95555;
 }
 </style>

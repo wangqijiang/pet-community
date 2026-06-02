@@ -174,4 +174,5 @@ export {
   isAuthRequiredError,
   promptLogin,
 } from "./authRedirect";
+export { showToast, hideToast } from "./toast";
 export { baseURL };

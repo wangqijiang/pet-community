@@ -53,8 +53,8 @@
 
       <Empty
         v-if="likedList.length === 0 && !loading"
-        type="noData"
-        text="暂无点赞"
+        title="暂无点赞"
+        description="去萌宠圈看看吧"
       />
     </view>
 
@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError } from "@/utils/request";
+import { showRequestError, showToast } from "@/utils/request";
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
@@ -128,7 +128,7 @@ const handleUnlike = (item: { id: number }) => {
       try {
         await toggleLikePost(item.id);
         likedList.value = likedList.value.filter((c) => c.id !== item.id);
-        uni.showToast({ title: "已取消点赞", icon: "success" });
+        showToast({ title: "已取消点赞", icon: "success" });
       } catch (error) {
         showRequestError(error, "操作失败");
       }

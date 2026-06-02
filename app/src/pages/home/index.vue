@@ -47,6 +47,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { showToast } from "@/utils/toast"
 import { onShow } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
@@ -56,7 +57,6 @@ import { getPlaceList } from "@/api/place";
 import { getMapMarkers } from "@/api/user";
 import { isLoggedIn } from "@/api/auth";
 import { buildPlaceMarker, buildUserMarker } from "@/utils/mapMarkers";
-
 const DEFAULT_MAP_CENTER = { lat: 39.916527, lng: 116.397128 };
 const LOCATION_TIMEOUT_MS = 2500;
 
@@ -125,7 +125,9 @@ const handleMarkerTap = (e: { detail: { markerId: number } }) => {
     uni.navigateTo({ url: `/pages/home/storeDetail?id=${info.id}` });
   } else {
     uni.navigateTo({
-      url: `/pages/mine/userProfile?id=${info.id}&name=${encodeURIComponent(info.name)}`,
+      url: `/pages/mine/userProfile?id=${info.id}&name=${encodeURIComponent(
+        info.name,
+      )}`,
     });
   }
 };
@@ -196,7 +198,7 @@ const initMapLocation = async () => {
 const handleLocation = async () => {
   const { lat, lng, fromDefault } = await getUserLocation();
   applyMapCenter(lat, lng, true, !fromDefault);
-  uni.showToast({
+  showToast({
     title: fromDefault ? "定位失败，已展示默认区域" : "定位成功",
     icon: fromDefault ? "none" : "success",
   });
@@ -211,12 +213,7 @@ const goToFriendList = () => {
 };
 
 onMounted(() => {
-  applyMapCenter(
-    DEFAULT_MAP_CENTER.lat,
-    DEFAULT_MAP_CENTER.lng,
-    false,
-    false,
-  );
+  applyMapCenter(DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng, false, false);
   initMapLocation();
 });
 

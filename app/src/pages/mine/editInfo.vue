@@ -123,7 +123,7 @@ import {
 } from "@/utils/format";
 import dayjs from "dayjs";
 import { resolveLocalOrMediaUrl, resolveMediaUrl } from "@/utils/media";
-import { showRequestError } from "@/utils/request";
+import { showRequestError, showToast } from "@/utils/request";
 import { useChooseImage } from "@/composables/useChooseImage";
 import { useActionSheet } from "@/composables/useComponents";
 
@@ -193,7 +193,7 @@ const uploadAvatarFile = async (filePath) => {
   try {
     const result = await uploadAvatar(filePath);
     formData.value.avatar = result.url;
-    uni.showToast({
+    showToast({
       title: "头像上传成功",
       icon: "success",
     });
@@ -226,7 +226,7 @@ const onRegionChange = (e) => {
 
 const handleSave = async () => {
   if (!formData.value.username.trim()) {
-    uni.showToast({
+    showToast({
       title: "请输入昵称",
       icon: "none",
     });
@@ -246,7 +246,7 @@ const handleSave = async () => {
       region: formData.value.region,
     });
 
-    uni.showToast({
+    showToast({
       title: "保存成功",
       icon: "success",
     });

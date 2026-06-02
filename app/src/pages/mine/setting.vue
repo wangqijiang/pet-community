@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError } from "@/utils/request";
+import { showRequestError, showToast } from "@/utils/request";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import { ref, onMounted } from "vue";
@@ -123,7 +123,7 @@ const chooseAvatar = () => {
     try {
       const { url } = await uploadAvatar(tempPath);
       avatarUrl.value = getFullAvatarUrl(url);
-      uni.showToast({ title: "头像上传成功", icon: "success" });
+      showToast({ title: "头像上传成功", icon: "success" });
     } catch (error) {
       showRequestError(error, "头像上传失败");
     } finally {
@@ -136,13 +136,13 @@ const copyUserId = () => {
   uni.vibrateShort({ type: "light" });
   uni.setClipboardData({
     data: userId.value,
-    success: () => uni.showToast({ title: "已复制", icon: "success" }),
+    success: () => showToast({ title: "已复制", icon: "success" }),
   });
 };
 
 const saveProfile = async () => {
   if (!nickname.value.trim()) {
-    uni.showToast({ title: "请输入昵称", icon: "none" });
+    showToast({ title: "请输入昵称", icon: "none" });
     return;
   }
   uni.vibrateShort({ type: "medium" });
@@ -152,7 +152,7 @@ const saveProfile = async () => {
       username: nickname.value.trim(),
       signature: bio.value.trim(),
     });
-    uni.showToast({ title: "保存成功", icon: "success" });
+    showToast({ title: "保存成功", icon: "success" });
     setTimeout(() => uni.navigateBack(), 800);
   } catch (error) {
     showRequestError(error, "保存失败");

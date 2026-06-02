@@ -29,10 +29,13 @@
       </view>
     </template>
 
-    <view v-if="feedList.length === 0 && !loading" class="empty-state">
-      <view class="empty-icon"></view>
-      <text class="empty-text">暂无动态，快来发布第一条吧～</text>
-    </view>
+    <Empty
+      v-if="feedList.length === 0 && !loading"
+      title="暂无动态"
+      description="快来发布第一条吧～"
+      button-text="去发布"
+      @click="goToPublish"
+    />
 
     <view
       v-for="item in filteredList"
@@ -112,12 +115,13 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError, promptLogin } from "@/utils/request";
+import { showRequestError, promptLogin, showToast } from "@/utils/request";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import PostImageGrid from "@/components/common/PostImageGrid.vue";
 import PostProtagonistPets from "@/components/common/PostProtagonistPets.vue";
+import Empty from "@/components/common/Empty.vue";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { getLayoutMetrics } from "@/composables/useLayout";
 import {
@@ -259,7 +263,7 @@ const handleDelete = async (item: Post) => {
       try {
         await deletePost(item.id);
         feedList.value = feedList.value.filter((p) => p.id !== item.id);
-        uni.showToast({ title: "删除成功", icon: "success" });
+        showToast({ title: "删除成功", icon: "success" });
       } catch (error) {
         showRequestError(error, "删除失败");
       }
@@ -314,16 +318,6 @@ onUnmounted(() => {
 :deep(.page-layout__inner) {
   padding: 0 32rpx 24rpx;
   box-sizing: border-box;
-}
-
-.empty-state {
-  padding: 120rpx 0;
-  text-align: center;
-}
-
-.empty-text {
-  font-size: 28rpx;
-  color: #9b9090;
 }
 
 .card-header {

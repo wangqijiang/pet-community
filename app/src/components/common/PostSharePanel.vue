@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError } from "@/utils/request";
+import { showRequestError, showToast } from "@/utils/request";
 import { ref, computed, watch, nextTick, getCurrentInstance } from "vue";
 import type { PostShareInput } from "@/utils/postShare";
 import { buildPostShareLink } from "@/utils/postShare";
@@ -201,7 +201,7 @@ const shareToMoments = async () => {
       });
     },
     fail: () => {
-      uni.showToast({ title: "保存失败，请检查相册权限", icon: "none" });
+      showToast({ title: "保存失败，请检查相册权限", icon: "none" });
     },
   });
   // #endif
@@ -214,7 +214,7 @@ const saveCardImage = async () => {
   uni.saveImageToPhotosAlbum({
     filePath: imagePath,
     success: () => {
-      uni.showToast({ title: "已保存到相册", icon: "success" });
+      showToast({ title: "已保存到相册", icon: "success" });
     },
     fail: () => {
       uni.previewImage({ urls: [imagePath] });
@@ -229,7 +229,7 @@ const copyShareLink = async () => {
   uni.setClipboardData({
     data: link,
     success: () => {
-      uni.showToast({ title: "链接已复制", icon: "none" });
+      showToast({ title: "链接已复制", icon: "none" });
     },
   });
 };

@@ -31,7 +31,13 @@
         </view>
       </view>
 
-      <view class="bottom-hint">
+      <Empty
+        v-if="userList.length === 0 && !loading"
+        title="还没有粉丝"
+        description="分享更多动态，吸引更多狗友吧"
+      />
+
+      <view v-if="userList.length > 0" class="bottom-hint">
         <view class="hint-bg">
           <text class="hint-text">暂时只有这么多粉丝啦 (•⌄•)</text>
         </view>
@@ -47,6 +53,7 @@ import { showRequestError } from "@/utils/request";
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getFollowersList } from "@/api/user";
 import { resolveMediaUrl } from "@/utils/media";

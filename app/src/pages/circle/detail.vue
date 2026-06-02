@@ -73,9 +73,12 @@
             <text class="section-title">评论 ({{ comments }})</text>
           </view>
 
-          <view v-if="commentsList.length === 0" class="no-comment">
-            <text>暂无评论，快来发表第一条评论吧</text>
-          </view>
+          <Empty
+            v-if="commentsList.length === 0"
+            compact
+            title="暂无评论"
+            description="快来发表第一条评论吧"
+          />
 
           <template v-for="comment in nestedComments" :key="comment.id">
             <view
@@ -222,11 +225,12 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError, promptLogin } from "@/utils/request";
+import { showRequestError, promptLogin, showToast } from "@/utils/request";
 import { ref, computed, watch } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import PostImageGrid from "@/components/common/PostImageGrid.vue";
 import PostProtagonistPets from "@/components/common/PostProtagonistPets.vue";
 import PostSharePanel from "@/components/common/PostSharePanel.vue";
@@ -473,7 +477,7 @@ const handleDelete = async () => {
         try {
           await deletePost(post.value.id);
           uni.$emit("refreshPostList");
-          uni.showToast({ title: "删除成功", icon: "success" });
+          showToast({ title: "删除成功", icon: "success" });
           setTimeout(() => {
             uni.navigateBack();
           }, 1500);
@@ -500,7 +504,7 @@ const cancelReply = () => {
 const submitComment = async () => {
   if (!promptLogin()) return;
   if (!commentContent.value.trim()) {
-    uni.showToast({ title: "请输入评论内容", icon: "none" });
+    showToast({ title: "请输入评论内容", icon: "none" });
     return;
   }
   
@@ -514,7 +518,7 @@ const submitComment = async () => {
         ? { id: replyTarget.id, userId: replyTarget.user_id }
         : undefined,
     );
-    uni.showToast({ title: "评论成功", icon: "success" });
+    showToast({ title: "评论成功", icon: "success" });
     commentContent.value = "";
     await loadComments();
     await loadPost();
@@ -546,7 +550,7 @@ const handleDeleteComment = async (comment: Comment) => {
       if (res.confirm) {
         try {
           await deleteComment(comment.id);
-          uni.showToast({ title: "删除成功", icon: "success" });
+          showToast({ title: "删除成功", icon: "success" });
           await loadComments();
           await loadPost();
         } catch (error) {
@@ -799,13 +803,6 @@ onLoad((options) => {
   font-size: 30rpx;
   font-weight: 700;
   color: #3D2F2F;
-}
-
-.no-comment {
-  text-align: center;
-  padding: 80rpx 0;
-  color: #9B9090;
-  font-size: 28rpx;
 }
 
 .comment-item {

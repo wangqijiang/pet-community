@@ -4,6 +4,7 @@ import {
   isLoggedIn,
   isGuestMode,
 } from "./session";
+import { showToast } from "./toast";
 
 export const AUTH_REQUIRED_CODE = 401;
 export const UNAUTHORIZED_MESSAGE = "用户未登录，请先登录";
@@ -44,7 +45,7 @@ function isOnLoginPage(): boolean {
 
 /** 游客：仅提示并打开登录页（保留游客态，返回后可继续浏览） */
 function promptGuestLogin(message: string) {
-  uni.showToast({
+  showToast({
     title: message,
     icon: "none",
     duration: 1200,
@@ -80,7 +81,7 @@ export function handleUnauthorized(message = UNAUTHORIZED_MESSAGE) {
   redirecting = true;
   clearSession();
 
-  uni.showToast({
+  showToast({
     title: message || UNAUTHORIZED_MESSAGE,
     icon: "none",
     duration: UNAUTHORIZED_REDIRECT_DELAY,
@@ -108,8 +109,8 @@ export function handleWriteUnauthorized(message = UNAUTHORIZED_MESSAGE) {
 
 export function showRequestError(error: unknown, fallback: string) {
   if (isAuthRequiredError(error)) return;
-  uni.showToast({
+  showToast({
     title: error instanceof Error && error.message ? error.message : fallback,
-    icon: "none",
+    icon: "error",
   });
 }

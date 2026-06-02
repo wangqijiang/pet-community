@@ -22,7 +22,7 @@
               <text class="desc" v-if="userInfo?.signature">{{
                 userInfo.signature
               }}</text>
-              <text class="desc guest-hint" v-else-if="!isLoggedIn()"
+              <text class="desc guest-hint" v-else-if="!loggedIn"
                 >登录后可同步个人资料与宠物信息</text
               >
             </view>
@@ -86,10 +86,14 @@
             <text>添加宠物</text>
           </view>
         </view>
-        <view v-else class="empty-pet-list" @click="goToAddPet">
-          <text class="empty-text">还没有宠物</text>
-          <text class="empty-hint">点击添加你的宠物</text>
-        </view>
+        <Empty
+          v-else
+          compact
+          title="还没有宠物"
+          description="点击添加你的宠物"
+          button-text="添加宠物"
+          @click="goToAddPet"
+        />
       </view>
 
       <view class="menu-section">
@@ -118,7 +122,7 @@
       </view>
 
       <view
-        v-if="isLoggedIn()"
+        v-if="loggedIn"
         class="logout-btn"
         @click="handleLogout"
         :class="{ loading: isLoggingOut }"
@@ -137,14 +141,16 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError } from "@/utils/request";
+import { showRequestError, isAuthRequiredError, showToast } from "@/utils/request";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { getLayoutMetrics } from "@/composables/useLayout";
 import { onShow } from "@dcloudio/uni-app";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import { logout, isLoggedIn, promptLogin } from "@/api/auth";
+import { clearAuthOnly } from "@/utils/session";
 import { getUserInfo } from "@/api/user";
 import { getPetList, type Pet } from "@/api/pet";
 import { resolveMediaUrl } from "@/utils/media";
@@ -154,6 +160,7 @@ import { useDialog } from "@/composables/useComponents";
 const dialog = useDialog();
 
 const userInfo = ref<any>(null);
+const loggedIn = ref(false);
 const isLoggingOut = ref(false);
 const pets = ref<Pet[]>([]);
 const isLoadingPets = ref(false);
@@ -174,14 +181,23 @@ onMounted(async () => {
   uni.$on("refreshUserInfo", loadUserInfo);
 });
 
+const syncLoginState = () => {
+  loggedIn.value = isLoggedIn();
+};
+
+const resetGuestView = () => {
+  userInfo.value = null;
+  pets.value = [];
+  stats.value = { posts: 0, following: 0, followers: 0 };
+};
+
 onShow(() => {
-  if (isLoggedIn()) {
+  syncLoginState();
+  if (loggedIn.value) {
     loadUserInfo();
     loadPets();
   } else {
-    userInfo.value = null;
-    pets.value = [];
-    stats.value = { posts: 0, following: 0, followers: 0 };
+    resetGuestView();
   }
 });
 
@@ -200,6 +216,12 @@ const loadUserInfo = async () => {
       followers: user.followers_count || 0,
     };
   } catch (error) {
+    if (isAuthRequiredError(error)) {
+      clearAuthOnly();
+      loggedIn.value = false;
+      resetGuestView();
+      return;
+    }
     console.error("获取用户信息失败:", error);
   }
 };
@@ -294,34 +316,38 @@ const goToLogin = () => {
 };
 
 const handleLogout = () => {
+  if (!loggedIn.value) {
+    goToLogin();
+    return;
+  }
+
   dialog.confirm({
     title: "提示",
     content: "确定要退出登录吗？",
     success: async (res) => {
-      if (res.confirm) {
-        isLoggingOut.value = true;
+      if (!res.confirm) return;
 
-        try {
-          await logout();
+      isLoggingOut.value = true;
+      try {
+        await logout();
+        loggedIn.value = false;
+        resetGuestView();
 
-          uni.showToast({
-            title: "已退出登录",
-            icon: "success",
-          });
+        showToast({
+          title: "已退出登录",
+          icon: "success",
+        });
 
-          setTimeout(() => {
-            uni.reLaunch({
-              url: "/pages/login/index",
-            });
-          }, 1500);
-        } catch (error) {
-          uni.showToast({
-            title: error instanceof Error ? error.message : "退出失败",
-            icon: "error",
-          });
-        } finally {
-          isLoggingOut.value = false;
-        }
+        setTimeout(() => {
+          uni.reLaunch({ url: "/pages/login/index" });
+        }, 800);
+      } catch (error) {
+        showToast({
+          title: error instanceof Error ? error.message : "退出失败",
+          icon: "error",
+        });
+      } finally {
+        isLoggingOut.value = false;
       }
     },
   });
@@ -588,29 +614,6 @@ const handleLogout = () => {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371585C'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.65-2.89 7.99-3.45 3.81-1.6 4.6-1.88 5.12-1.89.11 0 .37.03.53.18.14.12.18.28.2.45-.01.06.01.24 0 .38z'/%3E%3C/svg%3E")
     no-repeat center;
   background-size: 100%;
-}
-
-.empty-pet-list {
-  min-height: 216rpx;
-  border-radius: 56rpx;
-  border: 4rpx dashed #f2d7c3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.4);
-}
-
-.empty-text {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #b8a7a7;
-  margin-bottom: 8rpx;
-}
-
-.empty-hint {
-  font-size: 24rpx;
-  color: #d4c4c4;
 }
 
 .add-card {

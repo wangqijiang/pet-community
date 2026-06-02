@@ -33,8 +33,7 @@
 
       <Empty
         v-if="noticeList.length === 0 && !loading"
-        type="bell"
-        :text="emptyText"
+        :title="emptyText"
       />
     </view>
 

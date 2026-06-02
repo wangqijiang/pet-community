@@ -36,12 +36,14 @@
       <slot name="tabbar" />
     </view>
     <slot name="fixed" />
+    <GlobalOverlays />
   </view>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
 import { useLayout } from "@/composables/useLayout";
+import GlobalOverlays from "@/components/common/GlobalOverlays.vue";
 
 const props = withDefaults(
   defineProps<{

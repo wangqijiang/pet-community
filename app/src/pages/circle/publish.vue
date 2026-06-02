@@ -73,10 +73,14 @@
           </view>
         </scroll-view>
 
-        <view v-else class="pet-empty" @click="goAddPet">
-          <view class="pet-empty-icon"></view>
-          <text class="pet-empty-text">还没有宠物，去添加一只吧</text>
-        </view>
+        <Empty
+          v-else
+          compact
+          title="还没有宠物"
+          description="去添加一只吧"
+          button-text="去添加"
+          @click="goAddPet"
+        />
       </view>
 
       <view class="category-section">
@@ -112,9 +116,10 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError, isAuthRequiredError } from "@/utils/request";
+import { showRequestError, isAuthRequiredError, showToast } from "@/utils/request";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import Loading from "@/components/common/Loading.vue";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { onLoad, onShow } from "@dcloudio/uni-app";
@@ -326,7 +331,7 @@ const deleteImage = (index: number) => {
 
 const handlePublish = async () => {
   if (!canPublish.value) {
-    uni.showToast({
+    showToast({
       title: "请填写内容或添加图片",
       icon: "none",
     });
@@ -346,7 +351,7 @@ const handlePublish = async () => {
         selectedPetIds.value,
         selectedCategory.value || undefined,
       );
-      uni.showToast({
+      showToast({
         title: "保存成功",
         icon: "success",
       });
@@ -358,7 +363,7 @@ const handlePublish = async () => {
         selectedCategory.value || undefined,
       );
       saveLastSelectedPets();
-      uni.showToast({
+      showToast({
         title: "发布成功",
         icon: "success",
       });
@@ -619,29 +624,6 @@ const handlePublish = async () => {
 .pet-meta {
   margin-top: 4rpx;
   font-size: 22rpx;
-  color: $color-gray-medium;
-}
-
-.pet-empty {
-  padding: 40rpx 24rpx;
-  border-radius: 24rpx;
-  background: #F8F5F5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.pet-empty-icon {
-  width: 64rpx;
-  height: 64rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C4B5B5' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3Z'/%3E%3Cpath d='M7 21c0-2.76 2.24-5 5-5s5 2.24 5 5'/%3E%3Cpath d='M19 8v6'/%3E%3Cpath d='M22 11h-6'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-}
-
-.pet-empty-text {
-  font-size: 26rpx;
   color: $color-gray-medium;
 }
 

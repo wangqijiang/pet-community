@@ -52,11 +52,11 @@
           </view>
         </view>
 
-        <!-- 空状态 -->
-        <view class="empty-state">
-          <view class="empty-icon"></view>
-          <text class="empty-text">去发现更多可爱的 TA 吧</text>
-        </view>
+        <Empty
+          v-if="userList.length === 0 && !loading"
+          title="还没有关注"
+          description="去发现更多可爱的 TA 吧"
+        />
     </view>
 
     <Loading :visible="loading" />
@@ -64,10 +64,11 @@
 </template>
 
 <script setup lang="ts">
-import { showRequestError } from "@/utils/request";
+import { showRequestError, showToast } from "@/utils/request";
 import { ref, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getFollowingList, unfollowUser } from "@/api/user";
 import { resolveMediaUrl } from "@/utils/media";
@@ -135,7 +136,7 @@ const handleUnfollow = (user: { id: number; nickname: string }) => {
       try {
         await unfollowUser(user.id);
         userList.value = userList.value.filter((u) => u.id !== user.id);
-        uni.showToast({ title: "已取消关注", icon: "success" });
+        showToast({ title: "已取消关注", icon: "success" });
       } catch (error) {
         showRequestError(error, "操作失败");
       }
@@ -340,40 +341,5 @@ const handleUnfollow = (user: { id: number; nickname: string }) => {
 
 .bottom-hint {
   display: none;
-}
-
-.empty-state {
-  margin-top: 68rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-icon {
-  width: 144rpx;
-  height: 144rpx;
-  border-radius: 999rpx;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 20rpx 48rpx rgba(107, 78, 61, 0.04);
-}
-
-.empty-icon::after {
-  content: "";
-  width: 48rpx;
-  height: 48rpx;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E5D7D7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2l-2.5 5-5 .7 3.7 3.6-.9 5.1 4.7-2.5 4.7 2.5-.9-5.1 3.7-3.6-5-.7L12 2z'/%3E%3C/svg%3E")
-    no-repeat center;
-  background-size: 100%;
-}
-
-.empty-text {
-  margin-top: 36rpx;
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #c7bdbd;
 }
 </style>

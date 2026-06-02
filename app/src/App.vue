@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-import GlobalOverlays from "@/components/common/GlobalOverlays.vue";
 import { isLoggedIn, canAccessApp } from "@/api/auth";
 import {
   PENDING_SHARE_ROUTE_KEY,
@@ -42,10 +41,6 @@ onHide(() => {
   disconnectRealtime();
 });
 </script>
-
-<template>
-  <GlobalOverlays />
-</template>
 
 <style lang="scss">
 @import "./styles/variables.scss";

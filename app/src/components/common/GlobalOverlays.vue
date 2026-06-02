@@ -1,4 +1,10 @@
 <template>
+  <Toast
+    :visible="toast.visible"
+    :type="toast.type"
+    :message="toast.message"
+  />
+
   <Dialog
     :visible="dialog.visible"
     :type="dialog.type"
@@ -33,10 +39,12 @@
 
 <script setup lang="ts">
 import Dialog from "@/components/common/Dialog.vue";
+import Toast from "@/components/common/Toast.vue";
 import BottomSheet from "@/components/common/BottomSheet.vue";
 import {
   useDialogState,
   useActionSheetState,
+  useToastState,
   resolveDialogOverlay,
   resolveActionSheetOverlay,
   cancelActionSheetOverlay,
@@ -44,6 +52,7 @@ import {
 
 const dialog = useDialogState();
 const sheet = useActionSheetState();
+const toast = useToastState();
 
 const onSheetVisibleChange = (visible: boolean) => {
   if (!visible) cancelActionSheetOverlay();

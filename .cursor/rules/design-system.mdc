@@ -366,6 +366,12 @@ icon：
 
 #FFB36B
 
+图标资源：
+
+- 路径：`app/src/static/tabbar/`
+- 每个 Tab 使用 `xxx.png`（默认）与 `xxx-active.png`（选中）
+- 禁止在 TabBar 内使用 SVG / iconfont 硬编码
+
 ---
 
 # 十五、TopNavBar规范
@@ -539,3 +545,140 @@ const handleClose = () => {
 - 不得在页面中硬编码 modal-mask 样式
 - 保持交互一致性
 - 提高代码可维护性
+
+---
+
+# 二十、Toast 轻提示规范
+
+## 组件说明
+
+`Toast` 是全局轻提示组件，用于操作反馈、表单校验、错误提示等短暂信息展示。已挂载在 `PageLayout` 的 `GlobalOverlays` 中，无需在页面重复引入组件。
+
+## 使用场景
+
+必须使用项目 Toast 的场景：
+
+- 操作成功 / 失败反馈
+- 表单校验提示
+- 网络请求错误（除 401 静默场景外）
+- 任何原 `uni.showToast` 的使用场景
+
+禁止使用：
+
+- `uni.showToast()`（`loading` 加载态除外）
+- 页面内手写 toast 样式
+
+## 使用方法
+
+### 推荐：统一工具函数
+
+```ts
+import { showToast } from '@/utils/toast'
+// 或（与 request 同文件导入）
+import { showToast, showRequestError } from '@/utils/request'
+
+showToast({ title: '操作成功', icon: 'success' })
+showToast({ title: '请填写完整信息', icon: 'none' })   // 映射为 warning
+showToast({ title: '操作失败，请重试', icon: 'error' })
+showToast('操作成功')                                   // 简写，默认 success
+```
+
+### composable
+
+```ts
+import { useToast } from '@/composables/useComponents'
+
+const toast = useToast()
+toast.success('操作成功')
+toast.warning('请填写完整信息')
+toast.error('操作失败，请重试')
+```
+
+### 类型映射
+
+| icon 参数 | Toast 类型 | 说明 |
+|-----------|------------|------|
+| `success` | success | 操作成功 |
+| `none` | warning | 校验 / 引导类提示 |
+| `error` | error | 操作失败 |
+| `loading` | — | 仍使用 `uni.showToast` 原生 loading |
+
+## 图标资源
+
+- 路径：`app/src/static/images/tips/`
+- `success.png` / `warning.png` / `err.png`
+
+## 样式说明
+
+- 位置：顶部水平居中，导航栏下方（`safe-area + 176rpx`）
+- 展示时带浅遮罩，提升可读性
+- 三种状态分别使用浅绿 / 浅橙 / 浅红背景 + 对应色边框
+
+## 无 PageLayout 页面
+
+登录页等未使用 `PageLayout` 的页面，需自行挂载 `<GlobalOverlays />`，否则 Toast / Dialog 无法显示。
+
+---
+
+# 二十一、Empty 空状态规范
+
+## 组件说明
+
+`Empty` 是列表/区块无数据时的统一空状态组件，使用小狗盒子插画，保持全站视觉一致。
+
+路径：`@/components/common/Empty.vue`
+
+## 使用场景
+
+必须使用 Empty 的场景：
+
+- 列表数据为空（动态、消息、关注、地点、宠物等）
+- 详情页内嵌列表为空（评论、评价等）
+- 区块无内容且需要引导用户操作
+
+禁止使用：
+
+- 页面内手写 `empty-state` / `empty-icon` / `暂无xxx` 文本块
+- 各页面自定义空状态插画
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| title | string | 还没有内容哦 | 主标题 |
+| description | string | '' | 副标题，空则不显示 |
+| buttonText | string | '' | 操作按钮文案，空则不显示 |
+| compact | boolean | false | 紧凑模式，用于详情页内嵌区块 |
+
+## Events
+
+| 事件 | 说明 |
+|------|------|
+| click | 点击操作按钮时触发 |
+
+## 用法示例
+
+```vue
+<!-- 全页列表空态 -->
+<Empty
+  v-if="list.length === 0 && !loading"
+  title="暂无动态"
+  description="快来发布第一条吧～"
+  button-text="去发布"
+  @click="goToPublish"
+/>
+
+<!-- 详情页内嵌区块 -->
+<Empty
+  v-if="comments.length === 0"
+  compact
+  title="暂无评论"
+  description="快来发表第一条评论吧"
+/>
+```
+
+## 代码复用原则
+
+- 空态判断需配合 `!loading`，避免加载中闪现
+- 需要引导操作时传 `button-text` + `@click`
+- 页面内区块（评论、宠物横滑等）使用 `compact`

@@ -1,5 +1,13 @@
 import { reactive } from "vue";
 
+export type TipToastType = "success" | "warning" | "error";
+
+export interface TipToastState {
+  visible: boolean;
+  type: TipToastType;
+  message: string;
+}
+
 export interface DialogOverlayState {
   visible: boolean;
   title: string;
@@ -15,6 +23,12 @@ export interface ActionSheetOverlayState {
   title: string;
   items: string[];
 }
+
+const toastState = reactive<TipToastState>({
+  visible: false,
+  type: "success",
+  message: "",
+});
 
 const dialogState = reactive<DialogOverlayState>({
   visible: false,
@@ -35,6 +49,11 @@ const sheetState = reactive<ActionSheetOverlayState>({
 let dialogResolve: ((confirm: boolean) => void) | null = null;
 let sheetResolve: ((index: number) => void) | null = null;
 let sheetReject: (() => void) | null = null;
+let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+export function useToastState() {
+  return toastState;
+}
 
 export function useDialogState() {
   return dialogState;
@@ -96,4 +115,31 @@ export function cancelActionSheetOverlay() {
   sheetResolve = null;
   sheetReject?.();
   sheetReject = null;
+}
+
+export function hideTipToast() {
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+    toastTimer = null;
+  }
+  toastState.visible = false;
+}
+
+export function showTipToast(options: {
+  type?: TipToastType;
+  message: string;
+  duration?: number;
+}) {
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+    toastTimer = null;
+  }
+
+  toastState.type = options.type || "success";
+  toastState.message = options.message;
+  toastState.visible = true;
+
+  toastTimer = setTimeout(() => {
+    hideTipToast();
+  }, options.duration ?? 2000);
 }

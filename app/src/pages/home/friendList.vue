@@ -59,9 +59,11 @@
           </view>
         </view>
       </view>
-      <view v-if="!loading && friendList.length === 0" class="list-footer">
-        <text class="footer-text">暂无附近狗友</text>
-      </view>
+      <Empty
+        v-if="!loading && friendList.length === 0"
+        title="暂无附近狗友"
+        description="试试换个关键词，或稍后再来看看"
+      />
     </view>
 
     <view v-if="friendList.length > 0" class="list-footer">
@@ -75,6 +77,7 @@
 import { showRequestError } from "@/utils/request";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import Empty from "@/components/common/Empty.vue";
 import { ref, onMounted } from "vue";
 import { getNearbyUsers, type NearbyUser } from "@/api/user";
 import { isLoggedIn } from "@/api/auth";
