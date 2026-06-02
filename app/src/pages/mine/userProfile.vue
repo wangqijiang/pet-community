@@ -5,134 +5,139 @@
     </template>
 
     <view class="page-inner user-profile-inner">
-        <!-- 个人资料头部 -->
-        <view class="profile-header">
-          <view class="avatar-wrapper">
-            <image
-              class="user-avatar"
-              :src="avatarUrl"
-              mode="aspectFill"
-            ></image>
-            <view class="pet-badge">
-              <view class="pet-icon"></view>
-            </view>
-          </view>
-          <view class="profile-info">
-            <text class="user-name">{{ profile?.username || "用户" }}</text>
-            <text class="user-desc">{{ profile?.signature || "这个人很懒，什么都没写" }}</text>
+      <!-- 个人资料头部 -->
+      <view class="profile-header">
+        <view class="avatar-wrapper">
+          <image class="user-avatar" :src="avatarUrl" mode="aspectFill"></image>
+          <view class="pet-badge">
+            <view class="pet-icon"></view>
           </view>
         </view>
-
-        <!-- 操作按钮 -->
-        <view class="action-buttons">
-          <view
-            class="action-btn"
-            :class="{ followed: isFollowing }"
-            @tap="handleFollow"
-          >
-            <view v-if="isFollowing" class="check-icon"></view>
-            <text class="btn-text">{{ isFollowing ? "已关注" : "关注" }}</text>
-          </view>
-          <view class="action-btn secondary" @tap="sendMessage">
-            <view class="message-icon"></view>
-            <text class="btn-text">发私信</text>
-          </view>
+        <view class="profile-info">
+          <text class="user-name">{{ profile?.username || "用户" }}</text>
+          <text class="user-desc">{{
+            profile?.signature || "这个人很懒，什么都没写"
+          }}</text>
         </view>
+      </view>
 
-        <!-- 数据统计 -->
-        <view class="stats-bar">
-          <view class="stat-item">
-            <text class="stat-number">{{ postsTotal }}</text>
-            <text class="stat-label">动态</text>
-          </view>
-          <view class="stat-divider"></view>
-          <view class="stat-item">
-            <text class="stat-number">{{ petsTotal }}</text>
-            <text class="stat-label">宠物</text>
-          </view>
-          <view class="stat-divider"></view>
-          <view class="stat-item">
-            <text class="stat-number">{{ profile?.followers_count ?? 0 }}</text>
-            <text class="stat-label">粉丝</text>
-          </view>
+      <!-- 操作按钮 -->
+      <view class="action-buttons">
+        <view
+          class="action-btn"
+          :class="{ followed: isFollowing }"
+          @tap="handleFollow"
+        >
+          <view v-if="isFollowing" class="check-icon"></view>
+          <text class="btn-text">{{ isFollowing ? "已关注" : "关注" }}</text>
         </view>
-
-        <!-- TA的宠物 -->
-        <view class="pets-section">
-          <view class="section-header">
-            <text class="section-title">TA的宠物</text>
-            <text class="view-all" @tap="goToAllPets">查看全部</text>
-          </view>
-          <scroll-view class="pets-scroll" scroll-x v-if="pets.length">
-            <view class="pets-list">
-              <view
-                v-for="pet in pets"
-                :key="pet.id"
-                class="pet-card"
-                @tap="goToPetProfile(pet.id)"
-              >
-                <image
-                  class="pet-cover"
-                  :src="petAvatar(pet.avatar)"
-                  mode="aspectFill"
-                ></image>
-                <view class="pet-info">
-                  <text class="pet-name">{{ pet.name }}</text>
-                  <text class="pet-detail">{{ pet.breed }} · {{ formatAge(pet.age) }}</text>
-                </view>
-                <view v-if="pet.personality" class="pet-tag">{{ pet.personality.split(/[,，]/)[0] }}</view>
-              </view>
-            </view>
-          </scroll-view>
-          <Empty
-            v-else
-            compact
-            title="暂无宠物"
-            description="TA 还没有添加宠物"
-          />
+        <view class="action-btn secondary" @tap="sendMessage">
+          <view class="message-icon"></view>
+          <text class="btn-text">发私信</text>
         </view>
+      </view>
 
-        <!-- TA的萌宠日常 -->
-        <view class="feed-section">
-          <view class="section-header">
-            <text class="section-title">TA的萌宠日常</text>
-          </view>
-          <view class="feed-grid" v-if="posts.length">
+      <!-- 数据统计 -->
+      <view class="stats-bar">
+        <view class="stat-item">
+          <text class="stat-number">{{ postsTotal }}</text>
+          <text class="stat-label">动态</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <text class="stat-number">{{ petsTotal }}</text>
+          <text class="stat-label">宠物</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <text class="stat-number">{{ profile?.followers_count ?? 0 }}</text>
+          <text class="stat-label">粉丝</text>
+        </view>
+      </view>
+
+      <!-- TA的宠物 -->
+      <view class="pets-section">
+        <view class="section-header">
+          <text class="section-title">TA的宠物</text>
+          <text class="view-all" @tap="goToAllPets">查看全部</text>
+        </view>
+        <scroll-view class="pets-scroll" scroll-x v-if="pets.length">
+          <view class="pets-list">
             <view
-              v-for="(post, index) in posts"
-              :key="post.id"
-              class="feed-card"
-              :class="{ tall: index === 0 }"
-              @tap="goToFeedDetail(post.id)"
+              v-for="pet in pets"
+              :key="pet.id"
+              class="pet-card"
+              @tap="goToPetProfile(pet.id)"
             >
               <image
-                v-if="postCover(post)"
-                class="feed-image"
-                :src="postCover(post)"
+                class="pet-cover"
+                :src="petAvatar(pet.avatar)"
                 mode="aspectFill"
               ></image>
-              <view class="feed-info">
-                <text class="feed-content">{{ post.content }}</text>
-                <view class="feed-stats">
-                  <view class="feed-stat">
-                    <view class="like-icon" :class="{ filled: post.liked }"></view>
-                    <text class="stat-num">{{ post.likes ?? 0 }}</text>
-                  </view>
-                  <view class="feed-stat">
-                    <view class="comment-icon"></view>
-                    <text class="stat-num">{{ post.comments ?? 0 }}</text>
-                  </view>
+              <view class="pet-info">
+                <text class="pet-name">{{ pet.name }}</text>
+                <text class="pet-detail"
+                  >{{ pet.breed }} · {{ formatAge(pet.age) }}</text
+                >
+              </view>
+              <view v-if="pet.personality" class="pet-tag">{{
+                pet.personality.split(/[,，]/)[0]
+              }}</view>
+            </view>
+          </view>
+        </scroll-view>
+        <Empty
+          v-else
+          compact
+          title="暂无宠物"
+          description="TA 还没有添加宠物"
+        />
+      </view>
+
+      <!-- TA的萌宠日常 -->
+      <view class="feed-section">
+        <view class="section-header">
+          <text class="section-title">TA的萌宠日常</text>
+        </view>
+        <view class="feed-grid" v-if="posts.length">
+          <view
+            v-for="(post, index) in posts"
+            :key="post.id"
+            class="feed-card"
+            :class="{ tall: index === 0 }"
+            @tap="goToFeedDetail(post.id)"
+          >
+            <image
+              v-if="postCover(post)"
+              class="feed-image"
+              :src="postCover(post)"
+              mode="aspectFill"
+            ></image>
+            <view class="feed-info">
+              <text class="feed-content">{{ post.content }}</text>
+              <view class="feed-stats">
+                <view class="feed-stat">
+                  <view
+                    class="like-icon"
+                    :class="{ filled: post.liked }"
+                  ></view>
+                  <text class="stat-num">{{ post.likes ?? 0 }}</text>
+                </view>
+                <view class="feed-stat">
+                  <view class="comment-icon"></view>
+                  <text class="stat-num">{{ post.comments ?? 0 }}</text>
                 </view>
               </view>
             </view>
           </view>
-          <Empty
-            v-else
-            compact
-            title="暂无动态"
-            description="TA 还没有发布动态"
-          />
         </view>
+        <Empty
+          v-else
+          compact
+          title="暂无动态"
+          description="TA 还没有发布动态"
+        />
+      </view>
     </view>
 
     <Loading :visible="loading" />
@@ -172,7 +177,9 @@ const isFollowing = ref(false);
 const PROFILE_POST_PAGE_SIZE = 100;
 const PROFILE_PET_PAGE_SIZE = 50;
 
-const avatarUrl = computed(() => resolveAvatarUrl(profile.value?.avatar));
+const avatarUrl = computed(() =>
+  resolveAvatarUrl(profile.value?.avatar, profile.value?.id),
+);
 
 const formatAge = formatPetAge;
 const petAvatar = (url?: string) =>

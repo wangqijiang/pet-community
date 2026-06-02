@@ -5,11 +5,7 @@
     </template>
 
     <view class="page-inner notice-list-inner">
-      <view
-        v-if="noticeType === 'follow'"
-        class="fans-link"
-        @tap="goToFans"
-      >
+      <view v-if="noticeType === 'follow'" class="fans-link" @tap="goToFans">
         <text class="fans-link-text">查看全部粉丝</text>
         <view class="fans-link-arrow"></view>
       </view>
@@ -31,10 +27,7 @@
         <view v-if="item.unread" class="dot"></view>
       </view>
 
-      <Empty
-        v-if="noticeList.length === 0 && !loading"
-        :title="emptyText"
-      />
+      <Empty v-if="noticeList.length === 0 && !loading" :title="emptyText" />
     </view>
 
     <Loading :visible="loading" />
@@ -56,6 +49,7 @@ import {
 } from "@/api/notification";
 import { formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
+import { resolveUserAvatarUrl } from "@/utils/defaultAvatar";
 import { emitRefreshTabBarBadge } from "@/utils/tabBarBadge";
 
 type NoticeType = "like" | "comment" | "follow" | "message";
@@ -86,7 +80,6 @@ const TYPE_META: Record<
   },
 };
 
-const defaultAvatar = "/static/images/avatar-default.png";
 const loading = ref(false);
 const noticeType = ref<NoticeType>("like");
 const noticeList = ref<
@@ -103,8 +96,12 @@ const noticeList = ref<
   }>
 >([]);
 
-const pageTitle = computed(() => TYPE_META[noticeType.value]?.title || "系统通知");
-const emptyText = computed(() => TYPE_META[noticeType.value]?.empty || "暂无通知");
+const pageTitle = computed(
+  () => TYPE_META[noticeType.value]?.title || "系统通知",
+);
+const emptyText = computed(
+  () => TYPE_META[noticeType.value]?.empty || "暂无通知",
+);
 
 const mapNoticeItem = (n: Notification) => {
   const meta = TYPE_META[noticeType.value];
@@ -119,7 +116,7 @@ const mapNoticeItem = (n: Notification) => {
   return {
     id: n.id,
     name,
-    avatar: resolveMediaUrl(n.from_avatar) || defaultAvatar,
+    avatar: resolveUserAvatarUrl(n.from_avatar, n.from_user_id),
     desc,
     time: formatRelativeTime(n.created_at),
     unread: !n.is_read,
@@ -146,7 +143,10 @@ const loadNoticeList = async () => {
     const res = await getNotifications(1, 50, noticeType.value);
     noticeList.value = res.list.map(mapNoticeItem);
     await markUnreadAsRead(res.list);
-    noticeList.value = noticeList.value.map((item) => ({ ...item, unread: false }));
+    noticeList.value = noticeList.value.map((item) => ({
+      ...item,
+      unread: false,
+    }));
   } catch (error) {
     showRequestError(error, "加载失败");
   } finally {
@@ -160,12 +160,14 @@ const goToFans = () => {
   uni.navigateTo({ url: "/pages/mine/fans" });
 };
 
-const handleItemTap = (item: (typeof noticeList.value)[number]) => {
+const handleItemTap = (item: typeof noticeList.value[number]) => {
   if (noticeType.value === "message") {
     const chatUserId = item.fromUserId || item.targetId;
     if (!chatUserId) return;
     uni.navigateTo({
-      url: `/pages/message/chat?userId=${chatUserId}&name=${encodeURIComponent(item.name)}`,
+      url: `/pages/message/chat?userId=${chatUserId}&name=${encodeURIComponent(
+        item.name,
+      )}`,
     });
     return;
   }
@@ -173,7 +175,9 @@ const handleItemTap = (item: (typeof noticeList.value)[number]) => {
   if (noticeType.value === "follow") {
     if (!item.fromUserId) return;
     uni.navigateTo({
-      url: `/pages/mine/userProfile?id=${item.fromUserId}&name=${encodeURIComponent(item.name)}`,
+      url: `/pages/mine/userProfile?id=${
+        item.fromUserId
+      }&name=${encodeURIComponent(item.name)}`,
     });
     return;
   }
@@ -185,7 +189,9 @@ const handleItemTap = (item: (typeof noticeList.value)[number]) => {
 
   if (item.fromUserId) {
     uni.navigateTo({
-      url: `/pages/mine/userProfile?id=${item.fromUserId}&name=${encodeURIComponent(item.name)}`,
+      url: `/pages/mine/userProfile?id=${
+        item.fromUserId
+      }&name=${encodeURIComponent(item.name)}`,
     });
   }
 };

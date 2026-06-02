@@ -17,7 +17,10 @@
               @click="goToAuthorProfile"
             >
               <view class="user-avatar">
-                <image :src="resolveAvatarUrl(post.avatar)" mode="aspectFill" />
+                <image
+                  :src="resolveAvatarUrl(post.avatar, post.user_id)"
+                  mode="aspectFill"
+                />
               </view>
               <view class="user-info">
                 <text class="user-name">{{ post.username }}</text>
@@ -86,7 +89,10 @@
               @longpress="showCommentAction(comment)"
             >
               <view class="comment-avatar">
-                <image :src="resolveAvatarUrl(comment.avatar)" mode="aspectFill" />
+                <image
+                  :src="resolveAvatarUrl(comment.avatar, comment.user_id)"
+                  mode="aspectFill"
+                />
               </view>
               <view class="comment-content-wrapper">
                 <view class="comment-content">
@@ -127,7 +133,10 @@
                 @longpress="showCommentAction(reply)"
               >
                 <view class="reply-avatar">
-                  <image :src="resolveAvatarUrl(reply.avatar)" mode="aspectFill" />
+                  <image
+                    :src="resolveAvatarUrl(reply.avatar, reply.user_id)"
+                    mode="aspectFill"
+                  />
                 </view>
                 <view class="reply-content-wrapper">
                   <view class="reply-content">
@@ -419,7 +428,7 @@ const handleShare = () => {
   sharePost.value = {
     id: post.value.id,
     userName: post.value.username,
-    avatar: resolveAvatarUrl(post.value.avatar),
+    avatar: resolveAvatarUrl(post.value.avatar, post.value.user_id),
     time: formatTime(post.value.created_at),
     content: post.value.content,
     images: (post.value.images || []).map((url) => getAvatarUrl(url)),

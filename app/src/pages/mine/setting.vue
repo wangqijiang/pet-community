@@ -87,14 +87,21 @@ import Loading from "@/components/common/Loading.vue";
 import { getUserInfo, updateUserInfo, uploadAvatar } from "@/api/user";
 import { useChooseImage } from "@/composables/useChooseImage";
 import { resolveLocalOrMediaUrl, resolveMediaUrl } from "@/utils/media";
+import {
+  pickDefaultAvatarByUserId,
+  resolveUserAvatarUrl,
+} from "@/utils/defaultAvatar";
 import { useFixedFooterHeight } from "@/composables/useLayout";
 
-const { footerHeight } = useFixedFooterHeight("#setting-footer", 24 + 96 + 24 + 32);
+const { footerHeight } = useFixedFooterHeight(
+  "#setting-footer",
+  24 + 96 + 24 + 32,
+);
 const { chooseSingle } = useChooseImage();
 
 const loading = ref(false);
 const isUploading = ref(false);
-const avatarUrl = ref("/static/images/avatar-default.png");
+const avatarUrl = ref(pickDefaultAvatarByUserId());
 const nickname = ref("");
 const userId = ref("");
 const bio = ref("");
@@ -108,7 +115,7 @@ onMounted(async () => {
     nickname.value = user.username || "";
     userId.value = String(user.id || "");
     bio.value = user.signature || "";
-    if (user.avatar) avatarUrl.value = getFullAvatarUrl(user.avatar);
+    avatarUrl.value = resolveUserAvatarUrl(user.avatar, user.id);
   } catch (error) {
     showRequestError(error, "加载失败");
   } finally {

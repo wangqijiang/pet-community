@@ -48,11 +48,9 @@
           <view class="user-left">
             <view class="user-avatar" @tap.stop="goToUserProfile(item)">
               <image
-                v-if="item.avatar"
-                :src="getAvatarUrl(item.avatar)"
+                :src="resolveAvatarUrl(item.avatar, item.user_id)"
                 mode="aspectFill"
               />
-              <view v-else class="avatar-placeholder"></view>
             </view>
             <view class="user-info">
               <text class="user-name">{{ item.username }}</text>
@@ -133,7 +131,7 @@ import {
   type PostCategory,
 } from "@/api/post";
 import { getUserInfo, isLoggedIn } from "@/api/auth";
-import { resolveMediaUrl } from "@/utils/media";
+import { resolveAvatarUrl, resolveMediaUrl } from "@/utils/media";
 import { formatRelativeTime, parseJsonArray } from "@/utils/format";
 import { useDialog } from "@/composables/useComponents";
 

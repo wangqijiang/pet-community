@@ -5,15 +5,60 @@
     </template>
 
     <view class="page-inner edit-info-inner">
-        <!-- 头像 -->
-        <view class="form-item" @tap="chooseAvatar">
-          <text class="item-label">头像</text>
+      <!-- 头像 -->
+      <view class="form-item" @tap="chooseAvatar">
+        <text class="item-label">头像</text>
+        <view class="item-value">
+          <image
+            class="avatar-preview"
+            :src="resolveLocalOrMediaUrl(formData.avatar)"
+            mode="aspectFill"
+          ></image>
+          <image
+            class="arrow-icon"
+            src="/static/images/icon-arrow-right.png"
+            mode="aspectFit"
+          ></image>
+        </view>
+      </view>
+
+      <!-- 昵称 -->
+      <view class="form-item">
+        <text class="item-label">昵称</text>
+        <input
+          class="item-input"
+          v-model="formData.username"
+          placeholder="请输入昵称"
+          maxlength="8"
+        />
+      </view>
+
+      <!-- 性别 -->
+      <view class="form-item" @tap="showGenderPicker">
+        <text class="item-label">性别</text>
+        <view class="item-value">
+          <text class="value-text">{{ displayGender }}</text>
+          <image
+            class="arrow-icon"
+            src="/static/images/icon-arrow-right.png"
+            mode="aspectFit"
+          ></image>
+        </view>
+      </view>
+
+      <!-- 生日 -->
+      <picker
+        class="form-item"
+        mode="date"
+        :value="formData.birthday"
+        @change="onDateChange"
+        :start="'1900-01-01'"
+        :end="today"
+      >
+        <view class="picker-content">
+          <text class="item-label">生日</text>
           <view class="item-value">
-            <image
-              class="avatar-preview"
-              :src="resolveLocalOrMediaUrl(formData.avatar)"
-              mode="aspectFill"
-            ></image>
+            <text class="value-text">{{ displayBirthday }}</text>
             <image
               class="arrow-icon"
               src="/static/images/icon-arrow-right.png"
@@ -21,23 +66,19 @@
             ></image>
           </view>
         </view>
+      </picker>
 
-        <!-- 昵称 -->
-        <view class="form-item">
-          <text class="item-label">昵称</text>
-          <input
-            class="item-input"
-            v-model="formData.username"
-            placeholder="请输入昵称"
-            maxlength="8"
-          />
-        </view>
-
-        <!-- 性别 -->
-        <view class="form-item" @tap="showGenderPicker">
-          <text class="item-label">性别</text>
+      <!-- 地区 -->
+      <picker
+        class="form-item"
+        mode="region"
+        :value="regionArray"
+        @change="onRegionChange"
+      >
+        <view class="picker-content">
+          <text class="item-label">地区</text>
           <view class="item-value">
-            <text class="value-text">{{ displayGender }}</text>
+            <text class="value-text">{{ formData.region || "请选择" }}</text>
             <image
               class="arrow-icon"
               src="/static/images/icon-arrow-right.png"
@@ -45,60 +86,19 @@
             ></image>
           </view>
         </view>
+      </picker>
 
-        <!-- 生日 -->
-        <picker
-          class="form-item"
-          mode="date"
-          :value="formData.birthday"
-          @change="onDateChange"
-          :start="'1900-01-01'"
-          :end="today"
-        >
-          <view class="picker-content">
-            <text class="item-label">生日</text>
-            <view class="item-value">
-              <text class="value-text">{{ displayBirthday }}</text>
-              <image
-                class="arrow-icon"
-                src="/static/images/icon-arrow-right.png"
-                mode="aspectFit"
-              ></image>
-            </view>
-          </view>
-        </picker>
-
-        <!-- 地区 -->
-        <picker
-          class="form-item"
-          mode="region"
-          :value="regionArray"
-          @change="onRegionChange"
-        >
-          <view class="picker-content">
-            <text class="item-label">地区</text>
-            <view class="item-value">
-              <text class="value-text">{{ formData.region || "请选择" }}</text>
-              <image
-                class="arrow-icon"
-                src="/static/images/icon-arrow-right.png"
-                mode="aspectFit"
-              ></image>
-            </view>
-          </view>
-        </picker>
-
-        <!-- 简介 -->
-        <view class="form-item textarea-item">
-          <text class="item-label">简介</text>
-          <textarea
-            class="item-textarea"
-            v-model="formData.signature"
-            placeholder="介绍一下自己吧"
-            maxlength="50"
-          ></textarea>
-          <text class="char-count">{{ formData.signature.length }}/50</text>
-        </view>
+      <!-- 简介 -->
+      <view class="form-item textarea-item">
+        <text class="item-label">简介</text>
+        <textarea
+          class="item-textarea"
+          v-model="formData.signature"
+          placeholder="介绍一下自己吧"
+          maxlength="50"
+        ></textarea>
+        <text class="char-count">{{ formData.signature.length }}/50</text>
+      </view>
 
       <view class="save-btn" @tap="handleSave">
         <text class="btn-text">保存</text>
@@ -123,6 +123,7 @@ import {
 } from "@/utils/format";
 import dayjs from "dayjs";
 import { resolveLocalOrMediaUrl, resolveMediaUrl } from "@/utils/media";
+import { resolveUserAvatarUrl } from "@/utils/defaultAvatar";
 import { showRequestError, showToast } from "@/utils/request";
 import { useChooseImage } from "@/composables/useChooseImage";
 import { useActionSheet } from "@/composables/useComponents";
@@ -134,7 +135,7 @@ const isUploading = ref(false);
 const { chooseSingle } = useChooseImage();
 
 const formData = ref({
-  avatar: "/static/images/avatar-default.png",
+  avatar: "/static/images/profile-picture/1.png",
   username: "",
   gender: "",
   birthday: "",
@@ -167,7 +168,7 @@ const loadUserInfo = async () => {
   try {
     const user = await getUserInfo();
     formData.value = {
-      avatar: user.avatar ? resolveMediaUrl(user.avatar) : "/static/images/avatar-default.png",
+      avatar: resolveUserAvatarUrl(user.avatar, user.id),
       username: user.username || "",
       gender: normalizeUserGender(user.gender) || "",
       birthday: formatDateYMD(user.birthday),
