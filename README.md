@@ -35,14 +35,17 @@
 
 ### 2. 数据库配置
 
-1. 创建数据库：
-```sql
-CREATE DATABASE pet_community CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+一键导入（会重建 `pet_community` 库，含表结构、配置数据与演示数据）：
+
+```bash
+mysql -u root -p < server/scripts/init.sql
 ```
 
-2. 导入数据库结构：
+或在 `server` 目录执行：
+
 ```bash
-mysql -u root -p pet_community < server/migrations/001_create_tables.sql
+cd server
+npm run db:init
 ```
 
 ### 3. 后端配置
@@ -156,7 +159,9 @@ pet-community/
 │   │   ├── middleware/   # 中间件
 │   │   ├── config/      # 配置文件
 │   │   └── utils/       # 工具函数
-│   ├── migrations/      # 数据库迁移
+│   ├── scripts/
+│   │   ├── init.sql       # 数据库初始化（表结构 + 种子数据）
+│   │   └── setup-db.sh    # 一键导入脚本
 │   └── package.json
 └── README.md
 ```
@@ -172,8 +177,8 @@ pet-community/
 
 ### 数据库修改
 
-1. 在 `server/migrations/` 目录创建新的迁移文件
-2. 执行迁移脚本更新数据库结构
+1. 直接编辑 `server/scripts/init.sql`（推荐用于新环境初始化）
+2. 已有生产库请手动执行增量 SQL，并同步更新 `init.sql` 便于后续重建
 
 ## 常见问题
 

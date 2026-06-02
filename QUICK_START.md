@@ -5,18 +5,11 @@
 ### 1. 数据库设置
 
 ```bash
-# 登录 MySQL
-mysql -u root -p
+# 一键导入（会重建 pet_community 库）
+mysql -u root -p < server/scripts/init.sql
 
-# 创建数据库
-CREATE DATABASE pet_community CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-# 退出
-exit
-
-# 导入表结构和测试数据
-mysql -u root -p pet_community < server/migrations/001_create_tables.sql
-mysql -u root -p pet_community < server/migrations/002_insert_test_data.sql
+# 或在 server 目录
+cd server && npm run db:init
 ```
 
 ### 2. 配置环境变量
@@ -75,6 +68,9 @@ npm run dev
 | 猫咪控 | 13800138004 | 123456 |
 | 哈士奇主人 | 13800138005 | 123456 |
 | 仓鼠达人 | 13800138006 | 123456 |
+| 系统管理员（管理后台） | 13800000000 | admin123 |
+
+`13800138001` 同时具有 admin 角色，可用于管理后台登录。
 
 ## 功能列表
 
@@ -187,7 +183,7 @@ A: 检查 `server/.env` 中的数据库配置是否正确
 A: 确保后端服务正在运行，并检查API地址配置
 
 ### Q: 测试数据导入失败
-A: 确保先导入 `001_create_tables.sql`，再导入 `002_insert_test_data.sql`
+A: 确认 MySQL 已启动，且账号有建库权限；重新执行 `mysql -u root -p < server/scripts/init.sql`
 
 ## 技术支持
 

@@ -215,9 +215,9 @@ pet-community/
 │   │       ├── response.js # 响应工具
 │   │       ├── jwt.js      # JWT工具
 │   │       └── bcrypt.js   # 加密工具
-│   ├── migrations/
-│   │   ├── 001_create_tables.sql  # 表结构
-│   │   └── 002_insert_test_data.sql # 测试数据
+│   ├── scripts/
+│   │   ├── init.sql       # 数据库初始化（表结构 + 种子数据）
+│   │   └── setup-db.sh    # 一键导入
 │   └── package.json
 ├── README.md
 ├── DEPLOYMENT.md
@@ -229,8 +229,7 @@ pet-community/
 
 ```bash
 # 1. 导入数据库
-mysql -u root -p pet_community < server/migrations/001_create_tables.sql
-mysql -u root -p pet_community < server/migrations/002_insert_test_data.sql
+mysql -u root -p < server/scripts/init.sql
 
 # 2. 启动后端
 cd server

@@ -10,20 +10,11 @@ cd pet-community
 
 ### 2. 数据库设置
 ```bash
-# 登录 MySQL
-mysql -u root -p
+# 一键导入（会重建 pet_community 库，含表结构、配置与演示数据）
+mysql -u root -p < server/scripts/init.sql
 
-# 创建数据库
-CREATE DATABASE pet_community CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-# 退出 MySQL
-exit
-
-# 导入表结构
-mysql -u root -p pet_community < server/migrations/001_create_tables.sql
-
-# 导入测试数据
-mysql -u root -p pet_community < server/migrations/002_insert_test_data.sql
+# 或在 server 目录
+cd server && npm run db:init
 ```
 
 ### 3. 后端配置
@@ -147,7 +138,7 @@ services:
       - MYSQL_DATABASE=pet_community
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./server/migrations:/docker-entrypoint-initdb.d
+      - ./server/scripts/init.sql:/docker-entrypoint-initdb.d/01-init.sql
 
   redis:
     image: redis:alpine
@@ -176,6 +167,7 @@ volumes:
 | 猫咪控 | 13800138004 | 123456 |
 | 哈士奇主人 | 13800138005 | 123456 |
 | 仓鼠达人 | 13800138006 | 123456 |
+| 系统管理员（管理后台） | 13800000000 | admin123 |
 
 ## 常见问题
 

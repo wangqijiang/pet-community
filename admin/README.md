@@ -20,13 +20,12 @@
 
 ## 启动
 
-### 1. 后端（需先跑迁移与管理员种子）
+### 1. 后端（需先初始化数据库）
 
 ```bash
 cd server
-# 若尚未执行 008 迁移
-mysql -u root -p pet_community < migrations/008_admin_role.sql
-node scripts/seed-admin.js
+mysql -u root -p < scripts/init.sql
+# 或: npm run db:init
 npm run dev
 ```
 
@@ -49,7 +48,7 @@ ADMIN_PHONE=13800000000
 ADMIN_PASSWORD=admin123
 ```
 
-也可用测试账号（迁移 008 会将 `13800138001` 设为 admin，密码为库内原密码如 `123456`）。
+也可用测试账号 `13800138001`（密码 `123456`，init.sql 中已设为 admin）。
 
 ## 构建
 
