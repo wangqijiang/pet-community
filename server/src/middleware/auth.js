@@ -14,9 +14,12 @@ const auth = async (req, res, next) => {
     return unauthorized(res, '登录已过期，请重新登录')
   }
 
-  const user = await query('SELECT id, username, avatar, phone FROM users WHERE id = ?', [decoded.id])
+  const user = await query(
+    'SELECT id, username, avatar, phone FROM users WHERE id = ? AND status = 1',
+    [decoded.id]
+  )
   if (!user || user.length === 0) {
-    return unauthorized(res, '用户不存在，请重新登录')
+    return unauthorized(res, '用户不存在或已被禁用，请重新登录')
   }
 
   req.user = user[0]
@@ -39,7 +42,10 @@ const optionalAuth = async (req, res, next) => {
   }
 
   try {
-    const user = await query('SELECT id, username, avatar, phone FROM users WHERE id = ?', [decoded.id])
+    const user = await query(
+      'SELECT id, username, avatar, phone FROM users WHERE id = ? AND status = 1',
+      [decoded.id]
+    )
     req.user = user?.[0] || null
   } catch {
     req.user = null

@@ -240,13 +240,14 @@ router.post('/chat', auth, async (req, res) => {
     const answer = responses[questionType] || responses.default
 
     // 保存对话记录
-    await query(
+    const result = await query(
       'INSERT INTO ai_chats (user_id, question, answer, pet_id, created_at) VALUES (?, ?, ?, ?, NOW())',
       [req.user.id, question, answer, pet_id || null]
     )
 
     res.json(success({ 
       answer,
+      id: result.insertId,
       pet_type: petType,
       question_type: questionType
     }, '获取成功'))

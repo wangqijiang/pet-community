@@ -125,6 +125,9 @@ import dayjs from "dayjs";
 import { resolveLocalOrMediaUrl, resolveMediaUrl } from "@/utils/media";
 import { showRequestError } from "@/utils/request";
 import { useChooseImage } from "@/composables/useChooseImage";
+import { useActionSheet } from "@/composables/useComponents";
+
+const actionSheet = useActionSheet();
 
 const loading = ref(false);
 const isUploading = ref(false);
@@ -203,7 +206,8 @@ const uploadAvatarFile = async (filePath) => {
 
 const showGenderPicker = () => {
   uni.vibrateShort({ type: "light" });
-  uni.showActionSheet({
+  actionSheet.show({
+    title: "选择性别",
     itemList: USER_GENDER_OPTIONS.map((item) => item.label),
     success: (res) => {
       formData.value.gender = USER_GENDER_OPTIONS[res.tapIndex].value;

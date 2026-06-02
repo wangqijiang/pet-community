@@ -16,13 +16,19 @@ const PLACE_FROM = `
   LEFT JOIN place_categories pc ON p.type = pc.key AND pc.status = 1
 `
 
+function parseJson(val, fallback = null) {
+  if (val == null) return fallback
+  if (typeof val === 'object') return val
+  try {
+    return JSON.parse(val)
+  } catch {
+    return fallback
+  }
+}
+
 function parsePlaceJsonFields(place) {
-  if (typeof place.images === 'string') {
-    place.images = JSON.parse(place.images)
-  }
-  if (typeof place.amenities === 'string') {
-    place.amenities = JSON.parse(place.amenities)
-  }
+  place.images = parseJson(place.images, [])
+  place.amenities = parseJson(place.amenities, [])
   return place
 }
 
@@ -123,8 +129,12 @@ router.get('/', async (req, res) => {
   const categoryFilter = category || type
 
   try {
-    const filters = ['p.status = 1', 'p.latitude IS NOT NULL', 'p.longitude IS NOT NULL', 'p.latitude != 0', 'p.longitude != 0']
+    const filters = ['p.status = 1']
     const params = []
+
+    if (lat && lng) {
+      filters.push('p.latitude IS NOT NULL', 'p.longitude IS NOT NULL', 'p.latitude != 0', 'p.longitude != 0')
+    }
 
     if (categoryFilter) {
       filters.push('p.type = ?')
@@ -363,9 +373,7 @@ router.get('/:id/reviews', async (req, res) => {
     `, [id, parseInt(size), parseInt(offset)])
 
     for (const review of reviews) {
-      if (typeof review.images === 'string') {
-        review.images = JSON.parse(review.images)
-      }
+      review.images = parseJson(review.images, [])
     }
 
     const total = await query(

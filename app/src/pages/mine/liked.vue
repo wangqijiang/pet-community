@@ -72,6 +72,9 @@ import Loading from "@/components/common/Loading.vue";
 import { getLikedPosts, toggleLikePost } from "@/api/post";
 import { formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
+import { useDialog } from "@/composables/useComponents";
+
+const dialog = useDialog();
 
 const loading = ref(false);
 const likedList = ref<
@@ -117,7 +120,7 @@ const goToDetail = (id: number) => {
 };
 
 const handleUnlike = (item: { id: number }) => {
-  uni.showModal({
+  dialog.confirm({
     title: "提示",
     content: "确定取消点赞吗？",
     success: async (res) => {

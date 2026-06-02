@@ -37,8 +37,10 @@ export async function getAiHistory(
 }
 
 export async function getQuickQuestions(): Promise<string[]> {
-  const res = await get<{ questions: string[] }>("/ai/quick-questions");
-  return res.data?.questions || [];
+  const res = await get<Array<{ text: string; category?: string }>>(
+    "/ai/quick-questions",
+  );
+  return (res.data || []).map((item) => item.text);
 }
 
 export async function clearAiHistory(): Promise<void> {

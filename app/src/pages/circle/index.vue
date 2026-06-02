@@ -130,7 +130,10 @@ import {
 } from "@/api/post";
 import { getUserInfo, isLoggedIn } from "@/api/auth";
 import { resolveMediaUrl } from "@/utils/media";
-import { formatRelativeTime } from "@/utils/format";
+import { formatRelativeTime, parseJsonArray } from "@/utils/format";
+import { useDialog } from "@/composables/useComponents";
+
+const dialog = useDialog();
 
 // 分类 Tab 实际高度：上下 padding 36rpx + 标签行约 60rpx
 const categoryTabsHeight = uni.upx2px(120);
@@ -203,11 +206,9 @@ const loadPosts = async (pageNum: number, isRefresh = false) => {
     const response = await getPostList(pageNum, size.value, undefined, undefined, category);
     const list = response.list.map((post) => ({
       ...post,
-      images: (
-        typeof post.images === "string"
-          ? JSON.parse(post.images as string)
-          : post.images || []
-      ).map((url: string) => resolveMediaUrl(url)),
+      images: parseJsonArray<string>(post.images).map((url) =>
+        resolveMediaUrl(url),
+      ),
       liked: !!post.liked,
       likes: post.likes_count ?? post.likes ?? 0,
       comments: post.comments_count ?? post.comments ?? 0,
@@ -215,6 +216,9 @@ const loadPosts = async (pageNum: number, isRefresh = false) => {
     feedList.value = isRefresh ? list : [...feedList.value, ...list];
     hasMore.value = response.pagination.page < response.pagination.pages;
   } catch (error) {
+    if (!isRefresh && pageNum > 1) {
+      page.value = Math.max(1, pageNum - 1);
+    }
     showRequestError(error, "加载失败");
   } finally {
     loading.value = false;
@@ -247,7 +251,7 @@ const handleLike = async (item: Post & { liked: boolean; likes: number }) => {
 };
 
 const handleDelete = async (item: Post) => {
-  uni.showModal({
+  dialog.confirm({
     title: "确认删除",
     content: "确定要删除这条动态吗？",
     success: async (res) => {

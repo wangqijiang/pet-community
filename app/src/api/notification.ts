@@ -43,9 +43,31 @@ export async function getNotifications(
   );
 }
 
-export async function getUnreadNotificationCount(): Promise<number> {
-  const res = await get<{ count: number }>("/notification/unread/count");
+export async function getUnreadNotificationCount(
+  excludeType?: Notification["type"],
+): Promise<number> {
+  const params: Record<string, unknown> = {};
+  if (excludeType) params.exclude_type = excludeType;
+  const res = await get<{ count: number }>("/notification/unread/count", params);
   return res.data?.count ?? 0;
+}
+
+export type NotificationUnreadSummary = Record<
+  "like" | "comment" | "follow" | "message" | "system",
+  number
+>;
+
+export async function getUnreadNotificationSummary(): Promise<NotificationUnreadSummary> {
+  const res = await get<NotificationUnreadSummary>("/notification/unread/summary");
+  return (
+    res.data || {
+      like: 0,
+      comment: 0,
+      follow: 0,
+      message: 0,
+      system: 0,
+    }
+  );
 }
 
 export async function markNotificationsRead(ids?: number[]): Promise<void> {

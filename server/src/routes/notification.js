@@ -4,6 +4,32 @@ const { query } = require('../config/db')
 const { auth } = require('../middleware/auth')
 const { success, error } = require('../utils/response')
 
+/** 标记私信通知已读时，同步 messages 表 */
+async function syncMessagesReadForNotifications(userId, ids) {
+  if (!ids?.length) return
+
+  const rows = await query(
+    `SELECT DISTINCT from_user_id FROM notifications
+     WHERE id IN (?) AND user_id = ? AND type = 'message' AND from_user_id IS NOT NULL`,
+    [ids, userId]
+  )
+
+  for (const row of rows) {
+    await query(
+      'UPDATE messages SET read_at = NOW() WHERE from_id = ? AND to_id = ? AND read_at IS NULL',
+      [row.from_user_id, userId]
+    )
+  }
+}
+
+/** 标记全部私信通知已读时，同步所有未读私信 */
+async function syncAllMessagesRead(userId) {
+  await query(
+    'UPDATE messages SET read_at = NOW() WHERE to_id = ? AND read_at IS NULL',
+    [userId]
+  )
+}
+
 /**
  * 获取通知列表
  */
@@ -59,17 +85,50 @@ router.get('/', auth, async (req, res) => {
 
 /**
  * 获取未读通知数量
+ * query: exclude_type — 排除某类型（如 message，避免与私信未读重复计数）
  */
 router.get('/unread/count', auth, async (req, res) => {
+  const { exclude_type: excludeType } = req.query
+
   try {
-    const result = await query(
-      'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0',
-      [req.user.id]
-    )
+    let sql = 'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0'
+    const params = [req.user.id]
+    if (excludeType) {
+      sql += ' AND type != ?'
+      params.push(excludeType)
+    }
+
+    const result = await query(sql, params)
 
     res.json(success({ count: result[0].count }, '获取成功'))
   } catch (err) {
     console.error('获取未读通知数失败:', err)
+    res.status(500).json(error('获取失败', 500))
+  }
+})
+
+/**
+ * 按类型汇总未读通知数
+ */
+router.get('/unread/summary', auth, async (req, res) => {
+  try {
+    const rows = await query(
+      `SELECT type, COUNT(*) AS count FROM notifications
+       WHERE user_id = ? AND is_read = 0
+       GROUP BY type`,
+      [req.user.id]
+    )
+
+    const summary = { like: 0, comment: 0, follow: 0, message: 0, system: 0 }
+    for (const row of rows) {
+      if (Object.prototype.hasOwnProperty.call(summary, row.type)) {
+        summary[row.type] = row.count
+      }
+    }
+
+    res.json(success(summary, '获取成功'))
+  } catch (err) {
+    console.error('获取未读通知汇总失败:', err)
     res.status(500).json(error('获取失败', 500))
   }
 })
@@ -112,17 +171,17 @@ router.post('/read', auth, async (req, res) => {
 
   try {
     if (ids && ids.length > 0) {
-      // 标记指定通知为已读
       await query(
         'UPDATE notifications SET is_read = 1 WHERE id IN (?) AND user_id = ?',
         [ids, req.user.id]
       )
+      await syncMessagesReadForNotifications(req.user.id, ids)
     } else {
-      // 标记所有通知为已读
       await query(
         'UPDATE notifications SET is_read = 1 WHERE user_id = ?',
         [req.user.id]
       )
+      await syncAllMessagesRead(req.user.id)
     }
 
     res.json(success(null, '已标记为已读'))

@@ -75,6 +75,9 @@ import {
   getPostShareCanvasSize,
 } from "@/utils/postShareCard";
 import { buildPendingPostShare, setPendingPostShare } from "@/composables/usePostShare";
+import { useDialog } from "@/composables/useComponents";
+
+const dialog = useDialog();
 
 const props = defineProps<{
   visible: boolean;
@@ -176,10 +179,9 @@ const shareToMoments = async () => {
     withShareTicket: true,
     menus: ["shareAppMessage", "shareTimeline"],
   });
-  uni.showModal({
+  dialog.alert({
     title: "分享到朋友圈",
     content: "请点击右上角「···」，选择「分享到朋友圈」。好友点击后将直达动态详情页。",
-    showCancel: false,
     confirmText: "我知道了",
   });
   // #endif
@@ -188,7 +190,7 @@ const shareToMoments = async () => {
   uni.saveImageToPhotosAlbum({
     filePath: imagePath,
     success: () => {
-      uni.showModal({
+      dialog.confirm({
         title: "卡片已保存",
         content: "打开微信朋友圈，选择刚保存的卡片图片发布即可。",
         confirmText: "复制链接",

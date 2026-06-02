@@ -12,16 +12,16 @@
       <view class="dialog-btn-area">
         <view 
           class="dialog-btn dialog-btn-cancel" 
-          v-if="type === 'confirm'" 
+          v-if="type === 'confirm' && showCancel" 
           @click="handleCancel"
         >
-          取消
+          {{ cancelText }}
         </view>
         <view 
           class="dialog-btn dialog-btn-confirm" 
           @click="handleConfirm"
         >
-          {{ type === 'confirm' ? '确定' : '知道了' }}
+          {{ confirmText || (type === 'confirm' ? '确定' : '知道了') }}
         </view>
       </view>
     </view>
@@ -29,12 +29,22 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  visible: boolean
-  type?: 'alert' | 'confirm' | 'success' | 'error' | 'loading'
-  title?: string
-  content?: string
-}>()
+withDefaults(
+  defineProps<{
+    visible: boolean
+    type?: 'alert' | 'confirm' | 'success' | 'error' | 'loading'
+    title?: string
+    content?: string
+    confirmText?: string
+    cancelText?: string
+    showCancel?: boolean
+  }>(),
+  {
+    type: 'confirm',
+    showCancel: true,
+    cancelText: '取消',
+  },
+)
 
 const emit = defineEmits<{
   close: []
@@ -113,15 +123,15 @@ const handleCancel = () => {
 }
 
 .dialog-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #FFC1E9;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #3d2f2f;
   margin-bottom: 16rpx;
 }
 
 .dialog-desc {
   font-size: 28rpx;
-  color: #333333;
+  color: #8a7f7f;
   text-align: center;
   line-height: 1.6;
   margin-bottom: 32rpx;
@@ -168,12 +178,13 @@ const handleCancel = () => {
 }
 
 .dialog-btn-cancel {
-  background: #E5E5E5;
-  color: #666666;
+  background: #fff7f1;
+  color: #8a7f7f;
+  border: 1rpx solid #f1e5da;
 }
 
 .dialog-btn-confirm {
-  background: #FFC1E9;
-  color: #FFFFFF;
+  background: #ffb36b;
+  color: #fff;
 }
 </style>

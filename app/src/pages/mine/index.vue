@@ -149,6 +149,9 @@ import { getUserInfo } from "@/api/user";
 import { getPetList, type Pet } from "@/api/pet";
 import { resolveMediaUrl } from "@/utils/media";
 import { formatPetAge } from "@/utils/format";
+import { useDialog } from "@/composables/useComponents";
+
+const dialog = useDialog();
 
 const userInfo = ref<any>(null);
 const isLoggingOut = ref(false);
@@ -291,10 +294,9 @@ const goToLogin = () => {
 };
 
 const handleLogout = () => {
-  uni.showModal({
+  dialog.confirm({
     title: "提示",
     content: "确定要退出登录吗？",
-    confirmColor: "#E26D6D",
     success: async (res) => {
       if (res.confirm) {
         isLoggingOut.value = true;

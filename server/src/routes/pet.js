@@ -3,6 +3,7 @@ const router = express.Router()
 const { query } = require('../config/db')
 const { success, error, pagination } = require('../utils/response')
 const { auth } = require('../middleware/auth')
+const { parseJsonArray } = require('../utils/parseJson')
 
 /**
  * 宠物表单配置（种类 / 品种 / 性格标签）
@@ -48,9 +49,7 @@ router.get('/list', auth, async (req, res) => {
     
     // 解析JSON字段
     for (let pet of pets) {
-      if (typeof pet.photos === 'string') {
-        pet.photos = JSON.parse(pet.photos)
-      }
+      pet.photos = parseJsonArray(pet.photos)
     }
     
     res.json(success(pets, '获取成功'))
@@ -79,9 +78,7 @@ router.get('/public/:id', async (req, res) => {
     }
 
     const pet = pets[0]
-    if (typeof pet.photos === 'string') {
-      pet.photos = JSON.parse(pet.photos)
-    }
+    pet.photos = parseJsonArray(pet.photos)
 
     res.json(success(pet, '获取成功'))
   } catch (err) {
@@ -107,9 +104,7 @@ router.get('/:id', auth, async (req, res) => {
     }
     
     const pet = pets[0]
-    if (typeof pet.photos === 'string') {
-      pet.photos = JSON.parse(pet.photos)
-    }
+    pet.photos = parseJsonArray(pet.photos)
     
     res.json(success(pet, '获取成功'))
   } catch (err) {

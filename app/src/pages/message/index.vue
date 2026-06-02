@@ -89,7 +89,7 @@ import TopNavBar from "@/components/common/TopNavBar.vue";
 import TabBar from "@/components/common/TabBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
 import Empty from "@/components/common/Empty.vue";
-import { getNotifications } from "@/api/notification";
+import { getNotifications, getUnreadNotificationSummary } from "@/api/notification";
 import { getConversations } from "@/api/message";
 import { formatRelativeTime, formatChatPreview } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
@@ -138,7 +138,10 @@ const chatList = ref<
   }>
 >([]);
 
-const buildSystemCategories = (list: Notification[]) => {
+const buildSystemCategories = (
+  list: Notification[],
+  summary?: Record<string, number>,
+) => {
   return SYSTEM_CATEGORIES.map((cat) => {
     const items = list
       .filter((n) => n.type === cat.type)
@@ -146,7 +149,9 @@ const buildSystemCategories = (list: Notification[]) => {
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       );
-    const unread = items.filter((n) => !n.is_read).length;
+    const unread =
+      summary?.[cat.type] ??
+      items.filter((n) => !n.is_read).length;
     const latest = items[0];
     let desc = "暂无新通知";
     if (latest) {
@@ -170,11 +175,12 @@ const buildSystemCategories = (list: Notification[]) => {
   });
 };
 
-const refreshSystemBadge = (list: Notification[]) => {
-  systemBadge.value = list.filter(
-    (n) =>
-      !n.is_read && ["like", "comment", "follow", "message"].includes(n.type),
-  ).length;
+const refreshSystemBadge = (summary: Record<string, number>) => {
+  systemBadge.value =
+    (summary.like || 0) +
+    (summary.comment || 0) +
+    (summary.follow || 0) +
+    (summary.message || 0);
 };
 
 const upsertChatFromMessage = (msg: ChatMessage) => {
@@ -218,7 +224,42 @@ const upsertChatFromMessage = (msg: ChatMessage) => {
 
 const prependNotification = (n: Notification) => {
   if (!["like", "comment", "follow", "message"].includes(n.type)) return;
-  loadData();
+  getUnreadNotificationSummary()
+    .then((summary) => {
+      refreshSystemBadge(summary);
+      const cat = SYSTEM_CATEGORIES.find((c) => c.type === n.type);
+      if (!cat) return;
+      const idx = systemMessages.value.findIndex((item) => item.type === n.type);
+      const name = n.from_username || "用户";
+      let desc = n.content || cat.title;
+      if (n.type === "follow") {
+        desc = `${name} ${n.content || "关注了你"}`;
+      } else if (n.type === "message") {
+        desc = n.content || `${name}给你发来私信`;
+      } else if (n.type !== "comment") {
+        desc = n.content || `${name}`;
+      }
+      const item = {
+        type: n.type,
+        icon: cat.icon,
+        title: cat.title,
+        desc,
+        time: formatRelativeTime(n.created_at),
+        unread: 1,
+      };
+      if (idx >= 0) {
+        systemMessages.value.splice(idx, 1, {
+          ...systemMessages.value[idx],
+          desc: item.desc,
+          time: item.time,
+          unread: (systemMessages.value[idx].unread || 0) + 1,
+        });
+      } else {
+        systemMessages.value.unshift(item);
+      }
+    })
+    .catch(() => loadData());
+  emitRefreshTabBarBadge();
 };
 
 const loadData = async () => {
@@ -229,11 +270,13 @@ const loadData = async () => {
     return;
   }
   try {
-    const notifRes = await getNotifications(1, 50);
-    systemMessages.value = buildSystemCategories(notifRes.list);
-    refreshSystemBadge(notifRes.list);
-
-    const chats = await getConversations();
+    const [notifRes, summary, chats] = await Promise.all([
+      getNotifications(1, 50),
+      getUnreadNotificationSummary(),
+      getConversations(),
+    ]);
+    systemMessages.value = buildSystemCategories(notifRes.list, summary);
+    refreshSystemBadge(summary);
     chatList.value = chats.map((c: Conversation) => ({
       id: c.user_id,
       name: c.username,

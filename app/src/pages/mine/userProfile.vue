@@ -61,7 +61,7 @@
         <view class="pets-section">
           <view class="section-header">
             <text class="section-title">TA的宠物</text>
-            <text class="view-all">查看全部</text>
+            <text class="view-all" @tap="goToAllPets">查看全部</text>
           </view>
           <scroll-view class="pets-scroll" scroll-x v-if="pets.length">
             <view class="pets-list">
@@ -240,6 +240,16 @@ const sendMessage = () => {
 
 const goToPetProfile = (petId: number) => {
   uni.navigateTo({ url: `/pages/mine/petProfile?id=${petId}` });
+};
+
+const goToAllPets = async () => {
+  if (petsTotal.value <= pets.value.length) return;
+  try {
+    const petRes = await getUserPets(userId.value, 1, petsTotal.value);
+    pets.value = petRes.list;
+  } catch (error) {
+    showRequestError(error, "加载失败");
+  }
 };
 
 const goToFeedDetail = (feedId: number) => {

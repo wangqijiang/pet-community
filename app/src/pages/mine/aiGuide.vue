@@ -106,6 +106,9 @@ import {
   buildGuideShareText,
   saveAiGuidePublishDraft,
 } from '@/utils/aiGuideDraft'
+import { useDialog } from '@/composables/useComponents'
+
+const dialog = useDialog()
 
 const loading = ref(false)
 const bannerTitle = ref('正在生成专属养宠攻略...')
@@ -184,10 +187,9 @@ const saveImage = () => {
   uni.setClipboardData({
     data: text,
     success: () => {
-      uni.showModal({
+      dialog.alert({
         title: '攻略已复制',
         content: '全文已复制到剪贴板，可粘贴到备忘录或聊天中保存。',
-        showCancel: false,
       })
     },
   })

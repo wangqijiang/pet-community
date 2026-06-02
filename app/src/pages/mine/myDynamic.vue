@@ -137,6 +137,9 @@ import { usePostShareRegistry } from "@/composables/usePostShare";
 usePostShareRegistry();
 
 import type { Post } from "@/api/post";
+import { useDialog } from "@/composables/useComponents";
+
+const dialog = useDialog();
 
 type SharePet = {
   id: number;
@@ -279,10 +282,9 @@ const handleEdit = (item: DynamicItem) => {
 
 const handleDelete = (item: { id: number }) => {
   uni.vibrateShort({ type: "light" });
-  uni.showModal({
+  dialog.confirm({
     title: "删除动态",
     content: "确定要删除这条动态吗？删除后无法恢复",
-    confirmColor: "#FF6B8A",
     success: async (res) => {
       if (!res.confirm) return;
       try {

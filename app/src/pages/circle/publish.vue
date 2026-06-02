@@ -126,6 +126,9 @@ import { consumeAiGuidePublishDraft } from "@/utils/aiGuideDraft";
 import { promptLogin } from "@/utils/request";
 import { ensureUploadedList } from "@/utils/uploadMedia";
 import { useChooseImage } from "@/composables/useChooseImage";
+import { useDialog } from "@/composables/useComponents";
+
+const dialog = useDialog();
 
 const LAST_PUBLISH_PET_IDS_KEY = "lastPublishPetIds";
 
@@ -310,7 +313,7 @@ const chooseImage = () => {
 };
 
 const deleteImage = (index: number) => {
-  uni.showModal({
+  dialog.confirm({
     title: "提示",
     content: "确定要删除这张图片吗？",
     success: (res) => {

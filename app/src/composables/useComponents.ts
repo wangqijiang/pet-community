@@ -1,57 +1,74 @@
+import {
+  showDialogOverlay,
+  showActionSheetOverlay,
+} from "@/composables/useOverlay";
+
 export const useActionSheet = () => {
-  return {
-    show: () => {},
-  }
-}
+  const show = (options: {
+    title?: string;
+    itemList: string[];
+    success?: (res: { tapIndex: number }) => void;
+    fail?: () => void;
+  }) => {
+    showActionSheetOverlay({
+      title: options.title,
+      itemList: options.itemList,
+    })
+      .then((res) => options.success?.(res))
+      .catch(() => options.fail?.());
+  };
+
+  return { show };
+};
 
 export const usePicker = () => {
   return {
     show: () => {},
-  }
-}
+  };
+};
 
 export const useDatePicker = () => {
   return {
     show: () => {},
-  }
-}
+  };
+};
 
 export const useToast = () => {
   const success = (title: string) => {
     uni.showToast({
       title,
-      icon: 'success',
+      icon: "success",
       duration: 2000,
-    })
-  }
+    });
+  };
 
   const error = (title: string) => {
     uni.showToast({
       title,
-      icon: 'error',
+      icon: "error",
       duration: 2000,
-    })
-  }
+    });
+  };
 
   const loading = (title: string) => {
     uni.showToast({
       title,
-      icon: 'loading',
+      icon: "loading",
       duration: 0,
-    })
-  }
+    });
+  };
 
   const info = (title: string) => {
     uni.showToast({
       title,
-      icon: 'none',
+      icon: "none",
       duration: 2000,
-    })
-  }
+    });
+  };
 
   const hide = () => {
-    uni.hideToast()
-  }
+    uni.hideToast();
+  };
 
   return {
     success,
@@ -59,49 +76,58 @@ export const useToast = () => {
     loading,
     info,
     hide,
-  }
+  };
+};
+
+export interface DialogConfirmOptions {
+  title?: string;
+  content: string;
+  confirmText?: string;
+  cancelText?: string;
+  confirmColor?: string;
+  showCancel?: boolean;
+  success?: (result: { confirm: boolean }) => void;
+}
+
+export interface DialogAlertOptions {
+  title?: string;
+  content: string;
+  confirmText?: string;
+  confirmColor?: string;
+  success?: (result: { confirm: boolean }) => void;
 }
 
 export const useDialog = () => {
-  const confirm = (options: { title?: string; content: string; confirmText?: string; cancelText?: string; confirmColor?: string; showCancel?: boolean; success?: (result: { confirm: boolean }) => void }) => {
-    uni.showModal({
-      title: options.title || '',
+  const confirm = (options: DialogConfirmOptions) => {
+    showDialogOverlay({
+      title: options.title,
       content: options.content,
-      confirmText: options.confirmText || '确定',
-      cancelText: options.cancelText || '取消',
-      confirmColor: options.confirmColor || '#71585C',
+      confirmText: options.confirmText,
+      cancelText: options.cancelText,
       showCancel: options.showCancel !== false,
-      success: (res) => {
-        options.success?.({ confirm: res.confirm })
-      },
-    })
-  }
+    }).then((res) => options.success?.(res));
+  };
 
-  const alert = (options: string | { title?: string; content: string; confirmText?: string; confirmColor?: string; success?: (result: { confirm: boolean }) => void }) => {
-    if (typeof options === 'string') {
-      uni.showModal({
-        content: options,
-        showCancel: false,
-      })
-    } else {
-      uni.showModal({
-        title: options.title || '',
-        content: options.content,
-        confirmText: options.confirmText || '知道了',
-        confirmColor: options.confirmColor || '#71585C',
-        showCancel: false,
-        success: (res) => {
-          options.success?.({ confirm: res.confirm })
-        },
-      })
+  const alert = (
+    options: string | DialogAlertOptions,
+  ) => {
+    if (typeof options === "string") {
+      showDialogOverlay({ content: options, showCancel: false });
+      return;
     }
-  }
+    showDialogOverlay({
+      title: options.title,
+      content: options.content,
+      confirmText: options.confirmText,
+      showCancel: false,
+    }).then((res) => options.success?.(res));
+  };
 
   return {
     confirm,
     alert,
-  }
-}
+  };
+};
 
 export const useComponents = () => {
   return {
@@ -110,5 +136,5 @@ export const useComponents = () => {
     actionSheet: useActionSheet(),
     toast: useToast(),
     dialog: useDialog(),
-  }
-}
+  };
+};

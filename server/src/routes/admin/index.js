@@ -7,6 +7,12 @@ const { success, error, pagination } = require('../../utils/response')
 const { adminAuth } = require('../../middleware/adminAuth')
 const { upload, saveUploadedFile } = require('../../utils/upload')
 
+const ADMIN_USER_COUNT_FIELDS = `
+  followers_count, following_count,
+  (SELECT COUNT(*) FROM posts WHERE user_id = users.id AND status = 1) AS posts_count,
+  (SELECT COUNT(*) FROM pets WHERE user_id = users.id AND status = 1) AS pets_count
+`
+
 function parsePage(q) {
   const page = Math.max(1, parseInt(q.page, 10) || 1)
   const size = Math.min(100, Math.max(1, parseInt(q.size, 10) || 20))
@@ -133,7 +139,7 @@ router.get('/users', adminAuth, async (req, res) => {
     }
     const list = await query(
       `SELECT id, username, phone, avatar, signature, gender, region,
-              followers_count, following_count, posts_count, pets_count, status, created_at
+              ${ADMIN_USER_COUNT_FIELDS}, status, created_at
        FROM users WHERE ${where} ORDER BY id DESC LIMIT ? OFFSET ?`,
       [...params, size, offset]
     )
@@ -242,7 +248,14 @@ router.patch('/posts/:id', adminAuth, async (req, res) => {
 
 router.delete('/posts/:id', adminAuth, async (req, res) => {
   try {
+    const posts = await query('SELECT user_id FROM posts WHERE id = ? AND status = 1', [req.params.id])
     await query('UPDATE posts SET status = 0 WHERE id = ?', [req.params.id])
+    if (posts.length > 0) {
+      await query(
+        'UPDATE users SET posts_count = GREATEST(posts_count - 1, 0) WHERE id = ?',
+        [posts[0].user_id]
+      )
+    }
     res.json(success(null, '已删除'))
   } catch (err) {
     res.status(500).json(error('删除失败', 500))
@@ -281,7 +294,23 @@ router.get('/comments', adminAuth, async (req, res) => {
 
 router.delete('/comments/:id', adminAuth, async (req, res) => {
   try {
-    await query('UPDATE comments SET status = 0 WHERE id = ?', [req.params.id])
+    const comment = await query('SELECT post_id FROM comments WHERE id = ?', [req.params.id])
+    if (comment.length === 0) {
+      return res.status(404).json(error('评论不存在', 404))
+    }
+
+    const postId = comment[0].post_id
+    await query(
+      'UPDATE comments SET status = 0 WHERE (id = ? OR parent_id = ?) AND post_id = ?',
+      [req.params.id, req.params.id, postId]
+    )
+
+    const countResult = await query(
+      'SELECT COUNT(*) as count FROM comments WHERE post_id = ? AND status = 1',
+      [postId]
+    )
+    await query('UPDATE posts SET comments_count = ? WHERE id = ?', [countResult[0].count, postId])
+
     res.json(success(null, '已删除'))
   } catch (err) {
     res.status(500).json(error('删除失败', 500))

@@ -4,6 +4,15 @@ const { query } = require('../config/db')
 const { pushNotificationById } = require('../utils/realtime')
 const { auth, optionalAuth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
+const { parseJsonArray } = require('../utils/parseJson')
+
+async function syncPostLikesCount(postId) {
+  const rows = await query(
+    'SELECT COUNT(*) AS count FROM likes WHERE target_id = ? AND target_type = ?',
+    [postId, 'post']
+  )
+  await query('UPDATE posts SET likes_count = ? WHERE id = ?', [rows[0].count, postId])
+}
 
 async function fetchPetsForPosts(postIds) {
   if (!postIds.length) return {}
@@ -183,9 +192,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     // 解析images字段
     for (let post of posts) {
-      if (typeof post.images === 'string') {
-        post.images = JSON.parse(post.images)
-      }
+      post.images = parseJsonArray(post.images)
     }
 
     await attachPetsToPosts(posts)
@@ -267,9 +274,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
     }
 
     const post = posts[0]
-    if (typeof post.images === 'string') {
-      post.images = JSON.parse(post.images)
-    }
+    post.images = parseJsonArray(post.images)
 
     await attachPetsToPosts([post])
     await attachLikedStatus([post], req.user?.id)
@@ -304,7 +309,7 @@ router.put('/:id', auth, async (req, res) => {
       'UPDATE posts SET content = ?, images = ?, category = ?, updated_at = NOW() WHERE id = ?',
       [
         content || posts[0].content,
-        JSON.stringify(images || JSON.parse(posts[0].images || '[]')),
+        JSON.stringify(images ?? parseJsonArray(posts[0].images)),
         nextCategory,
         id,
       ]
@@ -374,7 +379,7 @@ router.post('/:id/like', auth, async (req, res) => {
     if (existing.length > 0) {
       // 取消点赞
       await query('DELETE FROM likes WHERE id = ?', [existing[0].id])
-      await query('UPDATE posts SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?', [id])
+      await syncPostLikesCount(id)
       res.json(success({ liked: false }, '取消点赞'))
     } else {
       // 点赞
@@ -382,7 +387,7 @@ router.post('/:id/like', auth, async (req, res) => {
         'INSERT INTO likes (user_id, target_id, target_type, created_at) VALUES (?, ?, ?, NOW())',
         [req.user.id, id, 'post']
       )
-      await query('UPDATE posts SET likes_count = likes_count + 1 WHERE id = ?', [id])
+      await syncPostLikesCount(id)
       
       // 创建通知（同一用户对同一动态仅首次点赞通知）
       if (posts[0].user_id !== req.user.id) {
@@ -669,6 +674,10 @@ router.get('/user/likes', auth, async (req, res) => {
     await attachPetsToPosts(posts)
     await attachLikedStatus(posts, req.user.id)
 
+    for (const post of posts) {
+      post.images = parseJsonArray(post.images)
+    }
+
     const total = await query(
       'SELECT COUNT(*) as count FROM likes WHERE user_id = ? AND target_type = ?',
       [req.user.id, 'post']
@@ -715,6 +724,10 @@ router.get('/user/favorites', auth, async (req, res) => {
 
     await attachPetsToPosts(posts)
     await attachLikedStatus(posts, req.user.id)
+
+    for (const post of posts) {
+      post.images = parseJsonArray(post.images)
+    }
 
     const total = await query(
       'SELECT COUNT(*) as count FROM favorites WHERE user_id = ? AND target_type = ?',

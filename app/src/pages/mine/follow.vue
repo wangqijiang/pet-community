@@ -71,6 +71,9 @@ import PageLayout from "@/components/common/PageLayout.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getFollowingList, unfollowUser } from "@/api/user";
 import { resolveMediaUrl } from "@/utils/media";
+import { useDialog } from "@/composables/useComponents";
+
+const dialog = useDialog();
 
 const loading = ref(false);
 const searchText = ref("");
@@ -124,7 +127,7 @@ const goToUserProfile = (id: number) => {
 };
 
 const handleUnfollow = (user: { id: number; nickname: string }) => {
-  uni.showModal({
+  dialog.confirm({
     title: "提示",
     content: `确定取消关注 ${user.nickname} 吗？`,
     success: async (res) => {

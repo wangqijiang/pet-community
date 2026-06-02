@@ -387,6 +387,9 @@ import { showRequestError } from "@/utils/request";
 import { ensureUploaded, ensureUploadedList } from "@/utils/uploadMedia";
 import { getLayoutMetrics, useFixedFooterHeight } from "@/composables/useLayout";
 import { useChooseImage } from "@/composables/useChooseImage";
+import { useDialog } from "@/composables/useComponents";
+
+const dialog = useDialog();
 
 const instance = getCurrentInstance()?.proxy;
 
@@ -1124,7 +1127,7 @@ const previewPhoto = (index: number) => {
 
 const deletePhoto = (index: number) => {
   uni.vibrateShort({ type: "light" });
-  uni.showModal({
+  dialog.confirm({
     title: "提示",
     content: "确定要删除这张照片吗？",
     success: (res) => {
@@ -1211,10 +1214,9 @@ const handleSave = async () => {
 
 const handleDelete = () => {
   uni.vibrateShort({ type: "medium" });
-  uni.showModal({
+  dialog.confirm({
     title: "提示",
     content: "确定要删除这个宠物信息吗？此操作不可恢复",
-    confirmColor: "#ff7d8f",
     success: (res) => {
       if (res.confirm && petId.value) {
         loading.value = true;

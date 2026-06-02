@@ -74,7 +74,7 @@ const refreshBadge = async () => {
   try {
     const [msg, notif] = await Promise.all([
       getUnreadMessageCount(),
-      getUnreadNotificationCount(),
+      getUnreadNotificationCount("message"),
     ]);
     messageBadge.value = msg + notif;
   } catch {

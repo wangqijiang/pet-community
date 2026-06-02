@@ -86,6 +86,9 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import Loading from "@/components/common/Loading.vue";
 import { getPetList, deletePet, type Pet } from "@/api/pet";
+import { useDialog } from "@/composables/useComponents";
+
+const dialog = useDialog();
 
 const loading = ref(false);
 const pets = ref<Pet[]>([]);
@@ -136,10 +139,9 @@ const handleTouchEnd = (index: number) => {
 
 const handleDeletePet = async (pet: Pet) => {
   uni.vibrateShort({ type: "medium" });
-  uni.showModal({
+  dialog.confirm({
     title: "提示",
     content: `确定要删除 "${pet.name}" 吗？此操作不可恢复`,
-    confirmColor: "#ff7d8f",
     success: async (res) => {
       if (res.confirm) {
         loading.value = true;

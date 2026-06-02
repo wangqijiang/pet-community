@@ -194,20 +194,25 @@
       </view>
     </view>
 
-    <view v-if="showActionSheet" class="action-sheet-mask" @click="closeActionSheet">
-      <view class="action-sheet" @click.stop>
-        <view 
-          v-if="canDeleteComment(selectedComment)" 
-          class="action-item delete-action"
+    <BottomSheet
+      :visible="showActionSheet"
+      title="评论操作"
+      @update:visible="showActionSheet = $event"
+      @close="closeActionSheet"
+    >
+      <view class="comment-action-list">
+        <view
+          v-if="selectedComment && canDeleteComment(selectedComment)"
+          class="comment-action-item comment-action-item--danger"
           @click="handleDeleteComment(selectedComment)"
         >
           <text>删除评论</text>
         </view>
-        <view class="action-item cancel-action" @click="closeActionSheet">
+        <view class="comment-action-item" @click="closeActionSheet">
           <text>取消</text>
         </view>
       </view>
-    </view>
+    </BottomSheet>
 
     <PostSharePanel v-model:visible="shareVisible" :post="sharePost" />
     </template>
@@ -226,6 +231,7 @@ import PostImageGrid from "@/components/common/PostImageGrid.vue";
 import PostProtagonistPets from "@/components/common/PostProtagonistPets.vue";
 import PostSharePanel from "@/components/common/PostSharePanel.vue";
 import Loading from "@/components/common/Loading.vue";
+import BottomSheet from "@/components/common/BottomSheet.vue";
 import {
   getPostDetail,
   getComments,
@@ -240,7 +246,11 @@ import { getUserInfo } from "@/api/auth";
 import type { PostShareInput } from "@/utils/postShare";
 import { usePostShareRegistry } from "@/composables/usePostShare";
 import { resolveAvatarUrl, resolveMediaUrl } from "@/utils/media";
+import { parseJsonArray } from "@/utils/format";
+import { useDialog } from "@/composables/useComponents";
 import { getLayoutMetrics, useFixedFooterHeight } from "@/composables/useLayout";
+
+const dialog = useDialog();
 
 usePostShareRegistry();
 
@@ -361,7 +371,7 @@ const loadPost = async () => {
     const data = await getPostDetail(postId.value);
     post.value = {
       ...data,
-      images: typeof data.images === 'string' ? JSON.parse(data.images) : data.images
+      images: parseJsonArray<string>(data.images),
     };
     likes.value = data.likes;
     comments.value = data.comments;
@@ -455,7 +465,7 @@ const focusCommentInput = () => {
 
 const handleDelete = async () => {
   if (!isOwner.value) return;
-  uni.showModal({
+  dialog.confirm({
     title: "确认删除",
     content: "确定要删除这条动态吗？",
     success: async (res) => {
@@ -472,7 +482,7 @@ const handleDelete = async () => {
           showRequestError(error, "删除失败");
         }
       }
-    }
+    },
   });
 };
 
@@ -506,8 +516,8 @@ const submitComment = async () => {
     );
     uni.showToast({ title: "评论成功", icon: "success" });
     commentContent.value = "";
-    comments.value++;
     await loadComments();
+    await loadPost();
     cancelReply();
   } catch (error) {
     console.error("评论失败:", error);
@@ -529,7 +539,7 @@ const closeActionSheet = () => {
 
 const handleDeleteComment = async (comment: Comment) => {
   closeActionSheet();
-  uni.showModal({
+  dialog.confirm({
     title: "确认删除",
     content: "确定要删除这条评论吗？",
     success: async (res) => {
@@ -544,7 +554,7 @@ const handleDeleteComment = async (comment: Comment) => {
           showRequestError(error, "删除失败");
         }
       }
-    }
+    },
   });
 };
 
@@ -1137,64 +1147,27 @@ onLoad((options) => {
   }
 }
 
-.action-sheet-mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+.comment-action-list {
   display: flex;
-  align-items: flex-end;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.action-sheet {
-  width: 100%;
-  background: white;
-  border-radius: 32rpx 32rpx 0 0;
-  padding: 24rpx 0 calc(24rpx + env(safe-area-inset-bottom));
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-
-.action-item {
-  padding: 32rpx;
+.comment-action-item {
+  padding: 28rpx 32rpx;
+  background: #fff7f1;
+  border-radius: 24rpx;
   text-align: center;
-  font-size: 32rpx;
-  color: #3D2F2F;
-  border-bottom: 1rpx solid #F5F0F0;
-  
-  &:last-child {
-    border-bottom: none;
-    margin-top: 16rpx;
+  font-size: 30rpx;
+  color: #3d2f2f;
+
+  &--danger {
+    color: #e07a7a;
+    background: #fff0f0;
   }
-  
-  &.delete-action {
-    color: #E53935;
-    font-weight: 600;
-  }
-  
-  &.cancel-action {
-    background: #F8F8F8;
-    margin-top: 16rpx;
-    margin-left: 24rpx;
-    margin-right: 24rpx;
-    border-radius: 16rpx;
-  }
-  
+
   &:active {
-    background: #F5F5F5;
+    transform: scale(0.98);
   }
 }
 </style>

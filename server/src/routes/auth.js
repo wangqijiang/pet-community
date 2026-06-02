@@ -5,6 +5,7 @@ const { hash, compare } = require('../utils/bcrypt')
 const { sign } = require('../utils/jwt')
 const { success, error } = require('../utils/response')
 const { getPhoneByCode } = require('../utils/wechat')
+const { auth } = require('../middleware/auth')
 
 function formatAuthUser(user) {
   return {
@@ -30,6 +31,28 @@ async function findOrCreateUserByPhone(phone) {
   )
   users = await query('SELECT * FROM users WHERE id = ?', [result.insertId])
   return users[0]
+}
+
+async function verifySmsCode(phone, code) {
+  const isProduction = process.env.NODE_ENV === 'production'
+  const devCode = process.env.SMS_DEV_CODE || '1234'
+
+  if (!isProduction && code === devCode) {
+    return true
+  }
+
+  try {
+    const codes = await query(
+      'SELECT * FROM sms_codes WHERE phone = ? AND code = ? AND expires_at > NOW() ORDER BY id DESC LIMIT 1',
+      [phone, code]
+    )
+    return codes.length > 0
+  } catch (dbErr) {
+    if (dbErr.code === 'ER_NO_SUCH_TABLE') {
+      return !isProduction && code === devCode
+    }
+    throw dbErr
+  }
 }
 
 /**
@@ -167,12 +190,12 @@ router.get('/check', async (req, res) => {
 })
 
 /**
- * 修改密码
+ * 修改密码（需登录）
  */
-router.post('/change-password', async (req, res) => {
-  const { phone, oldPassword, newPassword } = req.body
+router.post('/change-password', auth, async (req, res) => {
+  const { oldPassword, newPassword } = req.body
 
-  if (!phone || !oldPassword || !newPassword) {
+  if (!oldPassword || !newPassword) {
     return res.status(400).json(error('请填写完整信息', 400))
   }
 
@@ -181,13 +204,12 @@ router.post('/change-password', async (req, res) => {
   }
 
   try {
-    const users = await query('SELECT * FROM users WHERE phone = ?', [phone])
+    const users = await query('SELECT * FROM users WHERE id = ? AND status = 1', [req.user.id])
     if (users.length === 0) {
-      return res.status(400).json(error('用户不存在', 400))
+      return res.status(404).json(error('用户不存在', 404))
     }
 
     const user = users[0]
-
     const isMatch = await compare(oldPassword, user.password)
     if (!isMatch) {
       return res.status(400).json(error('原密码错误', 400))
@@ -204,13 +226,17 @@ router.post('/change-password', async (req, res) => {
 })
 
 /**
- * 重置密码（通过手机号）
+ * 重置密码（需短信验证码）
  */
 router.post('/reset-password', async (req, res) => {
-  const { phone, newPassword } = req.body
+  const { phone, code, newPassword } = req.body
 
-  if (!phone || !newPassword) {
+  if (!phone || !code || !newPassword) {
     return res.status(400).json(error('请填写完整信息', 400))
+  }
+
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    return res.status(400).json(error('手机号格式不正确', 400))
   }
 
   if (newPassword.length < 6 || newPassword.length > 20) {
@@ -218,7 +244,12 @@ router.post('/reset-password', async (req, res) => {
   }
 
   try {
-    const users = await query('SELECT id FROM users WHERE phone = ?', [phone])
+    const codeValid = await verifySmsCode(phone, code)
+    if (!codeValid) {
+      return res.status(400).json(error('验证码错误或已过期', 400))
+    }
+
+    const users = await query('SELECT id FROM users WHERE phone = ? AND status = 1', [phone])
     if (users.length === 0) {
       return res.status(400).json(error('手机号未注册', 400))
     }
@@ -263,7 +294,6 @@ router.post('/sendCode', async (req, res) => {
  */
 router.post('/loginByCode', async (req, res) => {
   const { phone, code } = req.body
-  const devCode = process.env.SMS_DEV_CODE || '1234'
 
   if (!phone || !code) {
     return res.status(400).json(error('请填写手机号和验证码', 400))
@@ -274,17 +304,7 @@ router.post('/loginByCode', async (req, res) => {
   }
 
   try {
-    let codeValid = code === devCode
-    try {
-      const codes = await query(
-        'SELECT * FROM sms_codes WHERE phone = ? AND code = ? AND expires_at > NOW() ORDER BY id DESC LIMIT 1',
-        [phone, code]
-      )
-      if (codes.length > 0) codeValid = true
-    } catch (dbErr) {
-      if (dbErr.code !== 'ER_NO_SUCH_TABLE') throw dbErr
-      codeValid = code === devCode
-    }
+    const codeValid = await verifySmsCode(phone, code)
     if (!codeValid) {
       return res.status(400).json(error('验证码错误或已过期', 400))
     }

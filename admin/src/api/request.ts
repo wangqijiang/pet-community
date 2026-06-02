@@ -26,7 +26,7 @@ request.interceptors.response.use(
   },
   (err) => {
     const msg = err.response?.data?.message || err.message || '网络错误'
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 || err.response?.status === 403) {
       localStorage.removeItem('admin_token')
       localStorage.removeItem('admin_info')
       router.push('/login')

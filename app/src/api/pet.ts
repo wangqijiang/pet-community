@@ -1,5 +1,5 @@
 import { post, get, put, del } from "@/utils/request";
-import { baseURL } from "@/utils/request";
+import { uploadFileToOss } from "@/api/file";
 import { parseJsonArray, normalizePetGender } from "@/utils/format";
 
 export interface Pet {
@@ -104,25 +104,9 @@ export async function uploadPetAvatar(
   petId: number,
   filePath: string,
 ): Promise<{ avatar: string }> {
-  return new Promise((resolve, reject) => {
-    const token = uni.getStorageSync("token");
-    uni.uploadFile({
-      url: `${baseURL}/pet/${petId}/avatar`,
-      filePath,
-      name: "avatar",
-      header: token ? { Authorization: `Bearer ${token}` } : {},
-      success: (res) => {
-        try {
-          const result = JSON.parse(res.data);
-          if (result.success) resolve(result.data);
-          else reject(new Error(result.message));
-        } catch (e) {
-          reject(e);
-        }
-      },
-      fail: (err) => reject(new Error(err.errMsg || "上传失败")),
-    });
-  });
+  const url = await uploadFileToOss(filePath);
+  const res = await post<{ avatar: string }>(`/pet/${petId}/avatar`, { avatar: url });
+  return res.data;
 }
 
 export interface PetPersonalityTag {
