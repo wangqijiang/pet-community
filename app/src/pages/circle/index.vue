@@ -79,7 +79,7 @@
         <view class="footer-left">
           <view class="footer-item" @click.stop="handleLike(item)">
             <view class="footer-icon" :class="{ liked: item.liked }">
-              <text class="like-icon">{{ item.liked ? '♥' : '♡' }}</text>
+              <text class="like-icon">{{ item.liked ? "♥" : "♡" }}</text>
             </view>
             <text class="footer-count">{{ item.likes }}</text>
           </view>
@@ -170,7 +170,9 @@ const formatTime = (t: string) => formatRelativeTime(t);
 
 const goToUserProfile = (item: Post) => {
   uni.navigateTo({
-    url: `/pages/mine/userProfile?id=${item.user_id}&name=${encodeURIComponent(item.username)}`,
+    url: `/pages/mine/userProfile?id=${item.user_id}&name=${encodeURIComponent(
+      item.username,
+    )}`,
   });
 };
 
@@ -205,7 +207,13 @@ const loadPosts = async (pageNum: number, isRefresh = false) => {
   try {
     const category =
       activeCategoryKey.value === "all" ? undefined : activeCategoryKey.value;
-    const response = await getPostList(pageNum, size.value, undefined, undefined, category);
+    const response = await getPostList(
+      pageNum,
+      size.value,
+      undefined,
+      undefined,
+      category,
+    );
     const list = response.list.map((post) => ({
       ...post,
       images: parseJsonArray<string>(post.images).map((url) =>
@@ -339,6 +347,10 @@ onUnmounted(() => {
   height: 80rpx;
   border-radius: 50%;
   overflow: hidden;
+  image {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .avatar-placeholder {

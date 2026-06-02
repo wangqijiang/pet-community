@@ -8,11 +8,7 @@
       <view class="profile-card">
         <view class="user-row">
           <view class="user-left">
-            <image
-              class="avatar"
-              :src="displayAvatar"
-              mode="aspectFill"
-            />
+            <image class="avatar" :src="displayAvatar" mode="aspectFill" />
             <view class="user-info">
               <text class="name">{{ userInfo?.username || "未登录" }}</text>
               <text class="desc" v-if="userInfo?.signature">{{
@@ -88,7 +84,7 @@
         </view>
       </view>
 
-      <view class="menu-section">
+      <!-- <view class="menu-section">
         <view class="menu-item" @click="goToLikedPosts">
           <text class="menu-label">我的点赞</text>
           <view class="menu-arrow"></view>
@@ -96,14 +92,14 @@
         <view class="menu-item" @click="goToAiGuide">
           <text class="menu-label">AI 养宠助手</text>
           <view class="menu-arrow"></view>
-        </view>
-        <!-- <view class="menu-item" @click="goToSetting">
+        </view> -->
+      <!-- <view class="menu-item" @click="goToSetting">
           <text class="menu-label">设置</text>
           <view class="menu-arrow"></view>
         </view> -->
-      </view>
+      <!-- </view> -->
 
-      <view class="ai-card">
+      <!-- <view class="ai-card">
         <view class="ai-light"></view>
         <text class="ai-title">需要养宠建议吗？</text>
         <text class="ai-desc">AI 为你生成遛狗推荐、天气提醒和陪伴建议</text>
@@ -111,7 +107,7 @@
           <view class="ai-btn-icon"></view>
           <text>一键生成建议</text>
         </view>
-      </view>
+      </view> -->
 
       <view
         v-if="loggedIn"

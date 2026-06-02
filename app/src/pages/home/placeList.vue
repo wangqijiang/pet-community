@@ -20,28 +20,30 @@
       </scroll-view>
     </template>
 
-    <view
-      v-for="place in placeList"
-      :key="place.id"
-      class="card"
-      @click="goToDetail(place)"
-    >
-      <image class="cover" :src="coverImage(place)" mode="aspectFill" />
-      <view class="content">
-        <view class="tag">{{ typeLabel(place) }}</view>
-        <view class="name">{{ place.name }}</view>
-        <view class="desc">{{ place.description || place.address }}</view>
-        <view class="meta">
-          <text class="meta-text">评分 {{ place.rating }}</text>
-          <text class="meta-text" v-if="place.distance">{{ place.distance }}</text>
+    <view class="list-wrap">
+      <view
+        v-for="place in placeList"
+        :key="place.id"
+        class="card"
+        @click="goToDetail(place)"
+      >
+        <image class="cover" :src="coverImage(place)" mode="aspectFill" />
+        <view class="content">
+          <view class="tag">{{ typeLabel(place) }}</view>
+          <view class="name">{{ place.name }}</view>
+          <view class="desc">{{ place.description || place.address }}</view>
+          <view class="meta">
+            <text class="meta-text">评分 {{ place.rating }}</text>
+            <text class="meta-text" v-if="place.distance">{{ place.distance }}</text>
+          </view>
         </view>
       </view>
+      <Empty
+        v-if="!loading && placeList.length === 0"
+        title="暂无地点"
+        description="换个分类试试吧"
+      />
     </view>
-    <Empty
-      v-if="!loading && placeList.length === 0"
-      title="暂无地点"
-      description="换个分类试试吧"
-    />
   </PageLayout>
 </template>
 
@@ -59,7 +61,7 @@ import {
 } from "@/api/place";
 import { resolveMediaUrl } from "@/utils/media";
 
-const tabsHeight = uni.upx2px(88);
+const tabsHeight = uni.upx2px(120);
 const currentTab = ref(0);
 const placeList = ref<Place[]>([]);
 const loading = ref(false);
@@ -175,8 +177,8 @@ onMounted(() => {
   }
 }
 
-.page-layout__content {
-  padding: 0 32rpx 24rpx;
+.list-wrap {
+  padding: 0 32rpx calc(32rpx + env(safe-area-inset-bottom));
 }
 
 .card {
