@@ -62,6 +62,12 @@
   backdrop-filter: blur(24px);
 }
 
+/** 页面级 fixed 插槽（BottomSheet 等），层级低于 Toast */
+.page-layout__fixed {
+  position: relative;
+  z-index: $z-index-bottom-sheet;
+}
+
 .page-layout__fab {
   position: fixed;
   z-index: 50;

@@ -5,6 +5,23 @@
     </template>
 
     <view class="page-inner edit-info-inner">
+      <view v-if="!phoneBound" class="bind-card">
+        <view class="bind-card-text">
+          <text class="bind-card-title">绑定手机号</text>
+          <text class="bind-card-desc">用于账号找回与安全验证，可随时绑定</text>
+        </view>
+        <view class="bind-card-btn" @tap="openBindSheet">
+          <text>立即绑定</text>
+        </view>
+      </view>
+
+      <view v-else class="form-item">
+        <text class="item-label">手机号</text>
+        <view class="item-value">
+          <text class="value-text">{{ maskedPhone }}</text>
+        </view>
+      </view>
+
       <!-- 头像 -->
       <view class="form-item" @tap="chooseAvatar">
         <text class="item-label">头像</text>
@@ -105,6 +122,43 @@
       </view>
     </view>
 
+    <template #fixed>
+      <BottomSheet
+        :visible="bindSheetVisible"
+        title="绑定手机号"
+        @update:visible="bindSheetVisible = $event"
+      >
+        <view class="bind-sheet">
+          <input
+            class="bind-input"
+            v-model="bindPhoneInput"
+            type="number"
+            maxlength="11"
+            placeholder="请输入手机号"
+          />
+          <view class="bind-code-row">
+            <input
+              class="bind-input bind-code-input"
+              v-model="bindCode"
+              type="number"
+              maxlength="6"
+              placeholder="验证码"
+            />
+            <view
+              class="bind-code-btn"
+              :class="{ disabled: bindCooldown > 0 || bindSending }"
+              @tap="handleBindSendCode"
+            >
+              <text>{{ bindCodeBtnText }}</text>
+            </view>
+          </view>
+          <view class="bind-submit" @tap="handleBindPhone">
+            <text>确认绑定</text>
+          </view>
+        </view>
+      </BottomSheet>
+    </template>
+
     <Loading :visible="loading" />
   </PageLayout>
 </template>
@@ -113,8 +167,11 @@
 import { ref, computed, onMounted } from "vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
 import PageLayout from "@/components/common/PageLayout.vue";
+import BottomSheet from "@/components/common/BottomSheet.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getUserInfo, updateUserInfo, uploadAvatar } from "@/api/user";
+import { bindPhone, sendCode, setUserInfo, getUserInfo as getStoredUser } from "@/api/auth";
+import { getToken } from "@/utils/session";
 import {
   USER_GENDER_OPTIONS,
   normalizeUserGender,
@@ -132,7 +189,48 @@ const actionSheet = useActionSheet();
 
 const loading = ref(false);
 const isUploading = ref(false);
+const phoneBound = ref(false);
+const userPhone = ref("");
+const bindSheetVisible = ref(false);
+const bindPhoneInput = ref("");
+const bindCode = ref("");
+const bindSending = ref(false);
+const bindCooldown = ref(0);
 const { chooseSingle } = useChooseImage();
+
+let bindCooldownTimer = null;
+
+const maskedPhone = computed(() => {
+  const p = userPhone.value;
+  if (!p || p.length < 11) return p || "";
+  return `${p.slice(0, 3)}****${p.slice(-4)}`;
+});
+
+const bindCodeBtnText = computed(() => {
+  if (bindSending.value) return "发送中";
+  if (bindCooldown.value > 0) return `${bindCooldown.value}s`;
+  return "获取验证码";
+});
+
+const startBindCooldown = (seconds = 60) => {
+  bindCooldown.value = seconds;
+  if (bindCooldownTimer) clearInterval(bindCooldownTimer);
+  bindCooldownTimer = setInterval(() => {
+    if (bindCooldown.value <= 1) {
+      bindCooldown.value = 0;
+      if (bindCooldownTimer) clearInterval(bindCooldownTimer);
+      bindCooldownTimer = null;
+    } else {
+      bindCooldown.value -= 1;
+    }
+  }, 1000);
+};
+
+const openBindSheet = () => {
+  bindPhoneInput.value = "";
+  bindCode.value = "";
+  bindSheetVisible.value = true;
+};
 
 const formData = ref({
   avatar: "/static/images/profile-picture/1.png",
@@ -167,6 +265,9 @@ onMounted(() => {
 const loadUserInfo = async () => {
   try {
     const user = await getUserInfo();
+    userPhone.value = user.phone || "";
+    phoneBound.value = !!user.phone;
+
     formData.value = {
       avatar: resolveUserAvatarUrl(user.avatar, user.id),
       username: user.username || "",
@@ -225,6 +326,51 @@ const onRegionChange = (e) => {
   formData.value.region = region.filter(Boolean).join(" ");
 };
 
+const handleBindSendCode = async () => {
+  if (bindSending.value || bindCooldown.value > 0) return;
+  if (!/^1[3-9]\d{9}$/.test(bindPhoneInput.value)) {
+    showToast({ title: "请输入正确手机号", icon: "none" });
+    return;
+  }
+  bindSending.value = true;
+  try {
+    await sendCode(bindPhoneInput.value, "bind");
+    showToast({ title: "验证码已发送", icon: "success" });
+    startBindCooldown();
+  } catch (error) {
+    showRequestError(error, "发送失败");
+  } finally {
+    bindSending.value = false;
+  }
+};
+
+const handleBindPhone = async () => {
+  if (!/^1[3-9]\d{9}$/.test(bindPhoneInput.value) || !bindCode.value) {
+    showToast({ title: "请填写手机号和验证码", icon: "none" });
+    return;
+  }
+  loading.value = true;
+  try {
+    const user = await bindPhone(bindPhoneInput.value, bindCode.value);
+    userPhone.value = user.phone || bindPhoneInput.value;
+    phoneBound.value = true;
+    bindSheetVisible.value = false;
+
+    const token = getToken();
+    const stored = getStoredUser();
+    if (token && stored) {
+      setUserInfo({ ...stored, ...user, phoneBound: true }, token);
+    }
+
+    showToast({ title: "绑定成功", icon: "success" });
+    uni.$emit("refreshUserInfo");
+  } catch (error) {
+    showRequestError(error, "绑定失败");
+  } finally {
+    loading.value = false;
+  }
+};
+
 const handleSave = async () => {
   if (!formData.value.username.trim()) {
     showToast({
@@ -271,6 +417,122 @@ const handleSave = async () => {
 
 .edit-info-inner {
   padding-top: 0;
+}
+
+.bind-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 32rpx;
+  margin-bottom: $spacing-component;
+  border-radius: $border-radius-base;
+  background: linear-gradient(135deg, #fff7f1 0%, #ffe2c2 100%);
+  box-shadow: $shadow-light;
+}
+
+.bind-card-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.bind-card-title {
+  font-size: $font-size-button;
+  font-weight: $font-weight-bold;
+  color: $color-gray-dark;
+}
+
+.bind-card-desc {
+  font-size: $font-size-helper;
+  color: $color-gray-medium;
+  line-height: 1.5;
+}
+
+.bind-card-btn {
+  flex-shrink: 0;
+  padding: 16rpx 32rpx;
+  border-radius: 999rpx;
+  background: $color-primary;
+
+  text {
+    font-size: 26rpx;
+    font-weight: $font-weight-bold;
+    color: $color-bg-white;
+  }
+
+  &:active {
+    transform: scale($scale-press);
+  }
+}
+
+.bind-sheet {
+  padding: 8rpx 8rpx 24rpx;
+}
+
+.bind-input {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 28rpx;
+  border-radius: 24rpx;
+  background: $color-bg-primary;
+  font-size: $font-size-body;
+  color: $color-gray-dark;
+  box-sizing: border-box;
+}
+
+.bind-code-row {
+  margin-top: 20rpx;
+  display: flex;
+  gap: 16rpx;
+}
+
+.bind-code-input {
+  flex: 1;
+}
+
+.bind-code-btn {
+  flex-shrink: 0;
+  min-width: 200rpx;
+  height: 88rpx;
+  padding: 0 24rpx;
+  border-radius: 24rpx;
+  background: #ffe2c2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text {
+    font-size: 26rpx;
+    font-weight: 600;
+    color: #d97d2f;
+  }
+
+  &.disabled {
+    opacity: 0.55;
+  }
+}
+
+.bind-submit {
+  margin-top: 32rpx;
+  height: 96rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, $color-primary 0%, #ffd4f0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: $shadow-pink;
+
+  text {
+    font-size: $font-size-button;
+    font-weight: $font-weight-bold;
+    color: $color-bg-white;
+  }
+
+  &:active {
+    transform: scale($scale-press);
+  }
 }
 
 .form-item {

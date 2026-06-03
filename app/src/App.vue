@@ -1,39 +1,32 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-import { isLoggedIn, canAccessApp } from "@/api/auth";
+import { isLoggedIn } from "@/api/auth";
 import {
-  PENDING_SHARE_ROUTE_KEY,
-  resolveSharedPostRoute,
-} from "@/utils/postShare";
+  resolveAppLaunchRedirect,
+  resolveAppResumeRedirect,
+} from "@/utils/appLaunch";
 import { connectRealtime, disconnectRealtime, ensureRealtimeConnected } from "@/utils/realtime";
 import { safeReLaunch } from "@/utils/navigation";
 
 onLaunch((options) => {
-  const sharedRoute = resolveSharedPostRoute(
-    (options?.query as Record<string, string | undefined>) || undefined,
-  );
-
   if (isLoggedIn()) {
     connectRealtime();
   }
 
-  if (sharedRoute && canAccessApp()) {
-    safeReLaunch(sharedRoute);
-    return;
-  }
-
-  if (!canAccessApp()) {
-    if (sharedRoute) {
-      uni.setStorageSync(PENDING_SHARE_ROUTE_KEY, sharedRoute);
-    }
-    safeReLaunch("/pages/login/index");
-    return;
-  }
+  const target = resolveAppLaunchRedirect(
+    (options?.query as Record<string, string | undefined>) || undefined,
+  );
+  safeReLaunch(target);
 });
 
 onShow(() => {
   if (isLoggedIn()) {
     ensureRealtimeConnected();
+  }
+
+  const resumeTarget = resolveAppResumeRedirect();
+  if (resumeTarget) {
+    safeReLaunch(resumeTarget);
   }
 });
 

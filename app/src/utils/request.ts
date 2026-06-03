@@ -115,7 +115,13 @@ export async function request<T = unknown>(
       },
       timeout: 15000,
       success: (res: UniApp.RequestSuccessCallbackResult) => {
-        const data = res.data as ResponseData<T>;
+        const data = parseResponseBody<T>(
+          typeof res.data === "string"
+            ? res.data
+            : res.data != null
+              ? JSON.stringify(res.data)
+              : "",
+        ) as ResponseData<T> | null;
         if (
           isAuthRequiredResponse({
             statusCode: res.statusCode,
@@ -123,14 +129,14 @@ export async function request<T = unknown>(
             data: data?.data,
           })
         ) {
-          rejectUnauthorized(reject, method, data);
+          rejectUnauthorized(reject, method, data || undefined);
           return;
         }
         if (data && data.success) resolve(data);
         else
           reject(
             new Error(
-              (data && data.message) || `请求失败(${res.statusCode})`,
+              data?.message || `请求失败(${res.statusCode})`,
             ),
           );
       },

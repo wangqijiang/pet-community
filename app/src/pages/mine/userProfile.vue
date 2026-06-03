@@ -161,7 +161,8 @@ import {
 } from "@/api/user";
 import { getUserPets, type Pet } from "@/api/pet";
 import { getPostList, type Post } from "@/api/post";
-import { resolveAvatarUrl, resolveMediaUrl } from "@/utils/media";
+import { resolveMediaUrl } from "@/utils/media";
+import { resolveAvatarUrl } from "@/utils/defaultAvatar";
 import { formatPetAge, parseJsonArray } from "@/utils/format";
 
 const loading = ref(false);

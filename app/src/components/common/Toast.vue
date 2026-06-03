@@ -56,10 +56,11 @@ const iconSrc = computed(() => ICON_MAP[props.type]);
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/variables.scss";
+
 .tip-toast-root {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 2000;
   pointer-events: none;
 }
 

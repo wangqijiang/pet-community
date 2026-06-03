@@ -29,7 +29,8 @@ export function clearGuestMode(): void {
 export interface StoredUserInfo {
   id: number;
   username: string;
-  phone: string;
+  phone?: string | null;
+  phoneBound?: boolean;
   avatar?: string;
   signature?: string;
   created_at?: string;

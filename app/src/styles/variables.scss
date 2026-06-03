@@ -107,7 +107,8 @@ $z-index-nav: 1000;
 $z-index-tab: 999;
 $z-index-mask: 998;
 $z-index-dialog: 999;
-$z-index-toast: 1001;
+$z-index-bottom-sheet: 10001;
+$z-index-toast: 99999;
 
 $border-width: 2rpx;
 $border-color: rgba(210, 195, 196, 0.3);

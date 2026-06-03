@@ -35,8 +35,11 @@
     <view v-if="tabBar" class="page-layout__tabbar">
       <slot name="tabbar" />
     </view>
-    <slot name="fixed" />
+    <view v-if="$slots.fixed" class="page-layout__fixed">
+      <slot name="fixed" />
+    </view>
     <GlobalOverlays />
+    <GlobalToastLayer />
   </view>
 </template>
 
@@ -44,6 +47,7 @@
 import { computed } from "vue";
 import { useLayout } from "@/composables/useLayout";
 import GlobalOverlays from "@/components/common/GlobalOverlays.vue";
+import GlobalToastLayer from "@/components/common/GlobalToastLayer.vue";
 
 const props = withDefaults(
   defineProps<{

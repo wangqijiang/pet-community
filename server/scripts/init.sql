@@ -30,7 +30,8 @@ USE `pet_community`;
 CREATE TABLE `users` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户ID',
   `username` VARCHAR(50) NOT NULL COMMENT '用户名',
-  `phone` VARCHAR(20) NOT NULL COMMENT '手机号',
+  `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号，微信用户未绑定时为空',
+  `openid` VARCHAR(64) DEFAULT NULL COMMENT '微信openid',
   `password` VARCHAR(255) NOT NULL COMMENT '密码哈希',
   `avatar` VARCHAR(255) DEFAULT NULL COMMENT '头像URL',
   `signature` VARCHAR(200) DEFAULT NULL COMMENT '个性签名',
@@ -49,6 +50,7 @@ CREATE TABLE `users` (
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_phone` (`phone`),
+  UNIQUE KEY `uk_openid` (`openid`),
   KEY `idx_username` (`username`),
   KEY `idx_status` (`status`),
   KEY `idx_role` (`role`)
@@ -63,6 +65,12 @@ CREATE TABLE `sms_codes` (
   PRIMARY KEY (`id`),
   KEY `idx_phone` (`phone`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='短信验证码';
+
+CREATE TABLE `sms_send_records` (
+  `phone` VARCHAR(20) NOT NULL COMMENT '手机号',
+  `last_sent_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上次发送时间',
+  PRIMARY KEY (`phone`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='短信发送冷却记录';
 
 CREATE TABLE `pet_types` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',

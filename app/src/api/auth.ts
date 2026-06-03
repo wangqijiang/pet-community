@@ -24,13 +24,21 @@ export async function loginByCode(phone: string, code: string): Promise<LoginRes
   return result.data
 }
 
-export async function loginWechat(phoneCode: string): Promise<LoginResponse> {
-  const result = await post<LoginResponse>('/auth/wechatLogin', { phoneCode })
+export async function loginWechatOpenid(loginCode: string): Promise<LoginResponse> {
+  const result = await post<LoginResponse>('/auth/wechatOpenidLogin', { loginCode })
   return result.data
 }
 
-export async function sendCode(phone: string): Promise<{ code: string }> {
-  const result = await post<{ code: string }>('/auth/sendCode', { phone })
+export async function sendCode(
+  phone: string,
+  scene: 'login' | 'bind' = 'login',
+): Promise<{ code?: string }> {
+  const result = await post<{ code?: string }>('/auth/sendCode', { phone, scene })
+  return result.data
+}
+
+export async function bindPhone(phone: string, code: string): Promise<UserInfo> {
+  const result = await post<UserInfo>('/auth/bindPhone', { phone, code })
   return result.data
 }
 

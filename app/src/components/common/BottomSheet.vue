@@ -59,6 +59,8 @@ const handleClose = () => {
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/variables.scss";
+
 .bottom-sheet-mask {
   position: fixed;
   inset: 0;
@@ -66,7 +68,7 @@ const handleClose = () => {
   backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-end;
-  z-index: 10001;
+  z-index: $z-index-bottom-sheet;
   opacity: 0;
   visibility: hidden;
   transition:

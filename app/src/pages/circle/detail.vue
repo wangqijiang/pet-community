@@ -258,7 +258,8 @@ import {
 import { getUserInfo } from "@/api/auth";
 import type { PostShareInput } from "@/utils/postShare";
 import { usePostShareRegistry } from "@/composables/usePostShare";
-import { resolveAvatarUrl, resolveMediaUrl } from "@/utils/media";
+import { resolveMediaUrl } from "@/utils/media";
+import { resolveAvatarUrl } from "@/utils/defaultAvatar";
 import { parseJsonArray } from "@/utils/format";
 import { useDialog } from "@/composables/useComponents";
 import { getLayoutMetrics, useFixedFooterHeight } from "@/composables/useLayout";

@@ -4,17 +4,28 @@ const { query } = require("../config/db");
 const { hash, compare } = require("../utils/bcrypt");
 const { sign } = require("../utils/jwt");
 const { success, error } = require("../utils/response");
-const { getPhoneByCode } = require("../utils/wechat");
+const { getOpenidByLoginCode } = require("../utils/wechat");
+const {
+  isPnvsEnabled,
+  sendSmsVerifyCode,
+  checkSmsVerifyCode,
+} = require("../utils/aliyunPnvs");
 const { auth } = require("../middleware/auth");
 const { pickRandomDefaultAvatar } = require("../utils/defaultAvatar");
+const { PnvsUserError, respondWithError } = require("../utils/pnvsErrors");
+const {
+  assertSmsSendAllowed,
+  recordSmsSend,
+} = require("../utils/smsRateLimit");
 
 function formatAuthUser(user) {
   return {
     id: user.id,
     username: user.username,
-    phone: user.phone,
+    phone: user.phone || null,
     avatar: user.avatar,
     signature: user.signature,
+    phoneBound: !!user.phone,
   };
 }
 
@@ -35,26 +46,61 @@ async function findOrCreateUserByPhone(phone) {
   return users[0];
 }
 
+async function findOrCreateUserByOpenid(openid) {
+  let users = await query("SELECT * FROM users WHERE openid = ?", [openid]);
+  if (users.length > 0) {
+    return users[0];
+  }
+
+  const suffix = openid.slice(-4).replace(/[^a-zA-Z0-9]/g, "0") || "0000";
+  const username = `萌宠用户${suffix}`;
+  const hashedPassword = await hash(`wx_${openid}_${Date.now()}`);
+  const avatar = pickRandomDefaultAvatar();
+  const result = await query(
+    "INSERT INTO users (username, phone, openid, password, avatar, created_at) VALUES (?, NULL, ?, ?, ?, NOW())",
+    [username, openid, hashedPassword, avatar],
+  );
+  users = await query("SELECT * FROM users WHERE id = ?", [result.insertId]);
+  return users[0];
+}
+
 async function verifySmsCode(phone, code) {
-  const isProduction = process.env.NODE_ENV === "production";
   const devCode = process.env.SMS_DEV_CODE || "1234";
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (!isPnvsEnabled()) {
+    if (!isProduction && code === devCode) {
+      return true;
+    }
+    try {
+      const codes = await query(
+        "SELECT * FROM sms_codes WHERE phone = ? AND code = ? AND expires_at > NOW() ORDER BY id DESC LIMIT 1",
+        [phone, code],
+      );
+      return codes.length > 0;
+    } catch (dbErr) {
+      if (dbErr.code === "ER_NO_SUCH_TABLE") {
+        return !isProduction && code === devCode;
+      }
+      throw dbErr;
+    }
+  }
 
   if (!isProduction && code === devCode) {
     return true;
   }
 
-  try {
-    const codes = await query(
-      "SELECT * FROM sms_codes WHERE phone = ? AND code = ? AND expires_at > NOW() ORDER BY id DESC LIMIT 1",
-      [phone, code],
-    );
-    return codes.length > 0;
-  } catch (dbErr) {
-    if (dbErr.code === "ER_NO_SUCH_TABLE") {
-      return !isProduction && code === devCode;
-    }
-    throw dbErr;
-  }
+  return await checkSmsVerifyCode(phone, code);
+}
+
+async function sendSmsCodeLocal(phone) {
+  const code = process.env.SMS_DEV_CODE || "1234";
+  await query("DELETE FROM sms_codes WHERE phone = ?", [phone]);
+  await query(
+    "INSERT INTO sms_codes (phone, code, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))",
+    [phone, code],
+  );
+  return code;
 }
 
 /**
@@ -63,7 +109,6 @@ async function verifySmsCode(phone, code) {
 router.post("/register", async (req, res) => {
   const { username, phone, password } = req.body;
 
-  // 参数验证
   if (!username || !phone || !password) {
     return res.status(400).json(error("请填写完整信息", 400));
   }
@@ -81,7 +126,6 @@ router.post("/register", async (req, res) => {
   }
 
   try {
-    // 检查手机号是否已注册
     const existing = await query("SELECT id FROM users WHERE phone = ?", [
       phone,
     ]);
@@ -89,18 +133,14 @@ router.post("/register", async (req, res) => {
       return res.status(400).json(error("该手机号已注册", 400));
     }
 
-    // 密码加密
     const hashedPassword = await hash(password);
-
     const avatar = pickRandomDefaultAvatar();
 
-    // 创建用户
     const result = await query(
       "INSERT INTO users (username, phone, password, avatar, created_at) VALUES (?, ?, ?, ?, NOW())",
       [username, phone, hashedPassword, avatar],
     );
 
-    // 生成token
     const token = sign({ id: result.insertId });
 
     res.json(
@@ -112,6 +152,7 @@ router.post("/register", async (req, res) => {
             username,
             phone,
             avatar,
+            phoneBound: true,
           },
         },
         "注册成功",
@@ -124,18 +165,16 @@ router.post("/register", async (req, res) => {
 });
 
 /**
- * 用户登录
+ * 用户登录（密码）
  */
 router.post("/login", async (req, res) => {
   const { phone, password } = req.body;
 
-  // 参数验证
   if (!phone || !password) {
     return res.status(400).json(error("请填写手机号和密码", 400));
   }
 
   try {
-    // 查找用户
     const users = await query("SELECT * FROM users WHERE phone = ?", [phone]);
     if (users.length === 0) {
       return res.status(400).json(error("手机号或密码错误", 400));
@@ -143,30 +182,22 @@ router.post("/login", async (req, res) => {
 
     const user = users[0];
 
-    // 检查账号状态
     if (user.status !== 1) {
       return res.status(403).json(error("账号已被禁用", 403));
     }
 
-    // 验证密码
     const isMatch = await compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json(error("手机号或密码错误", 400));
     }
 
-    // 生成token
     const token = sign({ id: user.id });
 
     res.json(
       success(
         {
           token,
-          user: {
-            id: user.id,
-            username: user.username,
-            phone: user.phone,
-            avatar: user.avatar,
-          },
+          user: formatAuthUser(user),
         },
         "登录成功",
       ),
@@ -203,7 +234,16 @@ router.get("/check", async (req, res) => {
       return res.json(success({ valid: false }, "用户不存在"));
     }
 
-    res.json(success({ valid: true, user: users[0] }, "token有效"));
+    const user = users[0];
+    res.json(
+      success(
+        {
+          valid: true,
+          user: { ...user, phoneBound: !!user.phone },
+        },
+        "token有效",
+      ),
+    );
   } catch (err) {
     res.json(success({ valid: false }, "token验证失败"));
   }
@@ -291,33 +331,42 @@ router.post("/reset-password", async (req, res) => {
 
     res.json(success(null, "密码重置成功"));
   } catch (err) {
+    if (err instanceof PnvsUserError) {
+      return res.status(err.statusCode).json(error(err.message, err.statusCode));
+    }
     console.error("重置密码失败:", err);
     res.status(500).json(error("重置失败", 500));
   }
 });
 
 /**
- * 发送验证码（开发环境返回固定码）
+ * 发送验证码（阿里云 PNVS 或开发环境本地表）
+ * body: { phone, scene?: 'login' | 'bind' }
  */
 router.post("/sendCode", async (req, res) => {
-  const { phone } = req.body;
+  const { phone, scene = "login" } = req.body;
   if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
     return res.status(400).json(error("手机号格式不正确", 400));
   }
 
-  const code = process.env.SMS_DEV_CODE || "1234";
-
   try {
-    await query("DELETE FROM sms_codes WHERE phone = ?", [phone]);
-    await query(
-      "INSERT INTO sms_codes (phone, code, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))",
-      [phone, code],
-    );
-    const payload = process.env.NODE_ENV === "production" ? {} : { code };
+    await assertSmsSendAllowed(phone);
+
+    if (isPnvsEnabled()) {
+      await sendSmsVerifyCode(phone, scene);
+      await recordSmsSend(phone);
+      const payload =
+        process.env.NODE_ENV === "production" ? {} : { devHint: "生产环境由短信下发" };
+      return res.json(success(payload, "验证码已发送"));
+    }
+
+    const code = await sendSmsCodeLocal(phone);
+    await recordSmsSend(phone);
+    const payload =
+      process.env.NODE_ENV === "production" ? {} : { code };
     res.json(success(payload, "验证码已发送"));
   } catch (err) {
-    console.error("发送验证码失败:", err);
-    res.status(500).json(error("发送失败", 500));
+    return respondWithError(res, err, "发送失败", "发送验证码失败:");
   }
 });
 
@@ -357,28 +406,27 @@ router.post("/loginByCode", async (req, res) => {
       ),
     );
   } catch (err) {
+    if (err instanceof PnvsUserError) {
+      return res.status(err.statusCode).json(error(err.message, err.statusCode));
+    }
     console.error("验证码登录失败:", err);
     res.status(500).json(error("登录失败", 500));
   }
 });
 
 /**
- * 微信一键登录（getPhoneNumber code）
+ * 微信快捷登录（仅 openid，个人主体可用）
  */
-router.post("/wechatLogin", async (req, res) => {
-  const { phoneCode } = req.body;
+router.post("/wechatOpenidLogin", async (req, res) => {
+  const { loginCode } = req.body;
 
-  if (!phoneCode) {
-    return res.status(400).json(error("缺少手机号授权码", 400));
+  if (!loginCode) {
+    return res.status(400).json(error("缺少微信登录凭证", 400));
   }
 
   try {
-    const phone = await getPhoneByCode(phoneCode);
-    if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
-      return res.status(400).json(error("获取手机号失败", 400));
-    }
-
-    const user = await findOrCreateUserByPhone(phone);
+    const openid = await getOpenidByLoginCode(loginCode);
+    const user = await findOrCreateUserByOpenid(openid);
     if (user.status !== 1) {
       return res.status(403).json(error("账号已被禁用", 403));
     }
@@ -397,6 +445,74 @@ router.post("/wechatLogin", async (req, res) => {
     console.error("微信登录失败:", err);
     res.status(500).json(error(err.message || "登录失败", 500));
   }
+});
+
+/**
+ * 绑定手机号（需登录，微信用户补绑）
+ */
+router.post("/bindPhone", auth, async (req, res) => {
+  const { phone, code } = req.body;
+
+  if (!phone || !code) {
+    return res.status(400).json(error("请填写手机号和验证码", 400));
+  }
+
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    return res.status(400).json(error("手机号格式不正确", 400));
+  }
+
+  try {
+    const users = await query(
+      "SELECT * FROM users WHERE id = ? AND status = 1",
+      [req.user.id],
+    );
+    if (users.length === 0) {
+      return res.status(404).json(error("用户不存在", 404));
+    }
+
+    const user = users[0];
+    if (user.phone) {
+      return res.status(400).json(error("已绑定手机号", 400));
+    }
+
+    const codeValid = await verifySmsCode(phone, code);
+    if (!codeValid) {
+      return res.status(400).json(error("验证码错误或已过期", 400));
+    }
+
+    const existing = await query(
+      "SELECT id FROM users WHERE phone = ? AND id != ?",
+      [phone, user.id],
+    );
+    if (existing.length > 0) {
+      return res
+        .status(400)
+        .json(error("该手机号已注册，请使用手机号登录", 400));
+    }
+
+    await query(
+      "UPDATE users SET phone = ?, updated_at = NOW() WHERE id = ?",
+      [phone, user.id],
+    );
+
+    const updated = await query("SELECT * FROM users WHERE id = ?", [
+      user.id,
+    ]);
+    res.json(success(formatAuthUser(updated[0]), "绑定成功"));
+  } catch (err) {
+    return respondWithError(res, err, "绑定失败", "绑定手机号失败:");
+  }
+});
+
+/**
+ * @deprecated 个人主体不可用，请使用 wechatOpenidLogin
+ */
+router.post("/wechatLogin", async (req, res) => {
+  res
+    .status(410)
+    .json(
+      error("请使用微信快捷登录（openid），手机号请使用验证码登录", 410),
+    );
 });
 
 /**

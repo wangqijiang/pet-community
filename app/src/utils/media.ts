@@ -29,12 +29,3 @@ export function resolveLocalOrMediaUrl(url?: string | null): string {
   }
   return resolveMediaUrl(url);
 }
-
-export {
-  DEFAULT_USER_AVATAR,
-  PROFILE_DEFAULT_AVATARS,
-  pickDefaultAvatarByUserId,
-  pickRandomDefaultAvatar,
-  resolveAvatarUrl,
-  resolveUserAvatarUrl,
-} from "@/utils/defaultAvatar";

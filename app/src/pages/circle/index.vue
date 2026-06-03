@@ -131,7 +131,8 @@ import {
   type PostCategory,
 } from "@/api/post";
 import { getUserInfo, isLoggedIn } from "@/api/auth";
-import { resolveAvatarUrl, resolveMediaUrl } from "@/utils/media";
+import { resolveMediaUrl } from "@/utils/media";
+import { resolveAvatarUrl } from "@/utils/defaultAvatar";
 import { formatRelativeTime, parseJsonArray } from "@/utils/format";
 import { useDialog } from "@/composables/useComponents";
 

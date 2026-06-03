@@ -108,6 +108,38 @@ async function getPhoneByCode(phoneCode) {
   return phone
 }
 
+/**
+ * 通过微信 wx.login 的 code 换取 openid
+ */
+async function getOpenidByLoginCode(loginCode) {
+  const appId = process.env.WECHAT_APPID
+  const appSecret = process.env.WECHAT_APPSECRET
+
+  if (typeof loginCode === 'string' && loginCode.startsWith('dev:')) {
+    return loginCode.slice(4) || process.env.WECHAT_DEV_OPENID || 'dev_openid_001'
+  }
+
+  if (!appId || !appSecret) {
+    if (process.env.WECHAT_DEV_MODE === '1') {
+      return process.env.WECHAT_DEV_OPENID || 'dev_openid_001'
+    }
+    throw new Error('未配置微信小程序 AppID / AppSecret')
+  }
+
+  const result = await httpsRequest(
+    `https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${appSecret}&js_code=${encodeURIComponent(loginCode)}&grant_type=authorization_code`
+  )
+
+  if (result.errcode) {
+    throw new Error(result.errmsg || '微信登录失败')
+  }
+  if (!result.openid) {
+    throw new Error('微信未返回 openid')
+  }
+  return result.openid
+}
+
 module.exports = {
   getPhoneByCode,
+  getOpenidByLoginCode,
 }
