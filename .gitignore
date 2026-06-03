@@ -26,9 +26,9 @@ app/.cache/
 *.sw?
 
 # Environment
-.env
-.env.local
-.env.*.local
+# .env
+# .env.local
+# .env.*.local
 
 # Logs
 logs/
