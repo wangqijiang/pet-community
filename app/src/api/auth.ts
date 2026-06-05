@@ -42,6 +42,11 @@ export async function bindPhone(phone: string, code: string): Promise<UserInfo> 
   return result.data
 }
 
+export async function bindOpenid(loginCode: string): Promise<UserInfo> {
+  const result = await post<UserInfo>('/auth/bindOpenid', { loginCode })
+  return result.data
+}
+
 export async function login(phone: string, password: string): Promise<LoginResponse> {
   const result = await post<LoginResponse>('/auth/login', { phone, password })
   return result.data

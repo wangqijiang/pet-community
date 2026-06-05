@@ -5,17 +5,32 @@
     </template>
 
     <view class="page-inner edit-info-inner">
-      <view v-if="!phoneBound" class="bind-card">
+      <!-- 手机号登录：补绑定微信 openid -->
+      <view v-if="userLoaded && phoneBound && !openidBound" class="bind-card">
+        <view class="bind-card-text">
+          <text class="bind-card-title">绑定微信</text>
+          <text class="bind-card-desc">完成后即可与手机号联合登录与找回</text>
+        </view>
+        <view class="bind-card-btn" @tap="handleBindOpenid">
+          <text>{{ openidBinding ? "绑定中..." : "一键绑定" }}</text>
+        </view>
+      </view>
+
+      <!-- openid 登录（未绑定手机号）：限制此处操作 -->
+      <view v-else-if="userLoaded && !phoneBound" class="bind-card">
         <view class="bind-card-text">
           <text class="bind-card-title">绑定手机号</text>
-          <text class="bind-card-desc">用于账号找回与安全验证，可随时绑定</text>
+          <text class="bind-card-desc"
+            >为保障账号安全与找回能力，请先完成手机号绑定</text
+          >
         </view>
         <view class="bind-card-btn" @tap="openBindSheet">
           <text>立即绑定</text>
         </view>
       </view>
 
-      <view v-else class="form-item">
+      <!-- 两者都已绑定：不展示“绑定卡片”，仅展示手机号信息 -->
+      <view v-else-if="userLoaded" class="form-item">
         <text class="item-label">手机号</text>
         <view class="item-value">
           <text class="value-text">{{ maskedPhone }}</text>
@@ -170,7 +185,13 @@ import PageLayout from "@/components/common/PageLayout.vue";
 import BottomSheet from "@/components/common/BottomSheet.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getUserInfo, updateUserInfo, uploadAvatar } from "@/api/user";
-import { bindPhone, sendCode, setUserInfo, getUserInfo as getStoredUser } from "@/api/auth";
+import {
+  bindPhone,
+  bindOpenid,
+  sendCode,
+  setUserInfo,
+  getUserInfo as getStoredUser,
+} from "@/api/auth";
 import { getToken } from "@/utils/session";
 import {
   USER_GENDER_OPTIONS,
@@ -190,7 +211,10 @@ const actionSheet = useActionSheet();
 const loading = ref(false);
 const isUploading = ref(false);
 const phoneBound = ref(false);
+const openidBound = ref(false);
 const userPhone = ref("");
+const openidBinding = ref(false);
+const userLoaded = ref(false);
 const bindSheetVisible = ref(false);
 const bindPhoneInput = ref("");
 const bindCode = ref("");
@@ -232,6 +256,33 @@ const openBindSheet = () => {
   bindSheetVisible.value = true;
 };
 
+const handleBindOpenid = async () => {
+  if (openidBinding.value) return;
+  openidBinding.value = true;
+  try {
+    const loginRes = await new Promise((resolve, reject) => {
+      uni.login({
+        provider: "weixin",
+        success: resolve,
+        fail: reject,
+      });
+    });
+
+    if (!loginRes.code) {
+      showToast({ title: "微信登录失败，请重试", icon: "none" });
+      return;
+    }
+
+    await bindOpenid(loginRes.code);
+    showToast({ title: "绑定成功", icon: "success" });
+    await loadUserInfo();
+  } catch (error) {
+    showRequestError(error, "绑定微信失败");
+  } finally {
+    openidBinding.value = false;
+  }
+};
+
 const formData = ref({
   avatar: "/static/images/profile-picture/1.png",
   username: "",
@@ -267,6 +318,7 @@ const loadUserInfo = async () => {
     const user = await getUserInfo();
     userPhone.value = user.phone || "";
     phoneBound.value = !!user.phone;
+    openidBound.value = !!user.openid;
 
     formData.value = {
       avatar: resolveUserAvatarUrl(user.avatar, user.id),
@@ -276,8 +328,10 @@ const loadUserInfo = async () => {
       region: user.region || "",
       signature: user.signature || "",
     };
+    userLoaded.value = true;
   } catch (error) {
     console.error("获取用户信息失败:", error);
+    userLoaded.value = false;
   }
 };
 
@@ -334,8 +388,12 @@ const handleBindSendCode = async () => {
   }
   bindSending.value = true;
   try {
-    await sendCode(bindPhoneInput.value, "bind");
-    showToast({ title: "验证码已发送", icon: "success" });
+    const res = await sendCode(bindPhoneInput.value, "bind");
+    if (res.code) {
+      showToast({ title: `测试验证码：${res.code}`, icon: "none" });
+    } else {
+      showToast({ title: "验证码已发送", icon: "success" });
+    }
     startBindCooldown();
   } catch (error) {
     showRequestError(error, "发送失败");
@@ -354,6 +412,7 @@ const handleBindPhone = async () => {
     const user = await bindPhone(bindPhoneInput.value, bindCode.value);
     userPhone.value = user.phone || bindPhoneInput.value;
     phoneBound.value = true;
+    openidBound.value = user.openidBound ?? !!user.openid;
     bindSheetVisible.value = false;
 
     const token = getToken();

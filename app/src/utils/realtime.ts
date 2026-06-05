@@ -14,6 +14,7 @@ let socketTask: UniApp.SocketTask | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 let connecting = false;
+let connected = false;
 let manualClose = false;
 let reconnectAttempt = 0;
 let activeChatUserId = 0;
@@ -77,6 +78,7 @@ function handlePayload(raw: string) {
 function bindSocket(task: UniApp.SocketTask) {
   task.onOpen(() => {
     connecting = false;
+    connected = true;
     reconnectAttempt = 0;
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
@@ -94,6 +96,7 @@ function bindSocket(task: UniApp.SocketTask) {
 
   const cleanup = () => {
     connecting = false;
+    connected = false;
     clearHeartbeat();
     if (socketTask === task) socketTask = null;
     if (!manualClose) scheduleReconnect();
@@ -105,7 +108,7 @@ function bindSocket(task: UniApp.SocketTask) {
 
 export function connectRealtime() {
   const token = getToken();
-  if (!token || connecting) return;
+  if (!token || connecting || connected) return;
 
   if (socketTask) {
     try {
@@ -130,6 +133,7 @@ export function connectRealtime() {
 export function disconnectRealtime() {
   manualClose = true;
   connecting = false;
+  connected = false;
   reconnectAttempt = 0;
   if (reconnectTimer) {
     clearTimeout(reconnectTimer);
@@ -147,6 +151,6 @@ export function disconnectRealtime() {
 }
 
 export function ensureRealtimeConnected() {
-  if (!getToken()) return;
+  if (!getToken() || connected || connecting) return;
   connectRealtime();
 }

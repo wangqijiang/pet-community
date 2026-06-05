@@ -9,8 +9,9 @@ import { connectRealtime, disconnectRealtime, ensureRealtimeConnected } from "@/
 import { safeReLaunch } from "@/utils/navigation";
 
 onLaunch((options) => {
+  // 首屏 HTTP 加载完后再连 WebSocket，避免与接口抢同域名连接数
   if (isLoggedIn()) {
-    connectRealtime();
+    setTimeout(() => connectRealtime(), 1500);
   }
 
   const target = resolveAppLaunchRedirect(

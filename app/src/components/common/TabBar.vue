@@ -39,6 +39,7 @@ const props = defineProps<{
 
 const currentIndex = ref(0);
 const messageBadge = ref(0);
+let badgeRefreshing = false;
 
 const tabs = [
   {
@@ -79,14 +80,17 @@ const refreshBadge = async () => {
     messageBadge.value = 0;
     return;
   }
+  if (badgeRefreshing) return;
+  badgeRefreshing = true;
   try {
-    const [msg, notif] = await Promise.all([
-      getUnreadMessageCount(),
-      getUnreadNotificationCount("message"),
-    ]);
+  // 串行请求，少占一个并发槽（微信同域名上限 10）
+    const msg = await getUnreadMessageCount();
+    const notif = await getUnreadNotificationCount("message");
     messageBadge.value = msg + notif;
   } catch {
     /* ignore */
+  } finally {
+    badgeRefreshing = false;
   }
 };
 
@@ -131,16 +135,21 @@ const handleTabClick = (index: number) => {
 
 .tabbar-content {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
   height: 120rpx;
 }
 
 .tab-item {
   display: flex;
+  flex: 1;
+  width: 25%;
+  height: 100%;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 6px;
+  padding: 8rpx 0;
+  gap: 8rpx;
   color: #8a7f7f;
   font-size: 22rpx;
   font-weight: 500;
@@ -182,7 +191,7 @@ const handleTabClick = (index: number) => {
 }
 
 .tab-text {
-  font-size: 11px;
+  font-size: 22rpx;
   transition: color 0.2s ease;
 }
 </style>

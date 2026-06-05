@@ -31,6 +31,8 @@ export interface StoredUserInfo {
   username: string;
   phone?: string | null;
   phoneBound?: boolean;
+  openid?: string | null;
+  openidBound?: boolean;
   avatar?: string;
   signature?: string;
   created_at?: string;

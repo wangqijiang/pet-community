@@ -5,6 +5,7 @@ export interface UserInfo {
   id: number;
   username: string;
   phone?: string;
+  openid?: string | null;
   avatar?: string;
   signature?: string;
   gender?: string;

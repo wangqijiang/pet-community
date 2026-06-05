@@ -19,7 +19,7 @@ const USER_COUNT_FIELDS = `
 router.get('/info', auth, async (req, res) => {
   try {
     const users = await query(`
-      SELECT id, username, phone, avatar, signature, gender, birthday, region,
+      SELECT id, username, phone, openid, avatar, signature, gender, birthday, region,
         ${USER_COUNT_FIELDS}, created_at
       FROM users WHERE id = ?
     `, [req.user.id])
@@ -43,7 +43,7 @@ router.get('/info/:id', async (req, res) => {
   
   try {
     const users = await query(`
-      SELECT id, username, avatar, signature, gender, region,
+      SELECT id, username, avatar, openid, signature, gender, region,
         ${USER_COUNT_FIELDS}, created_at
       FROM users WHERE id = ? AND status = 1
     `, [id])
@@ -111,7 +111,7 @@ router.put('/info', auth, async (req, res) => {
     )
     
     const user = await query(`
-      SELECT id, username, phone, avatar, signature, gender, birthday, region,
+      SELECT id, username, phone, openid, avatar, signature, gender, birthday, region,
         ${USER_COUNT_FIELDS}, created_at
       FROM users WHERE id = ?
     `, [req.user.id])

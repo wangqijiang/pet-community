@@ -274,11 +274,9 @@ const loadData = async () => {
     return;
   }
   try {
-    const [notifRes, summary, chats] = await Promise.all([
-      getNotifications(1, 50),
-      getUnreadNotificationSummary(),
-      getConversations(),
-    ]);
+    const notifRes = await getNotifications(1, 50);
+    const summary = await getUnreadNotificationSummary();
+    const chats = await getConversations();
     systemMessages.value = buildSystemCategories(notifRes.list, summary);
     refreshSystemBadge(summary);
     chatList.value = chats.map((c: Conversation) => ({
@@ -311,8 +309,6 @@ const goToChat = (item: { id: number; name: string }) => {
 };
 
 onMounted(() => {
-  if (isLoggedIn()) ensureRealtimeConnected();
-  loadData();
   uni.$on("realtime:message", upsertChatFromMessage);
   uni.$on("realtime:notification", prependNotification);
 });

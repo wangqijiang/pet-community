@@ -10,6 +10,7 @@ let cachedClient = null;
 
 function isPnvsEnabled() {
   return (
+    process.env.NODE_ENV === "production" &&
     process.env.PNVS_ENABLED === "1" &&
     !!process.env.ALIYUN_ACCESS_KEY_ID &&
     !!process.env.ALIYUN_ACCESS_KEY_SECRET &&

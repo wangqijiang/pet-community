@@ -176,8 +176,12 @@ const handleSendCode = async () => {
   }
   sendingCode.value = true
   try {
-    await sendCode(phone.value, 'login')
-    showToast({ title: '验证码已发送', icon: 'success' })
+    const res = await sendCode(phone.value, 'login')
+    if (res.code) {
+      showToast({ title: `测试验证码：${res.code}`, icon: 'none' })
+    } else {
+      showToast({ title: '验证码已发送', icon: 'success' })
+    }
     startCooldown()
   } catch (error) {
     showToast({

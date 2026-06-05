@@ -17,15 +17,18 @@ const {
   assertSmsSendAllowed,
   recordSmsSend,
 } = require("../utils/smsRateLimit");
+const { mergeUsers } = require("../utils/userMerge");
 
 function formatAuthUser(user) {
   return {
     id: user.id,
     username: user.username,
     phone: user.phone || null,
+    openid: user.openid || null,
     avatar: user.avatar,
     signature: user.signature,
     phoneBound: !!user.phone,
+    openidBound: !!user.openid,
   };
 }
 
@@ -448,6 +451,64 @@ router.post("/wechatOpenidLogin", async (req, res) => {
 });
 
 /**
+ * 绑定微信 openid（需登录）
+ * 用于：手机号登录后补 openid；openid 登录后补手机号。
+ */
+router.post("/bindOpenid", auth, async (req, res) => {
+  const { loginCode } = req.body;
+
+  if (!loginCode) {
+    return res.status(400).json(error("缺少微信登录凭证", 400));
+  }
+
+  try {
+    const users = await query(
+      "SELECT * FROM users WHERE id = ? AND status = 1",
+      [req.user.id],
+    );
+    if (users.length === 0) {
+      return res.status(404).json(error("用户不存在", 404));
+    }
+
+    const user = users[0];
+    const openid = await getOpenidByLoginCode(loginCode);
+    if (!openid) {
+      return res.status(400).json(error("获取 openid 失败", 400));
+    }
+
+    if (user.openid) {
+      // 已绑定：如果是同一个 openid 则直接成功；否则需要走“换绑”流程（当前版本不做）
+      if (user.openid === openid) {
+        return res.json(success(formatAuthUser(user), "已绑定"));
+      }
+      return res.status(400).json(error("该微信号已绑定到其他账号", 400));
+    }
+
+    const existing = await query(
+      "SELECT id FROM users WHERE openid = ? AND id != ?",
+      [openid, user.id],
+    );
+
+    if (existing.length > 0) {
+      // openid 已绑定到其他账号：并入到当前账号
+      await mergeUsers(user.id, existing[0].id);
+    }
+
+    await query("UPDATE users SET openid = ?, updated_at = NOW() WHERE id = ?", [
+      openid,
+      user.id,
+    ]);
+
+    const updated = await query("SELECT * FROM users WHERE id = ?", [
+      user.id,
+    ]);
+    res.json(success(formatAuthUser(updated[0]), "绑定成功"));
+  } catch (err) {
+    return respondWithError(res, err, "绑定失败", "绑定 openid 失败:");
+  }
+});
+
+/**
  * 绑定手机号（需登录，微信用户补绑）
  */
 router.post("/bindPhone", auth, async (req, res) => {
@@ -485,15 +546,14 @@ router.post("/bindPhone", auth, async (req, res) => {
       [phone, user.id],
     );
     if (existing.length > 0) {
-      return res
-        .status(400)
-        .json(error("该手机号已注册，请使用手机号登录", 400));
+      // 手机号已绑定到其他账号：按产品需求做账号并入，避免“分裂成两个用户”
+      await mergeUsers(user.id, existing[0].id);
     }
 
-    await query(
-      "UPDATE users SET phone = ?, updated_at = NOW() WHERE id = ?",
-      [phone, user.id],
-    );
+    await query("UPDATE users SET phone = ?, updated_at = NOW() WHERE id = ?", [
+      phone,
+      user.id,
+    ]);
 
     const updated = await query("SELECT * FROM users WHERE id = ?", [
       user.id,

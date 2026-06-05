@@ -1,0 +1,93 @@
+# 账号合并与双登录规范
+
+本项目采用 **微信 openid + 手机号** 双通道登录，最终目标是「一个真实用户 = 一个 `users` 记录」，而不是微信账号与手机号账号长期分裂。
+
+实现入口：`server/src/utils/userMerge.js`（`mergeUsers`）  
+触发场景：`POST /auth/bindPhone`、`POST /auth/bindOpenid`（手机号或 openid 已被其他账号占用时自动并入）
+
+---
+
+## 一、主账号规则（必须遵守）
+
+**谁正在做绑定操作，谁就是主账号（target）；冲突方是被并入账号（source）。**
+
+| 操作 | 主账号 | 被并入 |
+|------|--------|--------|
+| 微信登录后 `bindPhone` | 当前微信用户 | 原手机号用户 |
+| 手机号登录后 `bindOpenid` | 当前手机号用户 | 原 openid 用户 |
+
+- source 合并后：`phone/openid` 清空、`status = 0`，不可再登录
+- 资料字段（昵称、头像等）**不会**从 source 覆盖 target，只迁业务数据
+- 产品推荐路径：**先手机号登录 → 编辑资料绑定微信**，避免用户数据倒向新的微信空号
+
+---
+
+## 二、已纳入合并的业务表
+
+新增任何带 `user_id` / 用户外键的业务表时，**必须同步更新** `userMerge.js`，否则合并后会丢数据或产生重复。
+
+当前已迁移：
+
+- `pets`、`posts`、`comments`（含 `reply_to_user_id`）
+- `likes`、`favorites`、`place_reviews`、`place_likes`
+- `follows`（`user_id` 与 `follow_id` 双侧）
+- `messages`（`from_id`、`to_id`）
+- `notifications`（`user_id`、`from_user_id`）
+- `ai_chats`、`guides`（`author_id`）
+
+合并后必须做去重/清理（已在 `dedupeMergeData` 中实现，扩展时参照）：
+
+| 数据 | 去重/清理策略 |
+|------|----------------|
+| `follows` | `(user_id, follow_id)` 去重；删除自关注 `user_id = follow_id` |
+| `likes` / `favorites` | `(user_id, target_id, target_type)` 去重 |
+| `place_likes` | `(place_id, user_id)` 去重 |
+| `place_reviews` | 同地点同用户保留较新一条 |
+| `messages` | 删除 `from_id = to_id`（两账号互聊合并后的脏数据） |
+| `notifications` | 同接收人+类型+来源+目标 去重 |
+| `users` 计数 | 重算 `posts_count` / `pets_count` / `following_count` / `followers_count` |
+
+---
+
+## 三、开发新功能时的检查清单
+
+在新增或修改涉及「用户归属」的功能前，逐项确认：
+
+1. **新表是否有 `user_id`（或 `from_id` / `to_id` / `follow_id` 等用户外键）？**
+   - 有 → 必须在 `mergeUsers` 中增加 `UPDATE ... SET user_id = target WHERE user_id = source`
+2. **是否存在唯一约束组合（用户 + 某资源）？**
+   - 有 → 必须在 `dedupeMergeData` 中增加去重 SQL，防止合并后违反唯一键或列表重复
+3. **是否有「双方用户」关系（私信、互关、通知）？**
+   - 有 → 考虑合并后自指、重复会话、重复通知的去重/删除逻辑
+4. **是否缓存了用户维度计数？**
+   - 有 → 合并后调用或扩展 `recalcUserStats`，不要只 `+1/-1` 硬改
+5. **前端是否假设「一个手机号 = 一个用户 id」？**
+   - 绑定/合并后应刷新用户信息（`getUserInfo` / `refreshUserInfo`），token 仍指向 target 用户
+
+---
+
+## 四、前端相关约定
+
+- `users` 可能只有 `phone`、只有 `openid`、或两者都有；用 `phoneBound` / `openidBound`（或字段是否存在）判断绑定状态
+- 编辑资料页 `editInfo.vue`：
+  - 有手机号、无 openid → 引导「绑定微信」
+  - 有 openid、无手机号 → 引导「绑定手机号」
+  - 两者都有 → 不展示绑定卡片
+- 登录态以本地 `token` 为准；合并后用户 id 不变（target），无需重新登录
+
+---
+
+## 五、禁止事项
+
+- **禁止**在绑定冲突时直接报「手机号已注册」并拒绝，而不走合并（除非产品明确要求不合并）
+- **禁止**新增用户业务表却不更新 `userMerge.js`
+- **禁止**合并后留下两个可登录账号同时拥有同一 `phone` 或 `openid`
+- **禁止**忽略关注/粉丝/消息/通知的去重，导致列表出现重复项
+
+---
+
+## 六、本地开发与短信
+
+- `npm run dev`（`NODE_ENV=development`）：不走阿里云 PNVS，验证码固定 `SMS_DEV_CODE`（默认 `1234`）
+- `npm run start`（`NODE_ENV=production`）：才调用阿里云短信
+- 前端本地收到 `sendCode` 返回的 `code` 时，应 Toast 提示测试验证码
