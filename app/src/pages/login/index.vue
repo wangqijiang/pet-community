@@ -1,10 +1,18 @@
 <template>
   <view class="login-page">
-    <image class="page-bg" src="/static/login/bg.png" mode="aspectFill" />
+    <image
+      class="page-bg"
+      src="https://pet-community.oss-cn-beijing.aliyuncs.com/pet-community/f0497e4c-6ff4-44ea-83f3-2e345f853a6d.png"
+      mode="aspectFill"
+    />
 
     <view class="login-shell">
       <view class="mascot-wrap">
-        <image class="mascot" src="/static/login/logo.png" mode="widthFix" />
+        <image
+          class="mascot"
+          src="https://pet-community.oss-cn-beijing.aliyuncs.com/pet-community/d07db137-5a90-44a1-90bc-c03633970488.png"
+          mode="widthFix"
+        />
       </view>
 
       <view class="login-card">
