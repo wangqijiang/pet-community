@@ -4,7 +4,12 @@ const LIMITS = {
   messageContent: 1000,
   username: 20,
   signature: 200,
+  aiQuestion: 500,
+  reviewContent: 1000,
 }
+
+const { validateMediaUrlPolicy } = require('./mediaUrlPolicy')
+const { assertContentSafe } = require('./sensitiveWords')
 
 function trimStr(val) {
   return typeof val === 'string' ? val.trim() : val
@@ -22,19 +27,41 @@ function assertMaxLength(field, value, max, label) {
 function validatePostContent(content) {
   const trimmed = trimStr(content)
   if (!trimmed) return '请填写内容'
-  return assertMaxLength('content', trimmed, LIMITS.postContent, '动态内容')
+  const lenErr = assertMaxLength('content', trimmed, LIMITS.postContent, '动态内容')
+  if (lenErr) return lenErr
+  return assertContentSafe(trimmed, '动态内容')
 }
 
 function validateCommentContent(content) {
   const trimmed = trimStr(content)
   if (!trimmed) return '请填写评论内容'
-  return assertMaxLength('content', trimmed, LIMITS.commentContent, '评论内容')
+  const lenErr = assertMaxLength('content', trimmed, LIMITS.commentContent, '评论内容')
+  if (lenErr) return lenErr
+  return assertContentSafe(trimmed, '评论内容')
 }
 
 function validateMessageContent(content) {
   const trimmed = trimStr(content)
   if (!trimmed) return '请填写完整信息'
-  return assertMaxLength('content', trimmed, LIMITS.messageContent, '消息内容')
+  const lenErr = assertMaxLength('content', trimmed, LIMITS.messageContent, '消息内容')
+  if (lenErr) return lenErr
+  return assertContentSafe(trimmed, '消息内容')
+}
+
+function validateReviewContent(content) {
+  if (content == null || content === '') return null
+  const trimmed = trimStr(content)
+  const lenErr = assertMaxLength('content', trimmed, LIMITS.reviewContent, '评价内容')
+  if (lenErr) return lenErr
+  return assertContentSafe(trimmed, '评价内容')
+}
+
+function validateAiQuestion(question) {
+  const trimmed = trimStr(question)
+  if (!trimmed) return '请输入问题'
+  const lenErr = assertMaxLength('question', trimmed, LIMITS.aiQuestion, '问题')
+  if (lenErr) return lenErr
+  return assertContentSafe(trimmed, '问题')
 }
 
 function validateImagesArray(images) {
@@ -49,11 +76,7 @@ function validateImagesArray(images) {
 }
 
 function validateMediaUrl(url) {
-  if (url == null || url === '') return null
-  const str = String(url).trim()
-  if (str.startsWith('/uploads/') || str.startsWith('/static/')) return null
-  if (/^https?:\/\/.+/i.test(str)) return null
-  return '图片地址格式不正确'
+  return validateMediaUrlPolicy(url)
 }
 
 module.exports = {
@@ -61,6 +84,8 @@ module.exports = {
   validatePostContent,
   validateCommentContent,
   validateMessageContent,
+  validateReviewContent,
+  validateAiQuestion,
   validateImagesArray,
   validateMediaUrl,
 }

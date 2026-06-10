@@ -21,7 +21,17 @@ const { mergeUsers } = require("../utils/userMerge");
 const {
   authLoginLimiter,
   sendCodeLimiter,
+  sendCodeIpDailyLimiter,
+  recordSendCodeIpDaily,
 } = require("../middleware/rateLimit");
+const {
+  assertSmsNotLocked,
+  recordSmsVerifyFailure,
+  clearSmsVerifyFailures,
+  consumeLocalSmsCode,
+} = require("../utils/smsVerifySecurity");
+const { blacklistToken } = require("../utils/tokenBlacklist");
+const { decode } = require("../utils/jwt");
 
 function formatAuthUser(user) {
   return {
@@ -71,7 +81,7 @@ async function findOrCreateUserByOpenid(openid) {
   return users[0];
 }
 
-async function verifySmsCode(phone, code) {
+async function verifySmsCodeRaw(phone, code) {
   const devCode = process.env.SMS_DEV_CODE || "1234";
   const isProduction = process.env.NODE_ENV === "production";
 
@@ -98,6 +108,19 @@ async function verifySmsCode(phone, code) {
   }
 
   return await checkSmsVerifyCode(phone, code);
+}
+
+/** 带失败锁定 + 成功后作废验证码 */
+async function verifySmsCode(phone, code) {
+  await assertSmsNotLocked(phone);
+  const ok = await verifySmsCodeRaw(phone, code);
+  if (!ok) {
+    await recordSmsVerifyFailure(phone);
+    return false;
+  }
+  await clearSmsVerifyFailures(phone);
+  await consumeLocalSmsCode(phone);
+  return true;
 }
 
 async function sendSmsCodeLocal(phone) {
@@ -350,18 +373,20 @@ router.post("/reset-password", authLoginLimiter, async (req, res) => {
  * 发送验证码（阿里云 PNVS 或开发环境本地表）
  * body: { phone, scene?: 'login' | 'bind' }
  */
-router.post("/sendCode", sendCodeLimiter, async (req, res) => {
+router.post("/sendCode", sendCodeIpDailyLimiter, sendCodeLimiter, async (req, res) => {
   const { phone, scene = "login" } = req.body;
   if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
     return res.status(400).json(error("手机号格式不正确", 400));
   }
 
   try {
+    await assertSmsNotLocked(phone);
     await assertSmsSendAllowed(phone);
 
     if (isPnvsEnabled()) {
       await sendSmsVerifyCode(phone, scene);
       await recordSmsSend(phone);
+      await recordSendCodeIpDaily(req);
       const payload =
         process.env.NODE_ENV === "production" ? {} : { devHint: "生产环境由短信下发" };
       return res.json(success(payload, "验证码已发送"));
@@ -369,6 +394,7 @@ router.post("/sendCode", sendCodeLimiter, async (req, res) => {
 
     const code = await sendSmsCodeLocal(phone);
     await recordSmsSend(phone);
+    await recordSendCodeIpDaily(req);
     const payload =
       process.env.NODE_ENV === "production" ? {} : { code };
     res.json(success(payload, "验证码已发送"));
@@ -583,6 +609,15 @@ router.post("/wechatLogin", async (req, res) => {
  * 退出登录
  */
 router.post("/logout", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    const decoded = token ? decode(token) : null;
+    if (decoded?.jti && decoded?.exp) {
+      await blacklistToken(decoded.jti, new Date(decoded.exp * 1000));
+    }
+  } catch (err) {
+    console.warn("logout blacklist:", err.message);
+  }
   res.json(success(null, "已退出登录"));
 });
 

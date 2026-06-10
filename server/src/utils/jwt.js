@@ -1,8 +1,10 @@
 const jwt = require('jsonwebtoken')
+const { newJti } = require('./tokenBlacklist')
 
 const sign = (payload, options = {}) => {
-  const expiresIn = options.expiresIn || process.env.JWT_EXPIRES_IN || '7d'
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn })
+  const expiresIn = options.expiresIn || process.env.JWT_EXPIRES_IN || '3d'
+  const jti = newJti()
+  return jwt.sign({ ...payload, jti }, process.env.JWT_SECRET, { expiresIn })
 }
 
 const verify = (token) => {

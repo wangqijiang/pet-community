@@ -5,6 +5,8 @@ const { pushNotificationById } = require('../utils/realtime')
 const { auth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
 const { upload, saveUploadedFile } = require('../utils/upload')
+const { userSearchLimiter } = require('../middleware/rateLimit')
+const { followActionLimiter } = require('../middleware/writeRateLimit')
 
 /** 动态/宠物数以实际数据为准，避免与 users 表缓存字段不一致 */
 const USER_COUNT_FIELDS = `
@@ -126,7 +128,7 @@ router.put('/info', auth, async (req, res) => {
 /**
  * 关注用户
  */
-router.post('/follow', auth, async (req, res) => {
+router.post('/follow', auth, followActionLimiter, async (req, res) => {
   const { followId } = req.body
 
   if (!followId) {
@@ -188,7 +190,7 @@ router.post('/follow', auth, async (req, res) => {
 /**
  * 取消关注
  */
-router.post('/unfollow', auth, async (req, res) => {
+router.post('/unfollow', auth, followActionLimiter, async (req, res) => {
   const { followId } = req.body
 
   if (!followId) {
@@ -545,7 +547,7 @@ router.get('/map/markers', auth, async (req, res) => {
 /**
  * 搜索用户
  */
-router.get('/search', async (req, res) => {
+router.get('/search', auth, userSearchLimiter, async (req, res) => {
   const { keyword, page = 1, size = 10 } = req.query
   
   if (!keyword) {

@@ -2,6 +2,7 @@ const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
 const { upload: uploadToOss, buildObjectName, isOssEnabled } = require('./aliOss')
+const { isLikelyImageBuffer } = require('./fileMagic')
 
 const uploadDir = path.join(__dirname, '../../uploads')
 if (!fs.existsSync(uploadDir)) {
@@ -29,6 +30,10 @@ const upload = multer({
 async function saveUploadedFile(file, req, sub = 'files') {
   if (!file || !file.buffer) {
     throw new Error('无效的上传文件')
+  }
+
+  if (!isLikelyImageBuffer(file.buffer)) {
+    throw new Error('文件内容不是有效的图片')
   }
 
   if (isOssEnabled()) {

@@ -11,6 +11,11 @@ const {
   validateCommentContent,
   validateImagesArray,
 } = require('../utils/validate')
+const { requireUgcEligible } = require('../utils/newUserGuard')
+const {
+  postCreateLimiter,
+  commentCreateLimiter,
+} = require('../middleware/writeRateLimit')
 
 async function syncPostLikesCount(postId) {
   const rows = await query(
@@ -120,7 +125,7 @@ async function setPostPets(postId, userId, petIds) {
 /**
  * 创建动态
  */
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, requireUgcEligible, postCreateLimiter, async (req, res) => {
   const { content, images, pet_ids: petIds, category } = req.body
 
   const contentErr = validatePostContent(content)
@@ -508,7 +513,7 @@ router.get('/:id/comments', async (req, res) => {
 /**
  * 发表评论
  */
-router.post('/:id/comment', auth, async (req, res) => {
+router.post('/:id/comment', auth, requireUgcEligible, commentCreateLimiter, async (req, res) => {
   const { id } = req.params
   const { content, reply_to_id, reply_to_user_id } = req.body
 

@@ -19,7 +19,6 @@
     { "method": "GET", "pattern": "/api/user/info/:id", "note": "指定用户资料（主页）" },
     { "method": "GET", "pattern": "/api/user/:id/followers", "note": "用户粉丝列表" },
     { "method": "GET", "pattern": "/api/user/:id/following", "note": "用户关注列表" },
-    { "method": "GET", "pattern": "/api/user/search", "note": "搜索用户" },
 
     { "method": "GET", "pattern": "/api/post/categories", "note": "动态分类" },
     { "method": "GET", "pattern": "/api/post/:id/comments", "note": "动态评论列表" },

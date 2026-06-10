@@ -6,9 +6,16 @@ const cors = require('cors')
 const path = require('path')
 const { publicApiGuard } = require('./middleware/publicApiGuard')
 const { initWebSocket } = require('./ws')
+const { runStartupSecurityCheck } = require('./utils/startupCheck')
+const { purgeExpiredBlacklist } = require('./utils/tokenBlacklist')
+
+runStartupSecurityCheck()
+void purgeExpiredBlacklist()
 
 const app = express()
 const PORT = process.env.PORT || 3000
+
+app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS) || 1)
 
 // 中间件
 const isProduction = process.env.NODE_ENV === 'production'
@@ -27,13 +34,23 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }))
-app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+
+try {
+  const helmet = require('helmet')
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }))
+} catch {
+  console.warn('helmet 未安装，跳过安全响应头')
+}
+
+app.use(express.json({ limit: '2mb' }))
+app.use(express.urlencoded({ extended: true, limit: '2mb' }))
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
-// 请求日志
+// 请求日志（不记录 Authorization）
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} ${req.method} ${req.url}`)
+  console.log(`${new Date().toISOString()} ${req.method} ${req.path}`)
   next()
 })
 
@@ -65,12 +82,14 @@ app.use('/api/ai', aiRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/file', fileRouter)
 
-// Swagger 文档（如果存在）
-try {
-  const { setupSwagger } = require('./config/swagger')
-  setupSwagger(app)
-} catch (err) {
-  console.log('Swagger not configured, skipping...')
+// Swagger 文档（仅开发环境）
+if (!isProduction) {
+  try {
+    const { setupSwagger } = require('./config/swagger')
+    setupSwagger(app)
+  } catch (err) {
+    console.log('Swagger not configured, skipping...')
+  }
 }
 
 // 健康检查

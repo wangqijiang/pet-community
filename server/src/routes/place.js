@@ -3,6 +3,12 @@ const router = express.Router()
 const { query } = require('../config/db')
 const { auth, optionalAuth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
+const {
+  validateReviewContent,
+  validateImagesArray,
+} = require('../utils/validate')
+const { requireUgcEligible } = require('../utils/newUserGuard')
+const { reviewCreateLimiter } = require('../middleware/writeRateLimit')
 
 const PLACE_COLUMNS = `
   p.*,
@@ -309,12 +315,22 @@ router.post('/:id/like', auth, async (req, res) => {
 /**
  * 发表评价
  */
-router.post('/:id/reviews', auth, async (req, res) => {
+router.post('/:id/reviews', auth, requireUgcEligible, reviewCreateLimiter, async (req, res) => {
   const { id } = req.params
   const { rating, content, images } = req.body
 
   if (!rating || rating < 1 || rating > 5) {
     return res.status(400).json(error('请提供有效评分(1-5)', 400))
+  }
+
+  const contentErr = validateReviewContent(content)
+  if (contentErr) {
+    return res.status(400).json(error(contentErr, 400))
+  }
+
+  const imagesErr = validateImagesArray(images)
+  if (imagesErr) {
+    return res.status(400).json(error(imagesErr, 400))
   }
 
   try {

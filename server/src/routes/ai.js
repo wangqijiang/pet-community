@@ -3,6 +3,9 @@ const router = express.Router()
 const { query } = require('../config/db')
 const { auth } = require('../middleware/auth')
 const { success, error } = require('../utils/response')
+const { validateAiQuestion } = require('../utils/validate')
+const { requireUgcEligible } = require('../utils/newUserGuard')
+const { aiChatLimiter } = require('../middleware/writeRateLimit')
 
 // AI回答模板库
 const aiResponses = {
@@ -207,11 +210,12 @@ function matchQuestion(question, petType) {
 /**
  * AI对话
  */
-router.post('/chat', auth, async (req, res) => {
+router.post('/chat', auth, requireUgcEligible, aiChatLimiter, async (req, res) => {
   const { question, pet_id } = req.body
 
-  if (!question) {
-    return res.status(400).json(error('请输入问题', 400))
+  const questionErr = validateAiQuestion(question)
+  if (questionErr) {
+    return res.status(400).json(error(questionErr, 400))
   }
 
   try {
@@ -242,7 +246,7 @@ router.post('/chat', auth, async (req, res) => {
     // 保存对话记录
     const result = await query(
       'INSERT INTO ai_chats (user_id, question, answer, pet_id, created_at) VALUES (?, ?, ?, ?, NOW())',
-      [req.user.id, question, answer, pet_id || null]
+      [req.user.id, question.trim(), answer, pet_id || null]
     )
 
     res.json(success({ 

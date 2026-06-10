@@ -1,79 +1,100 @@
-/**
- * 轻量内存 rate limit（单实例有效；多实例部署建议换 Redis 方案）
- */
+const { buildRateLimiter } = require('../utils/rateLimitStore')
+const { query } = require('../config/db')
+const { PnvsUserError } = require('../utils/pnvsErrors')
 
-const buckets = new Map()
-
-function pruneBucket(bucket, windowMs) {
-  const cutoff = Date.now() - windowMs
-  bucket.timestamps = bucket.timestamps.filter((t) => t > cutoff)
-}
-
-function createRateLimiter({ windowMs = 60_000, max = 10, keyPrefix = 'rl' }) {
-  return (req, res, next) => {
-    const ip =
-      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-      req.ip ||
-      req.socket?.remoteAddress ||
-      'unknown'
-
-    const bodyKey =
-      req.body?.phone ||
-      req.body?.loginCode ||
-      req.params?.phone ||
-      ''
-    const key = `${keyPrefix}:${ip}:${bodyKey}`
-
-    let bucket = buckets.get(key)
-    if (!bucket) {
-      bucket = { timestamps: [] }
-      buckets.set(key, bucket)
-    }
-
-    pruneBucket(bucket, windowMs)
-
-    if (bucket.timestamps.length >= max) {
-      const retryAfterSec = Math.max(
-        1,
-        Math.ceil((bucket.timestamps[0] + windowMs - Date.now()) / 1000),
-      )
-      res.set('Retry-After', String(retryAfterSec))
-      return res.status(429).json({
-        success: false,
-        message: `请求过于频繁，请${retryAfterSec}秒后再试`,
-        code: 429,
-      })
-    }
-
-    bucket.timestamps.push(Date.now())
-    next()
-  }
-}
-
-/** 登录 / 验证码：每 IP+手机号 5 次/分钟 */
-const authLoginLimiter = createRateLimiter({
+const authLoginLimiter = buildRateLimiter({
   windowMs: 60_000,
   max: 5,
   keyPrefix: 'auth-login',
+  keyFn: (req) => req.body?.phone || req.body?.loginCode || '',
 })
 
-/** 发送验证码：每 IP+手机号 3 次/分钟（与 DB 间隔限流叠加） */
-const sendCodeLimiter = createRateLimiter({
+const sendCodeLimiter = buildRateLimiter({
   windowMs: 60_000,
   max: 3,
   keyPrefix: 'send-code',
+  keyFn: (req) => req.body?.phone || '',
 })
 
-/** 管理端登录：每 IP 10 次/15 分钟 */
-const adminLoginLimiter = createRateLimiter({
+const adminLoginLimiter = buildRateLimiter({
   windowMs: 15 * 60_000,
   max: 10,
   keyPrefix: 'admin-login',
 })
 
+const userSearchLimiter = buildRateLimiter({
+  windowMs: 60_000,
+  max: 20,
+  keyPrefix: 'user-search',
+  keyFn: (req) => String(req.user?.id || 'anon'),
+})
+
+function getIpDailyMax() {
+  const n = Number(process.env.SMS_IP_DAILY_MAX)
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 20
+}
+
+function todayKey() {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}${m}${day}`
+}
+
+/** 每 IP 每日发码上限（DB 持久化） */
+async function sendCodeIpDailyLimiter(req, res, next) {
+  const ip =
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.ip ||
+    req.socket?.remoteAddress ||
+    'unknown'
+  const dayKey = todayKey()
+  const max = getIpDailyMax()
+
+  try {
+    const rows = await query(
+      'SELECT send_count FROM sms_ip_daily WHERE ip = ? AND day_key = ? LIMIT 1',
+      [ip, dayKey],
+    )
+    const count = rows[0]?.send_count || 0
+    if (count >= max) {
+      return res.status(429).json({
+        success: false,
+        message: '今日发送次数已达上限，请明天再试',
+        code: 429,
+      })
+    }
+    req._smsIpDaily = { ip, dayKey }
+    next()
+  } catch (err) {
+    if (err.code === 'ER_NO_SUCH_TABLE') {
+      return next()
+    }
+    console.error('sendCodeIpDailyLimiter:', err)
+    next()
+  }
+}
+
+async function recordSendCodeIpDaily(req) {
+  const meta = req._smsIpDaily
+  if (!meta) return
+  try {
+    await query(
+      `INSERT INTO sms_ip_daily (ip, day_key, send_count) VALUES (?, ?, 1)
+       ON DUPLICATE KEY UPDATE send_count = send_count + 1`,
+      [meta.ip, meta.dayKey],
+    )
+  } catch (err) {
+    if (err.code !== 'ER_NO_SUCH_TABLE') console.warn('recordSendCodeIpDaily:', err.message)
+  }
+}
+
 module.exports = {
-  createRateLimiter,
   authLoginLimiter,
   sendCodeLimiter,
   adminLoginLimiter,
+  userSearchLimiter,
+  sendCodeIpDailyLimiter,
+  recordSendCodeIpDaily,
 }

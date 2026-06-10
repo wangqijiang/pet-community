@@ -5,6 +5,8 @@ const { success, error, pagination } = require('../utils/response')
 const { auth } = require('../middleware/auth')
 const { parseJsonArray } = require('../utils/parseJson')
 const { validateMediaUrl } = require('../utils/validate')
+const { requireUgcEligible } = require('../utils/newUserGuard')
+const { petCreateLimiter } = require('../middleware/writeRateLimit')
 
 /**
  * 宠物表单配置（种类 / 品种 / 性格标签）
@@ -117,7 +119,7 @@ router.get('/:id', auth, async (req, res) => {
 /**
  * 添加宠物
  */
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, requireUgcEligible, petCreateLimiter, async (req, res) => {
   const { 
     name, type, breed, age, gender, color, weight, size, 
     neutered, vaccinated, healthCertificate, personality, habits, 

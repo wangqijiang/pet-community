@@ -6,6 +6,8 @@ const { success, error } = require('../utils/response')
 const { pushToUser, pushNotificationById } = require('../utils/realtime')
 const { parsePagination } = require('../utils/pagination')
 const { validateMessageContent } = require('../utils/validate')
+const { requireUgcEligible } = require('../utils/newUserGuard')
+const { messageSendLimiter } = require('../middleware/writeRateLimit')
 
 /**
  * 获取会话列表
@@ -84,7 +86,7 @@ router.get('/chat/:userId', auth, async (req, res) => {
 /**
  * 发送消息
  */
-router.post('/send', auth, async (req, res) => {
+router.post('/send', auth, requireUgcEligible, messageSendLimiter, async (req, res) => {
   const { toId, content, type = 'text' } = req.body
 
   const contentErr = validateMessageContent(content)

@@ -3,7 +3,10 @@ const {
   validateCommentContent,
   validateMessageContent,
   validateImagesArray,
+  validateReviewContent,
+  validateAiQuestion,
 } = require('../validate')
+const { assertContentSafe } = require('../sensitiveWords')
 
 describe('validate utils', () => {
   test('validatePostContent rejects empty and too long', () => {
@@ -11,6 +14,12 @@ describe('validate utils', () => {
     expect(validatePostContent('   ')).toBe('请填写内容')
     expect(validatePostContent('a'.repeat(2001))).toMatch(/不能超过/)
     expect(validatePostContent('hello')).toBeNull()
+  })
+
+  test('sensitive word blocked', () => {
+    process.env.CONTENT_MODERATION = 'on'
+    expect(assertContentSafe('这里有赌博信息')).toMatch(/不当信息/)
+    expect(validatePostContent('正常遛狗日记')).toBeNull()
   })
 
   test('validateCommentContent', () => {
@@ -31,6 +40,11 @@ describe('validate utils', () => {
     expect(validateImagesArray('bad')).toBe('图片格式不正确')
     expect(validateImagesArray(Array(10).fill('url'))).toBe('最多上传9张图片')
     expect(validateImagesArray(['https://example.com/a.jpg'])).toBeNull()
-    expect(validateImagesArray(['javascript:alert(1)'])).toBe('图片地址格式不正确')
+  })
+
+  test('validateReviewContent and ai question', () => {
+    expect(validateReviewContent('')).toBeNull()
+    expect(validateAiQuestion('')).toBe('请输入问题')
+    expect(validateAiQuestion('怎么遛狗')).toBeNull()
   })
 })

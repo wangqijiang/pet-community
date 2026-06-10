@@ -2,6 +2,7 @@ const WebSocket = require('ws')
 const { verify } = require('../utils/jwt')
 const { query } = require('../config/db')
 const { addClient, removeClient } = require('../utils/realtime')
+const { isTokenBlacklisted } = require('../utils/tokenBlacklist')
 
 function initWebSocket(server) {
   const wss = new WebSocket.Server({ server, path: '/ws' })
@@ -13,6 +14,11 @@ function initWebSocket(server) {
       const decoded = verify(token)
 
       if (!decoded?.id) {
+        ws.close(4001, 'Unauthorized')
+        return
+      }
+
+      if (decoded.jti && (await isTokenBlacklisted(decoded.jti))) {
         ws.close(4001, 'Unauthorized')
         return
       }
