@@ -16,6 +16,8 @@ app/build/
 app/unpackage/
 app/.temp/
 app/.cache/
+admin/dist/
+
 # IDE
 .vscode/
 .idea/
@@ -26,9 +28,11 @@ app/.cache/
 *.sw?
 
 # Environment
-# .env
-# .env.local
-# .env.*.local
+.env
+.env.local
+.env.*.local
+**/.env
+!**/.env.example
 
 # Logs
 logs/
@@ -40,6 +44,9 @@ Thumbs.db
 app/project.config.json
 app/project.private.config.json
 app/sitemap.json
+
+# Server uploads (user-generated)
+server/uploads/
 
 # Temporary files
 *.tmp

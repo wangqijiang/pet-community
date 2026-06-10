@@ -25,6 +25,19 @@ export function isAuthRequiredError(error: unknown): error is AuthRequiredError 
   return error instanceof AuthRequiredError;
 }
 
+/** 401 / 未登录类错误（含旧版 HTTP 401 文案） */
+export function isUnauthorizedError(error: unknown): boolean {
+  if (isAuthRequiredError(error)) return true;
+  if (!(error instanceof Error)) return false;
+  const msg = error.message;
+  return (
+    msg.includes("401") ||
+    msg.includes("未登录") ||
+    msg.includes("请先登录") ||
+    msg.includes("登录已过期")
+  );
+}
+
 export function isAuthRequiredResponse(payload: {
   statusCode?: number;
   code?: number;
@@ -108,7 +121,7 @@ export function handleWriteUnauthorized(message = UNAUTHORIZED_MESSAGE) {
 }
 
 export function showRequestError(error: unknown, fallback: string) {
-  if (isAuthRequiredError(error)) return;
+  if (isUnauthorizedError(error)) return;
   showToast({
     title: error instanceof Error && error.message ? error.message : fallback,
     icon: "error",

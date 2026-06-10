@@ -1,4 +1,4 @@
-import { get, post, del } from "@/utils/request";
+import { authGet, authPost, authDel } from "@/utils/request";
 
 export interface Notification {
   id: number;
@@ -30,7 +30,7 @@ export async function getNotifications(
   size = 20,
   type?: Notification["type"],
 ): Promise<NotificationListResponse> {
-  const res = await get<NotificationListResponse>("/notification", {
+  const res = await authGet<NotificationListResponse>("/notification", {
     page,
     size,
     type,
@@ -48,7 +48,10 @@ export async function getUnreadNotificationCount(
 ): Promise<number> {
   const params: Record<string, unknown> = {};
   if (excludeType) params.exclude_type = excludeType;
-  const res = await get<{ count: number }>("/notification/unread/count", params);
+  const res = await authGet<{ count: number }>(
+    "/notification/unread/count",
+    params,
+  );
   return res.data?.count ?? 0;
 }
 
@@ -58,7 +61,9 @@ export type NotificationUnreadSummary = Record<
 >;
 
 export async function getUnreadNotificationSummary(): Promise<NotificationUnreadSummary> {
-  const res = await get<NotificationUnreadSummary>("/notification/unread/summary");
+  const res = await authGet<NotificationUnreadSummary>(
+    "/notification/unread/summary",
+  );
   return (
     res.data || {
       like: 0,
@@ -71,16 +76,16 @@ export async function getUnreadNotificationSummary(): Promise<NotificationUnread
 }
 
 export async function markNotificationsRead(ids?: number[]): Promise<void> {
-  await post("/notification/read", ids ? { ids } : {});
+  await authPost("/notification/read", ids ? { ids } : {});
 }
 
 export async function deleteNotification(id: number): Promise<void> {
-  await del(`/notification/${id}`);
+  await authDel(`/notification/${id}`);
 }
 
 export async function getNotificationDetail(
   id: number,
 ): Promise<Notification> {
-  const res = await get<Notification>(`/notification/${id}`);
+  const res = await authGet<Notification>(`/notification/${id}`);
   return res.data;
 }

@@ -1,4 +1,4 @@
-import { get, post, del } from "@/utils/request";
+import { authGet, authPost, authDel } from "@/utils/request";
 
 export interface AiChatRecord {
   id: number;
@@ -13,7 +13,7 @@ export async function sendAiChat(
   question: string,
   petId?: number,
 ): Promise<{ answer: string; id: number }> {
-  const res = await post<{ answer: string; id: number }>("/ai/chat", {
+  const res = await authPost<{ answer: string; id: number }>("/ai/chat", {
     question,
     pet_id: petId,
   });
@@ -24,7 +24,7 @@ export async function getAiHistory(
   page = 1,
   size = 20,
 ): Promise<{ list: AiChatRecord[]; pagination: { total: number; page: number; size: number; pages: number } }> {
-  const res = await get<{
+  const res = await authGet<{
     list: AiChatRecord[];
     pagination: { total: number; page: number; size: number; pages: number };
   }>("/ai/history", { page, size });
@@ -37,12 +37,12 @@ export async function getAiHistory(
 }
 
 export async function getQuickQuestions(): Promise<string[]> {
-  const res = await get<Array<{ text: string; category?: string }>>(
+  const res = await authGet<Array<{ text: string; category?: string }>>(
     "/ai/quick-questions",
   );
   return (res.data || []).map((item) => item.text);
 }
 
 export async function clearAiHistory(): Promise<void> {
-  await del("/ai/history");
+  await authDel("/ai/history");
 }

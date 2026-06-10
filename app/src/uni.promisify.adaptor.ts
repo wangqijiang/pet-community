@@ -1,3 +1,5 @@
+export {};
+
 uni.addInterceptor({
   returnValue (res) {
     if (!(!!res && (typeof res === "object" || typeof res === "function") && typeof res.then === "function")) {

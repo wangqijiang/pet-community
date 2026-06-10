@@ -18,6 +18,10 @@ const {
   recordSmsSend,
 } = require("../utils/smsRateLimit");
 const { mergeUsers } = require("../utils/userMerge");
+const {
+  authLoginLimiter,
+  sendCodeLimiter,
+} = require("../middleware/rateLimit");
 
 function formatAuthUser(user) {
   return {
@@ -109,7 +113,7 @@ async function sendSmsCodeLocal(phone) {
 /**
  * 用户注册
  */
-router.post("/register", async (req, res) => {
+router.post("/register", authLoginLimiter, async (req, res) => {
   const { username, phone, password } = req.body;
 
   if (!username || !phone || !password) {
@@ -170,7 +174,7 @@ router.post("/register", async (req, res) => {
 /**
  * 用户登录（密码）
  */
-router.post("/login", async (req, res) => {
+router.post("/login", authLoginLimiter, async (req, res) => {
   const { phone, password } = req.body;
 
   if (!phone || !password) {
@@ -297,7 +301,7 @@ router.post("/change-password", auth, async (req, res) => {
 /**
  * 重置密码（需短信验证码）
  */
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", authLoginLimiter, async (req, res) => {
   const { phone, code, newPassword } = req.body;
 
   if (!phone || !code || !newPassword) {
@@ -346,7 +350,7 @@ router.post("/reset-password", async (req, res) => {
  * 发送验证码（阿里云 PNVS 或开发环境本地表）
  * body: { phone, scene?: 'login' | 'bind' }
  */
-router.post("/sendCode", async (req, res) => {
+router.post("/sendCode", sendCodeLimiter, async (req, res) => {
   const { phone, scene = "login" } = req.body;
   if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
     return res.status(400).json(error("手机号格式不正确", 400));
@@ -376,7 +380,7 @@ router.post("/sendCode", async (req, res) => {
 /**
  * 验证码登录（用户不存在则自动注册）
  */
-router.post("/loginByCode", async (req, res) => {
+router.post("/loginByCode", authLoginLimiter, async (req, res) => {
   const { phone, code } = req.body;
 
   if (!phone || !code) {
@@ -420,7 +424,7 @@ router.post("/loginByCode", async (req, res) => {
 /**
  * 微信快捷登录（仅 openid，个人主体可用）
  */
-router.post("/wechatOpenidLogin", async (req, res) => {
+router.post("/wechatOpenidLogin", authLoginLimiter, async (req, res) => {
   const { loginCode } = req.body;
 
   if (!loginCode) {

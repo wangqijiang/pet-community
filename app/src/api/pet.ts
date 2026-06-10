@@ -1,4 +1,4 @@
-import { post, get, put, del } from "@/utils/request";
+import { get, authGet, authPost, authPut, authDel } from "@/utils/request";
 import { uploadFileToOss } from "@/api/file";
 import { parseJsonArray, normalizePetGender } from "@/utils/format";
 
@@ -54,12 +54,12 @@ function normalizePet(pet: Pet): Pet {
 }
 
 export async function getPetList(): Promise<Pet[]> {
-  const res = await get<Pet[]>("/pet/list");
+  const res = await authGet<Pet[]>("/pet/list");
   return (res.data || []).map(normalizePet);
 }
 
 export async function getPetDetail(id: number): Promise<Pet> {
-  const res = await get<Pet>(`/pet/${id}`);
+  const res = await authGet<Pet>(`/pet/${id}`);
   return normalizePet(res.data);
 }
 
@@ -84,7 +84,7 @@ export async function getUserPets(
 }
 
 export async function addPet(data: PetFormData): Promise<Pet> {
-  const res = await post<Pet>("/pet", data as Record<string, unknown>);
+  const res = await authPost<Pet>("/pet", data as unknown as Record<string, unknown>);
   return normalizePet(res.data);
 }
 
@@ -92,12 +92,12 @@ export async function updatePet(
   id: number,
   data: Partial<PetFormData>,
 ): Promise<Pet> {
-  const res = await put<Pet>(`/pet/${id}`, data as Record<string, unknown>);
+  const res = await authPut<Pet>(`/pet/${id}`, data as unknown as Record<string, unknown>);
   return normalizePet(res.data);
 }
 
 export async function deletePet(id: number): Promise<void> {
-  await del(`/pet/${id}`);
+  await authDel(`/pet/${id}`);
 }
 
 export async function uploadPetAvatar(
@@ -105,7 +105,7 @@ export async function uploadPetAvatar(
   filePath: string,
 ): Promise<{ avatar: string }> {
   const url = await uploadFileToOss(filePath);
-  const res = await post<{ avatar: string }>(`/pet/${petId}/avatar`, { avatar: url });
+  const res = await authPost<{ avatar: string }>(`/pet/${petId}/avatar`, { avatar: url });
   return res.data;
 }
 

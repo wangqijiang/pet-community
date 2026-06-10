@@ -97,7 +97,7 @@ import { useFixedFooterHeight } from "@/composables/useLayout";
 import { useChooseImage } from "@/composables/useChooseImage";
 import { ensureUploaded, isLocalMediaPath } from "@/utils/uploadMedia";
 import { ensureRealtimeConnected, setActiveChatUserId } from "@/utils/realtime";
-import { emitRefreshTabBarBadge } from "@/utils/tabBarBadge";
+import { scheduleTabBarBadgeRefresh } from "@/utils/tabBarBadge";
 
 const CHAT_EMOJIS = [
   "😀", "😁", "😂", "🤣", "😊", "😍", "🥰", "😘",
@@ -174,7 +174,7 @@ const loadMessages = async () => {
     const list = await getChatMessages(peerUserId.value, 1, 100);
     messages.value = list.map(mapMessage);
     scrollToBottom();
-    emitRefreshTabBarBadge();
+    scheduleTabBarBadgeRefresh();
   } catch (error) {
     showRequestError(error, "加载失败");
   }
@@ -262,7 +262,7 @@ onMounted(() => {
 onUnmounted(() => {
   setActiveChatUserId(0);
   uni.$off("realtime:message", onRealtimeMessage);
-  emitRefreshTabBarBadge();
+  scheduleTabBarBadgeRefresh();
 });
 </script>
 

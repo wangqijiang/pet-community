@@ -1,4 +1,4 @@
-import { get, post } from "@/utils/request";
+import { get, authGet, authPost } from "@/utils/request";
 
 export interface Guide {
   id: number;
@@ -48,7 +48,7 @@ export async function getGuideDetail(id: number): Promise<Guide> {
 export async function toggleGuideFavorite(
   id: number,
 ): Promise<{ favorited: boolean }> {
-  const res = await post<{ favorited: boolean }>(`/guide/${id}/favorite`);
+  const res = await authPost<{ favorited: boolean }>(`/guide/${id}/favorite`);
   return res.data;
 }
 
@@ -61,7 +61,7 @@ export async function getFavoriteGuides(
   page = 1,
   size = 10,
 ): Promise<GuideListResponse> {
-  const res = await get<GuideListResponse>("/guide/user/favorites", {
+  const res = await authGet<GuideListResponse>("/guide/user/favorites", {
     page,
     size,
   });

@@ -146,7 +146,9 @@ const fabStyle = computed(() => ({
 }));
 
 const currentTab = ref(0);
-const feedList = ref<(Post & { images: string[]; liked: boolean })[]>([]);
+const feedList = ref<
+  (Post & { images: string[]; liked: boolean; likes: number; comments: number })[]
+>([]);
 const loading = ref(false);
 const refreshing = ref(false);
 const page = ref(1);

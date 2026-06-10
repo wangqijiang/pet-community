@@ -70,7 +70,7 @@ import PageLayout from "@/components/common/PageLayout.vue";
 import Empty from "@/components/common/Empty.vue";
 import Loading from "@/components/common/Loading.vue";
 import { getLikedPosts, toggleLikePost } from "@/api/post";
-import { formatRelativeTime } from "@/utils/format";
+import { formatRelativeTime, parseJsonArray } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 import { useDialog } from "@/composables/useComponents";
 
@@ -100,7 +100,7 @@ const loadLikedList = async () => {
       nickname: p.username,
       time: formatRelativeTime(p.created_at),
       content: p.content,
-      images: (p.images || []).map((url) => resolveMediaUrl(url)),
+      images: parseJsonArray<string>(p.images).map((url) => resolveMediaUrl(url)),
       likeCount: p.likes || 0,
       commentCount: p.comments || 0,
     }));

@@ -7,7 +7,8 @@
     "start": "NODE_ENV=production node src/app.js",
     "dev": "NODE_ENV=development nodemon src/app.js",
     "test": "jest",
-    "db:init": "bash scripts/setup-db.sh"
+    "db:init": "bash scripts/setup-db.sh",
+    "verify:public-api": "node scripts/verify-public-api-whitelist.js"
   },
   "keywords": [
     "pet",

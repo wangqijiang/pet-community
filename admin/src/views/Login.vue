@@ -23,7 +23,7 @@
           登录
         </el-button>
       </el-form>
-      <p class="hint">默认账号见 server/.env 中 ADMIN_PHONE / ADMIN_PASSWORD</p>
+      <p class="hint">请使用管理员账号登录</p>
     </el-card>
   </div>
 </template>
@@ -37,7 +37,7 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const auth = useAuthStore()
 const loading = ref(false)
-const form = reactive({ phone: '13800000000', password: 'admin123' })
+const form = reactive({ phone: '', password: '' })
 
 async function onSubmit() {
   if (!form.phone || !form.password) {

@@ -1,0 +1,14 @@
+node_modules
+dist
+.DS_Store
+*.local
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Editor
+.idea
+.vscode
+*.tsbuildinfo

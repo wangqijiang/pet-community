@@ -50,7 +50,7 @@ import {
 import { formatRelativeTime } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 import { resolveUserAvatarUrl } from "@/utils/defaultAvatar";
-import { emitRefreshTabBarBadge } from "@/utils/tabBarBadge";
+import { scheduleTabBarBadgeRefresh } from "@/utils/tabBarBadge";
 
 type NoticeType = "like" | "comment" | "follow" | "message";
 
@@ -131,7 +131,7 @@ const markUnreadAsRead = async (list: Notification[]) => {
   if (!ids.length) return;
   try {
     await markNotificationsRead(ids);
-    emitRefreshTabBarBadge();
+    scheduleTabBarBadgeRefresh();
   } catch {
     /* ignore */
   }

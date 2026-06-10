@@ -24,7 +24,10 @@ export function useChooseImage() {
       sourceType: ["album", "camera"],
       success: async (res) => {
         try {
-          await options.onPick(res.tempFilePaths);
+          const paths = Array.isArray(res.tempFilePaths)
+            ? res.tempFilePaths
+            : [res.tempFilePaths];
+          await options.onPick(paths);
         } finally {
           choosing.value = false;
         }

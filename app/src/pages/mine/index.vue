@@ -207,6 +207,7 @@ onUnmounted(() => {
 });
 
 const loadUserInfo = async () => {
+  if (!isLoggedIn()) return;
   try {
     const user = await getUserInfo();
     userInfo.value = user;

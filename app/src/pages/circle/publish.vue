@@ -128,6 +128,7 @@ import { getPetList, type Pet } from "@/api/pet";
 import { resolveLocalOrMediaUrl, resolveMediaUrl } from "@/utils/media";
 import { useFixedFooterHeight } from "@/composables/useLayout";
 import { consumeAiGuidePublishDraft } from "@/utils/aiGuideDraft";
+import { parseJsonArray } from "@/utils/format";
 import { promptLogin } from "@/utils/request";
 import { ensureUploadedList } from "@/utils/uploadMedia";
 import { useChooseImage } from "@/composables/useChooseImage";
@@ -285,7 +286,7 @@ const loadPostForEdit = async () => {
   try {
     const post = await getPostDetail(editId.value);
     content.value = post.content || "";
-    images.value = (post.images || []).map((url) => resolveMediaUrl(url));
+    images.value = parseJsonArray<string>(post.images).map((url) => resolveMediaUrl(url));
     selectedPetIds.value = (post.pets || []).map((pet) => pet.id);
     if (!selectedPetIds.value.length && post.pet_ids?.length) {
       selectedPetIds.value = [...post.pet_ids];

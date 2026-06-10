@@ -5,6 +5,7 @@ const { compare, hash } = require('../../utils/bcrypt')
 const { sign } = require('../../utils/jwt')
 const { success, error, pagination } = require('../../utils/response')
 const { adminAuth } = require('../../middleware/adminAuth')
+const { adminLoginLimiter } = require('../../middleware/rateLimit')
 const { upload, saveUploadedFile } = require('../../utils/upload')
 
 const ADMIN_USER_COUNT_FIELDS = `
@@ -30,7 +31,7 @@ function parseJson(val) {
 }
 
 // —— 登录 ——
-router.post('/auth/login', async (req, res) => {
+router.post('/auth/login', adminLoginLimiter, async (req, res) => {
   const { phone, password } = req.body
   if (!phone || !password) {
     return res.status(400).json(error('请输入手机号和密码', 400))

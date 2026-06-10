@@ -130,24 +130,17 @@ import PostSharePanel from "@/components/common/PostSharePanel.vue";
 import PostProtagonistPets from "@/components/common/PostProtagonistPets.vue";
 import { getPostList, deletePost, toggleLikePost } from "@/api/post";
 import { getUserInfo as getStoredUser } from "@/api/auth";
-import { formatRelativeTime } from "@/utils/format";
+import { formatRelativeTime, parseJsonArray } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 import type { PostShareInput } from "@/utils/postShare";
 import { usePostShareRegistry } from "@/composables/usePostShare";
 
 usePostShareRegistry();
 
-import type { Post } from "@/api/post";
+import type { Post, PostPet } from "@/api/post";
 import { useDialog } from "@/composables/useComponents";
 
 const dialog = useDialog();
-
-type SharePet = {
-  id: number;
-  name: string;
-  avatar: string;
-  type?: string;
-};
 
 type DynamicItem = {
   id: number;
@@ -159,15 +152,16 @@ type DynamicItem = {
   likes: number;
   comments: number;
   liked: boolean;
-  pets: SharePet[];
+  pets: PostPet[];
 };
 
-const mapPostPets = (pets?: Post["pets"]): SharePet[] =>
+const mapPostPets = (pets?: Post["pets"]): PostPet[] =>
   (pets || []).map((pet) => ({
     id: pet.id,
     name: pet.name,
     avatar: resolveMediaUrl(pet.avatar || ""),
     type: pet.type,
+    breed: pet.breed,
   }));
 
 const loading = ref(false);
@@ -197,7 +191,7 @@ const loadDynamics = async () => {
       avatar: resolveMediaUrl(p.avatar),
       time: formatRelativeTime(p.created_at),
       content: p.content,
-      images: (p.images || []).map((url) => ({ url: resolveMediaUrl(url) })),
+      images: parseJsonArray<string>(p.images).map((url) => ({ url: resolveMediaUrl(url) })),
       likes: p.likes_count ?? p.likes ?? 0,
       comments: p.comments_count ?? p.comments ?? 0,
       liked: !!p.liked,
@@ -258,7 +252,12 @@ const handleShare = (item: DynamicItem) => {
     images: item.images.map((img) => img.url),
     likes: item.likes,
     comments: item.comments,
-    pets: item.pets,
+    pets: item.pets.map((pet) => ({
+      id: pet.id,
+      name: pet.name,
+      avatar: pet.avatar || "",
+      type: pet.type,
+    })),
   };
   shareVisible.value = true;
 };

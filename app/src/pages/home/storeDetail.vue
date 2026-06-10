@@ -187,7 +187,7 @@ import {
   type PlaceReview,
 } from "@/api/place";
 import { promptLogin } from "@/api/auth";
-import { formatRelativeTime } from "@/utils/format";
+import { formatRelativeTime, parseJsonArray } from "@/utils/format";
 import { resolveMediaUrl } from "@/utils/media";
 
 const place = ref<Partial<Place>>({});
@@ -200,8 +200,8 @@ const typeLabel = computed(
 );
 
 const heroImages = computed(() => {
-  const imgs = place.value.images;
-  if (!imgs?.length) return [];
+  const imgs = parseJsonArray<string>(place.value.images);
+  if (!imgs.length) return [];
   return imgs.filter(Boolean).map((url) => resolveMediaUrl(url));
 });
 

@@ -1,4 +1,4 @@
-import { get, post, put, del } from "@/utils/request";
+import { get, authGet, authPost, authPut, authDel } from "@/utils/request";
 import { parseJsonArray } from "@/utils/format";
 
 export interface PostPet {
@@ -108,7 +108,7 @@ export async function createPost(
   petIds: number[] = [],
   category?: string,
 ): Promise<Post> {
-  const res = await post<Post>("/post", {
+  const res = await authPost<Post>("/post", {
     content,
     images,
     pet_ids: petIds,
@@ -131,25 +131,25 @@ export async function updatePost(
   if (category !== undefined) {
     payload.category = category;
   }
-  const res = await put<Post>(`/post/${id}`, payload);
+  const res = await authPut<Post>(`/post/${id}`, payload);
   return normalizePost(res.data);
 }
 
 export async function deletePost(id: number): Promise<void> {
-  await del(`/post/${id}`);
+  await authDel(`/post/${id}`);
 }
 
 export async function toggleLikePost(
   id: number,
 ): Promise<{ liked: boolean }> {
-  const res = await post<{ liked: boolean }>(`/post/${id}/like`);
+  const res = await authPost<{ liked: boolean }>(`/post/${id}/like`);
   return res.data;
 }
 
 export async function toggleFavoritePost(
   id: number,
 ): Promise<{ favorited: boolean }> {
-  const res = await post<{ favorited: boolean }>(`/post/${id}/favorite`);
+  const res = await authPost<{ favorited: boolean }>(`/post/${id}/favorite`);
   return res.data;
 }
 
@@ -157,7 +157,7 @@ export async function getLikedPosts(
   page = 1,
   size = 10,
 ): Promise<PostListResponse> {
-  const res = await get<PostListResponse>("/post/user/likes", {
+  const res = await authGet<PostListResponse>("/post/user/likes", {
     page,
     size,
   });
@@ -176,7 +176,7 @@ export async function getFavoritePosts(
   page = 1,
   size = 10,
 ): Promise<PostListResponse> {
-  const res = await get<PostListResponse>("/post/user/favorites", {
+  const res = await authGet<PostListResponse>("/post/user/favorites", {
     page,
     size,
   });
@@ -208,7 +208,7 @@ export async function addComment(
   content: string,
   replyTo?: { id: number; userId: number },
 ): Promise<Comment> {
-  const res = await post<Comment>(`/post/${postId}/comment`, {
+  const res = await authPost<Comment>(`/post/${postId}/comment`, {
     content,
     reply_to_id: replyTo?.id,
     reply_to_user_id: replyTo?.userId,
@@ -217,11 +217,11 @@ export async function addComment(
 }
 
 export async function deleteComment(commentId: number): Promise<void> {
-  await del(`/post/comment/${commentId}`);
+  await authDel(`/post/comment/${commentId}`);
 }
 
 export async function checkLiked(postId: number): Promise<{ liked: boolean }> {
-  const res = await get<{ liked: boolean }>(`/post/${postId}/liked`);
+  const res = await authGet<{ liked: boolean }>(`/post/${postId}/liked`);
   return res.data;
 }
 

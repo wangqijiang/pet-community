@@ -12,6 +12,16 @@ node_modules
 dist
 *.local
 
+# Environment
+.env
+.env.local
+.env.*.local
+
+# uni-app build cache
+unpackage/
+.temp/
+.cache/
+
 # Editor directories and files
 .idea
 *.suo

@@ -132,7 +132,7 @@ export function useFixedFooterHeight(
       const scope = instance?.proxy ?? instance;
       const scopedQuery = uni.createSelectorQuery();
       if (scope) {
-        scopedQuery.in(scope as unknown as UniApp.ComponentInternalInstance);
+        scopedQuery.in(scope as object);
       }
       scopedQuery.select(selector).boundingClientRect(applyFooterRect).exec();
 

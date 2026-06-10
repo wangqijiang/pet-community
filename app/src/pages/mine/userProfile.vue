@@ -159,6 +159,7 @@ import {
   isFollowing as checkFollowing,
   type UserInfo,
 } from "@/api/user";
+import { isLoggedIn, promptLogin } from "@/api/auth";
 import { getUserPets, type Pet } from "@/api/pet";
 import { getPostList, type Post } from "@/api/post";
 import { resolveMediaUrl } from "@/utils/media";
@@ -199,11 +200,14 @@ onLoad((options) => {
 const loadUserProfile = async () => {
   loading.value = true;
   try {
+    const followingPromise = isLoggedIn()
+      ? checkFollowing(userId.value).catch(() => false)
+      : Promise.resolve(false);
     const [user, petRes, postRes, following] = await Promise.all([
       getUserById(userId.value),
       getUserPets(userId.value, 1, PROFILE_PET_PAGE_SIZE),
       getPostList(1, PROFILE_POST_PAGE_SIZE, userId.value),
-      checkFollowing(userId.value).catch(() => false),
+      followingPromise,
     ]);
     profile.value = user;
     pets.value = petRes.list;
@@ -219,6 +223,7 @@ const loadUserProfile = async () => {
 };
 
 const handleFollow = async () => {
+  if (!promptLogin()) return;
   uni.vibrateShort({ type: "light" });
   try {
     if (isFollowing.value) {
@@ -246,6 +251,7 @@ const handleFollow = async () => {
 };
 
 const sendMessage = () => {
+  if (!promptLogin()) return;
   uni.vibrateShort({ type: "light" });
   const name = encodeURIComponent(profile.value?.username || "用户");
   uni.navigateTo({

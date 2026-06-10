@@ -46,7 +46,7 @@ const sheetState = reactive<ActionSheetOverlayState>({
   items: [],
 });
 
-let dialogResolve: ((confirm: boolean) => void) | null = null;
+let dialogResolve: ((result: { confirm: boolean }) => void) | null = null;
 let sheetResolve: ((index: number) => void) | null = null;
 let sheetReject: (() => void) | null = null;
 let toastTimer: ReturnType<typeof setTimeout> | null = null;

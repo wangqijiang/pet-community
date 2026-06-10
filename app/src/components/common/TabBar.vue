@@ -27,10 +27,11 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from "vue";
-import { getUnreadMessageCount } from "@/api/message";
-import { getUnreadNotificationCount } from "@/api/notification";
 import { isLoggedIn } from "@/api/auth";
-import { REFRESH_TAB_BAR_BADGE } from "@/utils/tabBarBadge";
+import {
+  TAB_BAR_BADGE_COUNT,
+  scheduleTabBarBadgeRefresh,
+} from "@/utils/tabBarBadge";
 import { safeReLaunch } from "@/utils/navigation";
 
 const props = defineProps<{
@@ -39,7 +40,6 @@ const props = defineProps<{
 
 const currentIndex = ref(0);
 const messageBadge = ref(0);
-let badgeRefreshing = false;
 
 const tabs = [
   {
@@ -75,34 +75,22 @@ watch(
   },
 );
 
-const refreshBadge = async () => {
-  if (!isLoggedIn()) {
-    messageBadge.value = 0;
-    return;
-  }
-  if (badgeRefreshing) return;
-  badgeRefreshing = true;
-  try {
-  // 串行请求，少占一个并发槽（微信同域名上限 10）
-    const msg = await getUnreadMessageCount();
-    const notif = await getUnreadNotificationCount("message");
-    messageBadge.value = msg + notif;
-  } catch {
-    /* ignore */
-  } finally {
-    badgeRefreshing = false;
-  }
+const onBadgeCount = (count: number) => {
+  messageBadge.value = count;
 };
 
 onMounted(() => {
   currentIndex.value = props.current;
-  // 角标非首屏关键数据，延后拉取，让页面主接口先占预热后的连接
-  setTimeout(() => refreshBadge(), 1500);
-  uni.$on(REFRESH_TAB_BAR_BADGE, refreshBadge);
+  if (!isLoggedIn()) {
+    messageBadge.value = 0;
+  } else {
+    scheduleTabBarBadgeRefresh(1500);
+  }
+  uni.$on(TAB_BAR_BADGE_COUNT, onBadgeCount);
 });
 
 onUnmounted(() => {
-  uni.$off(REFRESH_TAB_BAR_BADGE, refreshBadge);
+  uni.$off(TAB_BAR_BADGE_COUNT, onBadgeCount);
 });
 
 const handleTabClick = (index: number) => {

@@ -5,7 +5,7 @@
     </template>
     <view class="detail-inner">
       <view v-if="loading" class="loading-container">
-        <Loading />
+        <Loading :visible="true" />
       </view>
       
       <view v-else class="detail-content">

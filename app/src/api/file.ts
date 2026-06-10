@@ -1,5 +1,6 @@
-import { getToken } from '@/utils/session'
+import { getToken, isLoggedIn } from '@/utils/session'
 import { getApiOrigin } from '@/utils/media'
+import { AuthRequiredError, UNAUTHORIZED_MESSAGE } from '@/utils/authRedirect'
 
 const baseURL = `${getApiOrigin()}/api`
 
@@ -8,6 +9,9 @@ const baseURL = `${getApiOrigin()}/api`
  * @returns 图片公网 URL
  */
 export function uploadFileToOss(filePath: string): Promise<string> {
+  if (!isLoggedIn()) {
+    return Promise.reject(new AuthRequiredError(UNAUTHORIZED_MESSAGE));
+  }
   return new Promise((resolve, reject) => {
     const token = getToken()
     uni.uploadFile({

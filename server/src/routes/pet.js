@@ -4,6 +4,7 @@ const { query } = require('../config/db')
 const { success, error, pagination } = require('../utils/response')
 const { auth } = require('../middleware/auth')
 const { parseJsonArray } = require('../utils/parseJson')
+const { validateMediaUrl } = require('../utils/validate')
 
 /**
  * 宠物表单配置（种类 / 品种 / 性格标签）
@@ -316,6 +317,11 @@ router.post('/:id/avatar', auth, async (req, res) => {
   
   if (!avatar) {
     return res.status(400).json(error('请提供头像URL', 400))
+  }
+
+  const avatarErr = validateMediaUrl(avatar)
+  if (avatarErr) {
+    return res.status(400).json(error(avatarErr, 400))
   }
   
   try {

@@ -51,8 +51,8 @@ page {
   width: 100%;
   height: 100%;
   background: $color-bg-primary;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   font-size: $font-size-body;
   color: $color-gray-dark;
   line-height: $line-height-base;

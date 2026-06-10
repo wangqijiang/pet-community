@@ -196,4 +196,6 @@ async function recalcUserStats(conn, userId) {
 
 module.exports = {
   mergeUsers,
+  dedupeMergeData,
+  recalcUserStats,
 };

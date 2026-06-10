@@ -7,6 +7,7 @@ import 'element-plus/dist/index.css'
 
 import App from './App.vue'
 import router from './router'
+import { useAuthStore } from '@/stores/auth'
 import './styles/index.scss'
 
 const app = createApp(App)
@@ -19,4 +20,8 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(pinia)
 app.use(router)
 app.use(ElementPlus, { locale: zhCn })
-app.mount('#app')
+
+const auth = useAuthStore()
+void auth.fetchMe().finally(() => {
+  app.mount('#app')
+})

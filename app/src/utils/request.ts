@@ -1,4 +1,3 @@
-import type { UniApp } from "@dcloudio/types";
 import { getApiOrigin } from "./media";
 import {
   ensureNetworkWarmup,
@@ -12,6 +11,11 @@ import {
   handleWriteUnauthorized,
   isAuthRequiredResponse,
 } from "./authRedirect";
+import { isGuestMode, isLoggedIn } from "./session";
+import {
+  isPublicApi,
+  normalizeClientApiPath,
+} from "@/shared/publicApiMatcher";
 
 const baseURL = `${getApiOrigin()}/api`;
 
@@ -27,6 +31,8 @@ interface RequestOptions {
   header?: Record<string, string>;
   filePath?: string;
   name?: string;
+  /** 未登录时直接拒绝，不发 HTTP 请求 */
+  requireAuth?: boolean;
 }
 
 export interface ResponseData<T = unknown> {
@@ -132,17 +138,13 @@ function sendHttpRequest<T>(
               ? JSON.stringify(res.data)
               : "";
 
-        if (res.statusCode >= 400) {
-          reject(new Error(`HTTP ${res.statusCode}`));
-          return;
-        }
-
         if (isNginxForbiddenHtml(raw)) {
           reject(new Error("服务被拒绝(403)，请稍后重试"));
           return;
         }
 
         const data = parseResponseBody<T>(raw) as ResponseData<T> | null;
+
         if (
           isAuthRequiredResponse({
             statusCode: res.statusCode,
@@ -153,6 +155,12 @@ function sendHttpRequest<T>(
           rejectUnauthorized(reject, method, data || undefined);
           return;
         }
+
+        if (res.statusCode >= 400) {
+          reject(new Error(data?.message || `HTTP ${res.statusCode}`));
+          return;
+        }
+
         if (data && data.success) resolve(data);
         else
           reject(
@@ -236,13 +244,20 @@ async function requestWithRetry<T>(
 export async function request<T = unknown>(
   options: RequestOptions,
 ): Promise<ResponseData<T>> {
+  const method = (options.method || "GET").toUpperCase();
+  const apiPath = normalizeClientApiPath(options.url);
+  const isPublic = isPublicApi(method, apiPath);
+
+  if (!isLoggedIn() && (options.requireAuth || !isPublic)) {
+    return Promise.reject(new AuthRequiredError(UNAUTHORIZED_MESSAGE));
+  }
+
   await ensureNetworkWarmup();
 
-  const token = uni.getStorageSync("token");
+  const token = isGuestMode() ? "" : uni.getStorageSync("token");
   const header: Record<string, string> = { ...options.header };
   if (token) header.Authorization = `Bearer ${token}`;
 
-  const method = options.method || "GET";
   return requestWithRetry<T>(options, method, header);
 }
 
@@ -275,10 +290,40 @@ export function del<T = unknown>(
   return request<T>({ url, method: "DELETE", data });
 }
 
+export function authGet<T = unknown>(
+  url: string,
+  data?: Record<string, unknown>,
+) {
+  return request<T>({ url, method: "GET", data, requireAuth: true });
+}
+
+export function authPost<T = unknown>(
+  url: string,
+  data?: Record<string, unknown>,
+  options?: Omit<RequestOptions, "url" | "method" | "data" | "requireAuth">,
+) {
+  return request<T>({ url, method: "POST", data, requireAuth: true, ...options });
+}
+
+export function authPut<T = unknown>(
+  url: string,
+  data?: Record<string, unknown>,
+) {
+  return request<T>({ url, method: "PUT", data, requireAuth: true });
+}
+
+export function authDel<T = unknown>(
+  url: string,
+  data?: Record<string, unknown>,
+) {
+  return request<T>({ url, method: "DELETE", data, requireAuth: true });
+}
+
 export {
   AuthRequiredError,
   showRequestError,
   isAuthRequiredError,
+  isUnauthorizedError,
   promptLogin,
 } from "./authRedirect";
 export { showToast, hideToast } from "./toast";

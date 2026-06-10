@@ -7,7 +7,13 @@
       "@/*": ["./src/*"]
     },
     "lib": ["esnext", "dom"],
-    "types": ["@dcloudio/types"]
+    "resolveJsonModule": true,
+    "types": ["@dcloudio/types"],
+    "allowJs": true,
+    "checkJs": false,
+    "strict": false,
+    "noImplicitAny": false
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "shims-uni.d.ts", "../shared/public-api-whitelist.json"],
+  "exclude": ["node_modules", "dist", "unpackage", "**/*.vue.js"]
 }

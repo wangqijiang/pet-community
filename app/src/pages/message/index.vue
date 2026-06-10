@@ -100,7 +100,7 @@ import { resolveMediaUrl } from "@/utils/media";
 import { isLoggedIn } from "@/api/auth";
 import { promptLogin } from "@/utils/request";
 import { ensureRealtimeConnected, getActiveChatUserId } from "@/utils/realtime";
-import { emitRefreshTabBarBadge } from "@/utils/tabBarBadge";
+import { scheduleTabBarBadgeRefresh } from "@/utils/tabBarBadge";
 import type { Notification } from "@/api/notification";
 import type { Conversation, ChatMessage } from "@/api/message";
 
@@ -223,7 +223,7 @@ const upsertChatFromMessage = (msg: ChatMessage) => {
     chatList.value.splice(idx, 1);
   }
   chatList.value.unshift(item);
-  emitRefreshTabBarBadge();
+  scheduleTabBarBadgeRefresh();
 };
 
 const prependNotification = (n: Notification) => {
@@ -244,7 +244,7 @@ const prependNotification = (n: Notification) => {
         desc = n.content || `${name}`;
       }
       const item = {
-        type: n.type,
+        type: n.type as SystemNoticeType,
         icon: cat.icon,
         title: cat.title,
         desc,
@@ -263,7 +263,7 @@ const prependNotification = (n: Notification) => {
       }
     })
     .catch(() => loadData());
-  emitRefreshTabBarBadge();
+  scheduleTabBarBadgeRefresh();
 };
 
 const loadData = async () => {
@@ -290,7 +290,7 @@ const loadData = async () => {
   } catch (e) {
     console.error(e);
   } finally {
-    emitRefreshTabBarBadge();
+    scheduleTabBarBadgeRefresh();
   }
 };
 

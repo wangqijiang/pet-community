@@ -1,4 +1,4 @@
-import { get, post } from "@/utils/request";
+import { get, authGet, authPost } from "@/utils/request";
 import { parseJsonArray } from "@/utils/format";
 
 export interface PlaceCategory {
@@ -123,13 +123,13 @@ export async function getPlaceReviews(
 export async function togglePlaceLike(
   placeId: number,
 ): Promise<{ liked: boolean }> {
-  const res = await post<{ liked: boolean }>(`/place/${placeId}/like`);
+  const res = await authPost<{ liked: boolean }>(`/place/${placeId}/like`);
   return res.data;
 }
 
 export async function checkPlaceLiked(placeId: number): Promise<boolean> {
   try {
-    const res = await get<{ liked: boolean }>(`/place/${placeId}/liked`);
+    const res = await authGet<{ liked: boolean }>(`/place/${placeId}/liked`);
     return !!res.data?.liked;
   } catch {
     return false;
@@ -141,7 +141,7 @@ export async function addPlaceReview(
   rating: number,
   content: string,
 ): Promise<PlaceReview> {
-  const res = await post<PlaceReview>(`/place/${placeId}/reviews`, {
+  const res = await authPost<PlaceReview>(`/place/${placeId}/reviews`, {
     rating,
     content,
   });
@@ -152,7 +152,7 @@ export async function getFavoritePlaces(
   page = 1,
   size = 10,
 ): Promise<PlaceListResponse> {
-  const res = await get<PlaceListResponse>("/place/user/favorites", {
+  const res = await authGet<PlaceListResponse>("/place/user/favorites", {
     page,
     size,
   });

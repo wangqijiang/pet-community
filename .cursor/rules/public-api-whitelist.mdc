@@ -1,0 +1,17 @@
+# 公开 API 白名单规范
+
+单一数据源：`shared/public-api-whitelist.json`
+
+## 新增接口检查清单
+
+1. **游客/未登录能否访问？** 能 → 加入白名单 JSON（method + pattern）
+2. **后端路由** 公开读接口用无 `auth` 或 `optionalAuth`；写操作必须 `auth`
+3. **前端** 使用 `get/post`（白名单自动放行）或 `authGet/authPost`（显式需登录）
+4. 运行 `node server/scripts/verify-public-api-whitelist.js` 做抽样校验
+
+## 两层防护
+
+- 前端 `request.ts`：未登录且不在白名单 → 不发 HTTP
+- 后端 `publicApiGuard`：未登录且不在白名单 → 401
+
+详见 `server/docs/PUBLIC_API_WHITELIST.md`

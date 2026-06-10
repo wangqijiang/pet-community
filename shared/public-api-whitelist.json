@@ -1,0 +1,43 @@
+{
+  "$schema": "./public-api-whitelist.schema.json",
+  "version": 1,
+  "description": "未登录（含游客）可调用的 API 白名单。修改后须同步前后端；新增公开接口必须加入此文件。",
+  "routes": [
+    { "method": "GET", "pattern": "/api/health", "note": "健康检查" },
+    { "method": "GET", "pattern": "/api", "note": "API 索引" },
+
+    { "method": "POST", "pattern": "/api/auth/register", "note": "注册" },
+    { "method": "POST", "pattern": "/api/auth/login", "note": "密码登录" },
+    { "method": "GET", "pattern": "/api/auth/check", "note": "检查 token" },
+    { "method": "POST", "pattern": "/api/auth/reset-password", "note": "重置密码" },
+    { "method": "POST", "pattern": "/api/auth/sendCode", "note": "发送验证码" },
+    { "method": "POST", "pattern": "/api/auth/loginByCode", "note": "验证码登录" },
+    { "method": "POST", "pattern": "/api/auth/wechatOpenidLogin", "note": "微信 openid 登录" },
+    { "method": "POST", "pattern": "/api/auth/wechatLogin", "note": "微信登录（兼容）" },
+    { "method": "POST", "pattern": "/api/auth/logout", "note": "退出登录" },
+
+    { "method": "GET", "pattern": "/api/user/info/:id", "note": "指定用户资料（主页）" },
+    { "method": "GET", "pattern": "/api/user/:id/followers", "note": "用户粉丝列表" },
+    { "method": "GET", "pattern": "/api/user/:id/following", "note": "用户关注列表" },
+    { "method": "GET", "pattern": "/api/user/search", "note": "搜索用户" },
+
+    { "method": "GET", "pattern": "/api/post/categories", "note": "动态分类" },
+    { "method": "GET", "pattern": "/api/post/:id/comments", "note": "动态评论列表" },
+    { "method": "GET", "pattern": "/api/post/:id", "note": "动态详情（optionalAuth）" },
+    { "method": "GET", "pattern": "/api/post", "note": "动态列表（optionalAuth）" },
+
+    { "method": "GET", "pattern": "/api/place/categories", "note": "地点分类" },
+    { "method": "GET", "pattern": "/api/place/types/stats", "note": "地点类型统计" },
+    { "method": "GET", "pattern": "/api/place/:id/reviews", "note": "地点评价列表" },
+    { "method": "GET", "pattern": "/api/place/:id", "note": "地点详情（optionalAuth）" },
+    { "method": "GET", "pattern": "/api/place", "note": "地点列表" },
+
+    { "method": "GET", "pattern": "/api/pet/config", "note": "宠物表单配置" },
+    { "method": "GET", "pattern": "/api/pet/public/:id", "note": "宠物公开详情" },
+    { "method": "GET", "pattern": "/api/pet/user/:userId", "note": "指定用户的宠物列表" },
+
+    { "method": "GET", "pattern": "/api/guide/meta/categories", "note": "指南分类" },
+    { "method": "GET", "pattern": "/api/guide/:id", "note": "指南详情" },
+    { "method": "GET", "pattern": "/api/guide", "note": "指南列表" }
+  ]
+}

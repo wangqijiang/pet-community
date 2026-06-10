@@ -43,7 +43,7 @@ router.get('/info/:id', async (req, res) => {
   
   try {
     const users = await query(`
-      SELECT id, username, avatar, openid, signature, gender, region,
+      SELECT id, username, avatar, signature, gender, region,
         ${USER_COUNT_FIELDS}, created_at
       FROM users WHERE id = ? AND status = 1
     `, [id])

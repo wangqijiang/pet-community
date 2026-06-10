@@ -34,7 +34,11 @@ async function assertSmsSendAllowed(phone) {
   } catch (err) {
     if (err instanceof PnvsUserError) throw err;
     if (err.code === "ER_NO_SUCH_TABLE") {
-      console.warn("sms_send_records 表不存在，请执行 migrate-sms-rate-limit.sql");
+      const msg = "sms_send_records 表不存在，请执行 migrate-sms-rate-limit.sql";
+      if (process.env.NODE_ENV === "production") {
+        throw new PnvsUserError("短信服务暂不可用，请稍后再试", 503);
+      }
+      console.warn(msg);
       return;
     }
     throw err;

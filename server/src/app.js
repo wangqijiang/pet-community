@@ -4,15 +4,23 @@ const express = require('express')
 const http = require('http')
 const cors = require('cors')
 const path = require('path')
+const { publicApiGuard } = require('./middleware/publicApiGuard')
 const { initWebSocket } = require('./ws')
 
 const app = express()
 const PORT = process.env.PORT || 3000
 
 // 中间件
+const isProduction = process.env.NODE_ENV === 'production'
 const corsOrigin = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-  : '*'
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+  : isProduction
+    ? false
+    : true
+
+if (isProduction && !process.env.CORS_ORIGIN) {
+  console.warn('警告: 生产环境未设置 CORS_ORIGIN，跨域请求将被拒绝')
+}
 
 app.use(cors({
   origin: corsOrigin,
@@ -28,6 +36,9 @@ app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.url}`)
   next()
 })
+
+// 未登录白名单校验（第二层防护，须在业务路由之前）
+app.use('/api', publicApiGuard)
 
 // 路由
 const authRouter = require('./routes/auth')

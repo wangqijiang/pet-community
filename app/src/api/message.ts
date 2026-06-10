@@ -1,4 +1,4 @@
-import { get, post, del } from "@/utils/request";
+import { authGet, authPost, authDel } from "@/utils/request";
 
 export interface Conversation {
   user_id: number;
@@ -24,7 +24,7 @@ export interface ChatMessage {
 }
 
 export async function getConversations(): Promise<Conversation[]> {
-  const res = await get<Conversation[]>("/message");
+  const res = await authGet<Conversation[]>("/message");
   return res.data || [];
 }
 
@@ -33,7 +33,7 @@ export async function getChatMessages(
   page = 1,
   size = 50,
 ): Promise<ChatMessage[]> {
-  const res = await get<ChatMessage[]>(`/message/chat/${userId}`, {
+  const res = await authGet<ChatMessage[]>(`/message/chat/${userId}`, {
     page,
     size,
   });
@@ -45,7 +45,7 @@ export async function sendMessage(
   content: string,
   type = "text",
 ): Promise<ChatMessage> {
-  const res = await post<ChatMessage>("/message/send", {
+  const res = await authPost<ChatMessage>("/message/send", {
     toId,
     content,
     type,
@@ -54,14 +54,14 @@ export async function sendMessage(
 }
 
 export async function getUnreadMessageCount(): Promise<number> {
-  const res = await get<{ count: number }>("/message/unread/count");
+  const res = await authGet<{ count: number }>("/message/unread/count");
   return res.data?.count ?? 0;
 }
 
 export async function markMessagesRead(fromId?: number): Promise<void> {
-  await post("/message/read", fromId ? { fromId } : {});
+  await authPost("/message/read", fromId ? { fromId } : {});
 }
 
 export async function deleteConversation(userId: number): Promise<void> {
-  await del(`/message/chat/${userId}`);
+  await authDel(`/message/chat/${userId}`);
 }

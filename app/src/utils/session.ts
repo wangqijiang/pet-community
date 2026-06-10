@@ -7,6 +7,7 @@ export function getToken(): string | null {
 }
 
 export function isLoggedIn(): boolean {
+  if (isGuestMode()) return false;
   return !!getToken();
 }
 
@@ -19,6 +20,7 @@ export function canAccessApp(): boolean {
 }
 
 export function enterGuestMode(): void {
+  clearAuthOnly();
   uni.setStorageSync(GUEST_MODE_KEY, true);
 }
 

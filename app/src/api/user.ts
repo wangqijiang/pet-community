@@ -1,4 +1,4 @@
-import { get, put, post } from "@/utils/request";
+import { get, authGet, authPut, authPost } from "@/utils/request";
 import { baseURL } from "@/utils/request";
 
 export interface UserInfo {
@@ -63,7 +63,7 @@ export interface UpdateUserInfoParams {
 }
 
 export async function getUserInfo(): Promise<UserInfo> {
-  const res = await get<UserInfo>("/user/info");
+  const res = await authGet<UserInfo>("/user/info");
   return res.data;
 }
 
@@ -75,12 +75,12 @@ export async function getUserById(id: number): Promise<UserInfo> {
 export async function updateUserInfo(
   params: UpdateUserInfoParams,
 ): Promise<UserInfo> {
-  const res = await put<UserInfo>("/user/info", params);
+  const res = await authPut<UserInfo>("/user/info", params as Record<string, unknown>);
   return res.data;
 }
 
 export async function uploadAvatar(filePath: string): Promise<{ url: string }> {
-  const res = await post<{ url: string }>(
+  const res = await authPost<{ url: string }>(
     "/user/avatar",
     {},
     { filePath, name: "avatar" },
@@ -89,15 +89,15 @@ export async function uploadAvatar(filePath: string): Promise<{ url: string }> {
 }
 
 export async function followUser(followId: number): Promise<void> {
-  await post("/user/follow", { followId });
+  await authPost("/user/follow", { followId });
 }
 
 export async function unfollowUser(followId: number): Promise<void> {
-  await post("/user/unfollow", { followId });
+  await authPost("/user/unfollow", { followId });
 }
 
 export async function isFollowing(userId: number): Promise<boolean> {
-  const res = await get<{ isFollowing: boolean }>(`/user/is-following/${userId}`);
+  const res = await authGet<{ isFollowing: boolean }>(`/user/is-following/${userId}`);
   return !!res.data?.isFollowing;
 }
 
@@ -105,7 +105,7 @@ export async function getFollowingList(
   page = 1,
   size = 20,
 ): Promise<{ list: UserInfo[]; pagination: { total: number; page: number; size: number; pages: number } }> {
-  const res = await get<{
+  const res = await authGet<{
     list: UserInfo[];
     pagination: { total: number; page: number; size: number; pages: number };
   }>("/user/following", { page, size });
@@ -116,7 +116,7 @@ export async function getFollowersList(
   page = 1,
   size = 20,
 ): Promise<{ list: UserInfo[]; pagination: { total: number; page: number; size: number; pages: number } }> {
-  const res = await get<{
+  const res = await authGet<{
     list: UserInfo[];
     pagination: { total: number; page: number; size: number; pages: number };
   }>("/user/followers", { page, size });
@@ -129,7 +129,7 @@ export async function getNearbyUsers(params: {
   keyword?: string;
   breed?: string;
 }): Promise<NearbyUser[]> {
-  const res = await get<NearbyUser[]>("/user/nearby", params as Record<string, unknown>);
+  const res = await authGet<NearbyUser[]>("/user/nearby", params as Record<string, unknown>);
   return res.data || [];
 }
 
@@ -137,7 +137,7 @@ export async function getMapMarkers(
   lat: number,
   lng: number,
 ): Promise<MapMarkers> {
-  const res = await get<MapMarkers>("/user/map/markers", { lat, lng });
+  const res = await authGet<MapMarkers>("/user/map/markers", { lat, lng });
   return res.data || { places: [], users: [] };
 }
 
@@ -146,7 +146,7 @@ export async function searchUsers(
   page = 1,
   size = 20,
 ): Promise<{ list: UserInfo[]; pagination: { total: number; page: number; size: number; pages: number } }> {
-  const res = await get<{
+  const res = await authGet<{
     list: UserInfo[];
     pagination: { total: number; page: number; size: number; pages: number };
   }>("/user/search", { keyword, page, size });

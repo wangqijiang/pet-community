@@ -361,7 +361,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, getCurrentInstance } from "vue";
+import { ref, onMounted, computed, watch, getCurrentInstance, nextTick } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import Loading from "@/components/common/Loading.vue";
 import TopNavBar from "@/components/common/TopNavBar.vue";
@@ -616,9 +616,9 @@ const loadPetData = async () => {
       );
 
       const healthCertificate = Boolean(
-        data.healthCertificate !== undefined && data.healthCertificate !== null
-          ? data.healthCertificate
-          : (data as any).health_certificate,
+        data.health_certificate !== undefined && data.health_certificate !== null
+          ? data.health_certificate
+          : false,
       );
 
       let vaccinated = false;
@@ -813,7 +813,7 @@ const syncNumericInputsFromDom = (): Promise<void> => {
 
     uni
       .createSelectorQuery()
-      .in(instance as WechatMiniprogram.Component.TrivialInstance)
+      .in(instance as unknown as { $scope?: unknown })
       .select("#age-input")
       .fields({ properties: ["value"] }, (res) => {
         const val = (res as { value?: string } | null)?.value;
@@ -837,7 +837,7 @@ const syncNumericInputsFromDom = (): Promise<void> => {
 const validateNumericFieldOnSave = (field: "age" | "weight", raw: string): boolean => {
   const trimmed = (raw ?? "").trim();
   const sanitized = sanitizeInput(field, trimmed);
-  (formData.value as Record<string, string>)[field] = sanitized;
+  (formData.value as Record<string, string | boolean | string[]>)[field] = sanitized;
 
   if (!trimmed) {
     if (field === "age") {
@@ -1184,7 +1184,7 @@ const handleSave = async () => {
       size: mapSizeToDb(formData.value.size) || undefined,
       neutered: formData.value.neutered,
       vaccinated: formData.value.vaccinated ? "已接种" : "未接种",
-      healthCertificate: formData.value.healthCertificate,
+      health_certificate: formData.value.healthCertificate,
       personality:
         formData.value.personality.length > 0
           ? formData.value.personality.join(",")

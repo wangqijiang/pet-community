@@ -4,6 +4,8 @@ const { query } = require('../config/db')
 const { auth } = require('../middleware/auth')
 const { success, error } = require('../utils/response')
 const { pushToUser, pushNotificationById } = require('../utils/realtime')
+const { parsePagination } = require('../utils/pagination')
+const { validateMessageContent } = require('../utils/validate')
 
 /**
  * 获取会话列表
@@ -45,8 +47,7 @@ router.get('/', auth, async (req, res) => {
  */
 router.get('/chat/:userId', auth, async (req, res) => {
   const { userId } = req.params
-  const { page = 1, size = 20 } = req.query
-  const offset = (page - 1) * size
+  const { page, size, offset } = parsePagination(req.query, { page: 1, size: 20, maxSize: 100 })
 
   try {
     const messages = await query(`
@@ -59,7 +60,7 @@ router.get('/chat/:userId', auth, async (req, res) => {
       WHERE (m.from_id = ? AND m.to_id = ?) OR (m.from_id = ? AND m.to_id = ?)
       ORDER BY m.created_at DESC
       LIMIT ? OFFSET ?
-    `, [req.user.id, userId, userId, req.user.id, parseInt(size), parseInt(offset)])
+    `, [req.user.id, userId, userId, req.user.id, size, offset])
 
     // 标记消息为已读
     await query(`
@@ -86,7 +87,12 @@ router.get('/chat/:userId', auth, async (req, res) => {
 router.post('/send', auth, async (req, res) => {
   const { toId, content, type = 'text' } = req.body
 
-  if (!toId || !content) {
+  const contentErr = validateMessageContent(content)
+  if (contentErr) {
+    return res.status(400).json(error(contentErr, 400))
+  }
+
+  if (!toId) {
     return res.status(400).json(error('请填写完整信息', 400))
   }
 
@@ -104,7 +110,7 @@ router.post('/send', auth, async (req, res) => {
     // 插入消息
     const result = await query(
       'INSERT INTO messages (from_id, to_id, content, type, created_at) VALUES (?, ?, ?, ?, NOW())',
-      [req.user.id, toId, content, type]
+      [req.user.id, toId, content.trim(), type]
     )
 
     // 获取完整消息

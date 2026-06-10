@@ -5,6 +5,12 @@ const { pushNotificationById } = require('../utils/realtime')
 const { auth, optionalAuth } = require('../middleware/auth')
 const { success, error, pagination } = require('../utils/response')
 const { parseJsonArray } = require('../utils/parseJson')
+const { parsePagination } = require('../utils/pagination')
+const {
+  validatePostContent,
+  validateCommentContent,
+  validateImagesArray,
+} = require('../utils/validate')
 
 async function syncPostLikesCount(postId) {
   const rows = await query(
@@ -117,8 +123,14 @@ async function setPostPets(postId, userId, petIds) {
 router.post('/', auth, async (req, res) => {
   const { content, images, pet_ids: petIds, category } = req.body
 
-  if (!content) {
-    return res.status(400).json(error('请填写内容', 400))
+  const contentErr = validatePostContent(content)
+  if (contentErr) {
+    return res.status(400).json(error(contentErr, 400))
+  }
+
+  const imagesErr = validateImagesArray(images)
+  if (imagesErr) {
+    return res.status(400).json(error(imagesErr, 400))
   }
 
   if (category && !(await isValidCategoryKey(category))) {
@@ -128,7 +140,7 @@ router.post('/', auth, async (req, res) => {
   try {
     const result = await query(
       'INSERT INTO posts (user_id, content, images, category, created_at) VALUES (?, ?, ?, ?, NOW())',
-      [req.user.id, content, JSON.stringify(images || []), category || null]
+      [req.user.id, content.trim(), JSON.stringify(images || []), category || null]
     )
 
     await setPostPets(result.insertId, req.user.id, petIds)
@@ -154,10 +166,12 @@ router.post('/', auth, async (req, res) => {
  * 获取动态列表
  */
 router.get('/', optionalAuth, async (req, res) => {
-  const { page = 1, size = 10, user_id, keyword, category } = req.query
-  const pageNum = parseInt(page)
-  const sizeNum = parseInt(size)
-  const offset = (pageNum - 1) * sizeNum
+  const { page: pageNum, size: sizeNum, offset } = parsePagination(req.query, {
+    page: 1,
+    size: 10,
+    maxSize: 50,
+  })
+  const { user_id, keyword, category } = req.query
 
   try {
     let sql = `
@@ -498,8 +512,9 @@ router.post('/:id/comment', auth, async (req, res) => {
   const { id } = req.params
   const { content, reply_to_id, reply_to_user_id } = req.body
 
-  if (!content) {
-    return res.status(400).json(error('请填写评论内容', 400))
+  const contentErr = validateCommentContent(content)
+  if (contentErr) {
+    return res.status(400).json(error(contentErr, 400))
   }
 
   try {
@@ -527,7 +542,7 @@ router.post('/:id/comment', auth, async (req, res) => {
 
     const result = await query(
       'INSERT INTO comments (post_id, user_id, content, parent_id, reply_to_id, reply_to_user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
-      [id, req.user.id, content, parentId, reply_to_id || null, replyToUserId]
+      [id, req.user.id, content.trim(), parentId, reply_to_id || null, replyToUserId]
     )
 
     // 更新动态评论数

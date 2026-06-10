@@ -56,6 +56,7 @@ import { useLayout } from "@/composables/useLayout";
 import { getPlaceList } from "@/api/place";
 import { getMapMarkers } from "@/api/user";
 import { isLoggedIn } from "@/api/auth";
+import { isUnauthorizedError } from "@/utils/request";
 import { buildPlaceMarker, buildUserMarker } from "@/utils/mapMarkers";
 const DEFAULT_MAP_CENTER = { lat: 39.916527, lng: 116.397128 };
 const LOCATION_TIMEOUT_MS = 2500;
@@ -125,7 +126,9 @@ const loadMarkers = async (lat: number, lng: number) => {
     markerMeta.value = meta;
   } catch (e) {
     if (token !== markersLoadToken) return;
+    if (isUnauthorizedError(e)) return;
     console.error("加载地图标记失败", e);
+    showToast({ title: "地图加载失败，请稍后重试", icon: "error" });
   } finally {
     if (token === markersLoadToken) markersLoading = false;
   }
@@ -162,7 +165,7 @@ const applyMapCenter = (
   mapCenter.value = { lat, lng };
   showLocation.value = hasRealLocation;
   if (moveMap && hasRealLocation) {
-    uni.createMapContext("map").moveToLocation();
+    uni.createMapContext("map").moveToLocation({});
   }
   scheduleLoadMarkers(lat, lng);
 };
