@@ -54,6 +54,10 @@
     "setting": {
       "urlCheck": false
     },
+    "networkTimeout": {
+      "request": 60000,
+      "connectSocket": 60000
+    },
     "usingComponents": true,
     "permission": {
       "scope.userLocation": {

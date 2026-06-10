@@ -96,7 +96,8 @@ const refreshBadge = async () => {
 
 onMounted(() => {
   currentIndex.value = props.current;
-  refreshBadge();
+  // 角标非首屏关键数据，延后拉取，让页面主接口先占预热后的连接
+  setTimeout(() => refreshBadge(), 1500);
   uni.$on(REFRESH_TAB_BAR_BADGE, refreshBadge);
 });
 

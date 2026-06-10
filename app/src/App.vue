@@ -7,12 +7,18 @@ import {
 } from "@/utils/appLaunch";
 import { connectRealtime, disconnectRealtime, ensureRealtimeConnected } from "@/utils/realtime";
 import { safeReLaunch } from "@/utils/navigation";
+import {
+  warmupNetwork,
+  onAppHide,
+  onAppShow,
+} from "@/utils/networkWarmup";
 
 onLaunch((options) => {
-  // 首屏 HTTP 加载完后再连 WebSocket，避免与接口抢同域名连接数
-  if (isLoggedIn()) {
-    setTimeout(() => connectRealtime(), 1500);
-  }
+  void warmupNetwork(true).then(() => {
+    if (isLoggedIn()) {
+      setTimeout(() => connectRealtime(), 1200);
+    }
+  });
 
   const target = resolveAppLaunchRedirect(
     (options?.query as Record<string, string | undefined>) || undefined,
@@ -21,9 +27,9 @@ onLaunch((options) => {
 });
 
 onShow(() => {
-  if (isLoggedIn()) {
-    ensureRealtimeConnected();
-  }
+  void onAppShow().then(() => {
+    if (isLoggedIn()) ensureRealtimeConnected();
+  });
 
   const resumeTarget = resolveAppResumeRedirect();
   if (resumeTarget) {
@@ -32,6 +38,7 @@ onShow(() => {
 });
 
 onHide(() => {
+  onAppHide();
   disconnectRealtime();
 });
 </script>

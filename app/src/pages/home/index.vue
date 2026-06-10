@@ -73,7 +73,15 @@ const markerMeta = ref<
   Record<number, { type: "place" | "user"; id: number; name: string }>
 >({});
 
+let markersLoadToken = 0;
+let markersLoadTimer: ReturnType<typeof setTimeout> | null = null;
+let markersLoading = false;
+let skipNextShowLoad = true;
+
 const loadMarkers = async (lat: number, lng: number) => {
+  if (markersLoading) return;
+  markersLoading = true;
+  const token = ++markersLoadToken;
   try {
     const list: ReturnType<typeof buildPlaceMarker>[] = [];
     const meta: Record<
@@ -111,11 +119,24 @@ const loadMarkers = async (lat: number, lng: number) => {
       });
     }
 
+    if (token !== markersLoadToken) return;
+
     markers.value = list;
     markerMeta.value = meta;
   } catch (e) {
+    if (token !== markersLoadToken) return;
     console.error("加载地图标记失败", e);
+  } finally {
+    if (token === markersLoadToken) markersLoading = false;
   }
+};
+
+const scheduleLoadMarkers = (lat: number, lng: number) => {
+  if (markersLoadTimer) clearTimeout(markersLoadTimer);
+  markersLoadTimer = setTimeout(() => {
+    markersLoadTimer = null;
+    loadMarkers(lat, lng);
+  }, 800);
 };
 
 const handleMarkerTap = (e: { detail: { markerId: number } }) => {
@@ -143,7 +164,7 @@ const applyMapCenter = (
   if (moveMap && hasRealLocation) {
     uni.createMapContext("map").moveToLocation();
   }
-  loadMarkers(lat, lng);
+  scheduleLoadMarkers(lat, lng);
 };
 
 const getUserLocation = (): Promise<{
@@ -218,7 +239,11 @@ onMounted(() => {
 });
 
 onShow(() => {
-  loadMarkers(mapCenter.value.lat, mapCenter.value.lng);
+  if (skipNextShowLoad) {
+    skipNextShowLoad = false;
+    return;
+  }
+  scheduleLoadMarkers(mapCenter.value.lat, mapCenter.value.lng);
 });
 </script>
 
